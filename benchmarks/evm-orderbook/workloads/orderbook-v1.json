@@ -1,0 +1,10 @@
+{
+  "version": "orderbook-v1",
+  "description": "32 deterministic placements distributed evenly across eight markets.",
+  "marketIds": [4, 5, 6, 7, 8, 9, 10, 11],
+  "ordersPerMarket": 4,
+  "priceBase": 2900,
+  "amountBase": 1,
+  "sidePattern": ["Bid", "Ask"],
+  "referenceLaneOpsPerSecond": 100
+}

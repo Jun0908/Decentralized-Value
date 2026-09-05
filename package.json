@@ -9,15 +9,19 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "build": "pnpm --filter @frontier/web build",
-    "ci": "pnpm env:check && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build",
+    "benchmark:orderbook": "tsx benchmarks/evm-orderbook/src/run.ts",
+    "build": "pnpm build:contracts && pnpm --filter @frontier/web build",
+    "build:contracts": "forge build --root packages/contracts",
+    "ci": "pnpm env:check && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm benchmark:orderbook && pnpm build",
     "dev": "pnpm --filter @frontier/web dev",
     "env:check": "tsx scripts/validate-env.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "eslint .",
+    "lint": "eslint . && forge fmt --root packages/contracts --check",
     "lint:fix": "eslint . --fix",
-    "test": "vitest run",
+    "test": "pnpm test:ts && pnpm test:contracts",
+    "test:contracts": "forge test --root packages/contracts",
+    "test:ts": "vitest run",
     "test:watch": "vitest",
     "typecheck": "pnpm -r --if-present typecheck"
   },

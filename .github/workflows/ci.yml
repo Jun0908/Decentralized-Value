@@ -33,6 +33,11 @@ jobs:
           node-version: 22
           cache: pnpm
 
+      - name: Set up Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.8.1
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
