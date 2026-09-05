@@ -4,7 +4,7 @@ import { FrontierChart } from "@/components/frontier-chart";
 import { LiveRefresh } from "@/components/live-refresh";
 import { arena, shortHash } from "@/lib/data";
 
-export default async function ArenaPage({ params }: PageProps<"/arena/[id]">) {
+export default async function ArenaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (id !== arena.id) notFound();
   return (

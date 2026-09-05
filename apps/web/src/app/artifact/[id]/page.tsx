@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { arena, getArtifact, shortHash } from "@/lib/data";
 
-export default async function ArtifactPage({ params }: PageProps<"/artifact/[id]">) {
+export default async function ArtifactPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const artifact = getArtifact(id);
   if (!artifact) notFound();
