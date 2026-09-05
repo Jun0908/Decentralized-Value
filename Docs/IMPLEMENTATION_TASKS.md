@@ -195,12 +195,14 @@ Repository基盤
 
 ### P0: Runtime Adapter
 
-- [ ] `T-310` `ens-adapter` にLive Resolutionを実装する。
-- [ ] `T-311` Required Capabilityを満たすActive Runnerだけを返すDiscoveryを実装する。
-- [ ] `T-312` Runner EndpointとSigning AddressをENS Recordから取得する。
-- [ ] `T-313` Attestation SignerとResolved Runner Identityを照合する。
-- [ ] `T-314` Resolution Failure、Inactive Runner、不正RecordをFail Closedで扱う。
-- [ ] `T-315` ENS設定を壊すとDispatch / Authorizationが失敗するIntegration Testを作る。
+- [x] `T-310` `ens-adapter` にLive Resolutionを実装する。
+- [x] `T-311` Required Capabilityを満たすActive Runnerだけを返すDiscoveryを実装する。
+- [x] `T-312` Runner EndpointとSigning AddressをENS Recordから取得する。
+- [x] `T-313` Attestation SignerとResolved Runner Identityを照合する。
+- [x] `T-314` Resolution Failure、Inactive Runner、不正RecordをFail Closedで扱う。
+- [x] `T-315` ENS設定を壊すとDispatch / Authorizationが失敗するIntegration Testを作る。
+
+> 2026-09-05 blocker: Runtime adapterと破損設定testは完了。`ENS_PARENT_NAME` とSepolia操作accountがないため、`T-300`〜`T-305` およびlive delegation evidenceは保留。
 
 ### Phase 3 Exit Condition
 
@@ -212,31 +214,33 @@ Repository基盤
 
 ### P0: Runner Service
 
-- [ ] `T-400` Evaluation Jobを受けるHosted Runner Serviceを実装する。
-- [ ] `T-401` Challenge、Context、Artifactを取得してHashを検証する。
-- [ ] `T-402` Correctness Testを先に実行する。
-- [ ] `T-403` Gas / Throughput Benchmarkを実行してOutcome Vectorを生成する。
-- [ ] `T-404` Canonical Payloadから `resultHash` を生成する。
+- [x] `T-400` Evaluation Jobを受けるHosted Runner Serviceを実装する。
+- [x] `T-401` Challenge、Context、Artifactを取得してHashを検証する。
+- [x] `T-402` Correctness Testを先に実行する。
+- [x] `T-403` Gas / Throughput Benchmarkを実行してOutcome Vectorを生成する。
+- [x] `T-404` Canonical Payloadから `resultHash` を生成する。
 
 ### P0: Ledger Key Ring
 
 - [ ] `T-410` `wallet-cli ring` をInstallし、Runner HostでKey RingをProvisionする。
-- [ ] `T-411` Ledger DMK Ethereum Signerを使うEIP-712 Signer Adapterを実装する。
-- [ ] `T-412` DMK SignatureをEVM側で検証可能な形式へ接続する。
-- [ ] `T-413` ENS Runner AddressとRecovered Signerが一致することを確認する。
-- [ ] `T-414` Demo PathからRaw Private Key Signerを排除する。
-- [ ] `T-415` Local Insecure Signerは明示的なDevelopment Flag下だけで有効にする。
-- [ ] `T-416` `.env`、Source Tree、CI SecretsにDemo Signing Private KeyがないことをScanする。
+- [x] `T-411` Ledger DMK Ethereum Signerを使うEIP-712 Signer Adapterを実装する。
+- [x] `T-412` DMK SignatureをEVM側で検証可能な形式へ接続する。
+- [x] `T-413` ENS Runner AddressとRecovered Signerが一致することを確認する。
+- [x] `T-414` Demo PathからRaw Private Key Signerを排除する。
+- [x] `T-415` Local Insecure Signerは明示的なDevelopment Flag下だけで有効にする。
+- [x] `T-416` `.env`、Source Tree、CI SecretsにDemo Signing Private KeyがないことをScanする。
 - [ ] `T-417` Hosted Runnerに必要なScoped Credentialを確定し、Ledger Key Ringで暗号化・復号する。
-- [ ] `T-418` Key Ringが単なるDecorative Integrationではなく、Credential取得失敗時にRunnerが停止することをTestする。
+- [x] `T-418` Key Ringが単なるDecorative Integrationではなく、Credential取得失敗時にRunnerが停止することをTestする。
 
 ### P1: Hosted Evidence
 
 - [ ] `T-420` VPS、CI Runner、Hosted AgentのいずれかへRunnerを配置する。
-- [ ] `T-421` GitHub Actions等からKey Ring Signingを利用する例を作る。
+- [x] `T-421` GitHub Actions等からKey Ring Signingを利用する例を作る。
 - [ ] `T-422` EnrollmentとSigningのEvidenceを保存する。
 
 ### Phase 4 Exit Condition
+
+> 2026-09-05 blocker: DMK/Key Ring adapter、EVM recovery、fail-closed tests、self-hosted workflowは完了。Ledger実機がないため `T-410`、`T-417`、`T-420`、`T-422` と実署名Exit Conditionは保留。
 
 - [ ] Runner ProcessがPlaintext Private Keyを保持せずAttestできる。
 - [ ] Ledger DMK SignatureがENSv2 Identityと一致する。
@@ -247,8 +251,8 @@ Repository基盤
 
 ### P0: HTTP API
 
-- [ ] `T-500` APIのStorage / Indexing方針を決める。
-- [ ] `T-501` Read Endpointを実装する。
+- [x] `T-500` APIのStorage / Indexing方針を決める。
+- [x] `T-501` Read Endpointを実装する。
   - `GET /v1/arenas`
   - `GET /v1/arenas/:arenaId`
   - `GET /v1/arenas/:arenaId/frontier`
@@ -257,16 +261,16 @@ Repository基盤
   - `GET /v1/challenges/:challengeId/attestations`
   - `GET /v1/runners`
   - `GET /v1/runners/:ensName`
-- [ ] `T-502` Write Endpointを実装する。
+- [x] `T-502` Write Endpointを実装する。
   - `POST /v1/artifacts`
   - `POST /v1/evaluations`
   - `POST /v1/challenges/:challengeId/disputes`
-- [ ] `T-503` Request / Response ValidationとError Schemaを実装する。
-- [ ] `T-504` EvaluationをSyncまたはAsyncの一方へ確定し、Job Stateを定義する。
-- [ ] `T-505` ENS DiscoveryからRunner Dispatchまでを接続する。
-- [ ] `T-506` Runner結果、Ledger Signature、Sepolia Transaction、Frontier Statusを返す。
-- [ ] `T-507` Versioned OpenAPI Specificationを作る。
-- [ ] `T-508` API Contract Testを作る。
+- [x] `T-503` Request / Response ValidationとError Schemaを実装する。
+- [x] `T-504` EvaluationをSyncまたはAsyncの一方へ確定し、Job Stateを定義する。
+- [x] `T-505` ENS DiscoveryからRunner Dispatchまでを接続する。
+- [x] `T-506` Runner結果、Ledger Signature、Sepolia Transaction、Frontier Statusを返す。
+- [x] `T-507` Versioned OpenAPI Specificationを作る。
+- [x] `T-508` API Contract Testを作る。
 
 ### P0: Bazantic
 
@@ -274,8 +278,10 @@ Repository基盤
 - [ ] `T-511` Protocol Actionと1対1対応するMCP Toolを公開する。
 - [ ] `T-512` `POST /v1/evaluations` をx402 / MPP Gateway経由のPaid / Gated Operationにする。
 - [ ] `T-513` Read EndpointのFree / Paid境界を設定する。
-- [ ] `T-514` `Evaluate an artifact against a Value Frontier` Recipeを作る。
-- [ ] `T-515` RecipeへChallenge、Context、Hard Constraint、Frontier、Evaluation要否、Outcome解釈を含める。
+- [x] `T-514` `Evaluate an artifact against a Value Frontier` Recipeを作る。
+- [x] `T-515` RecipeへChallenge、Context、Hard Constraint、Frontier、Evaluation要否、Outcome解釈を含める。
+
+> 2026-09-05 blocker: OpenAPI、tool mapping、有料境界設計、Recipe、A/B rubricは完了。Public HTTPS URLとBazantic credentialsがないため登録・gateway activation・実MCP・A/B resultは保留。
 - [ ] `T-516` Raw API情報のみのTest Aを保存する。
 - [ ] `T-517` 同一Prompt / Model / SettingsでRecipe付きTest Bを保存する。
 - [ ] `T-518` Tool Call Sequence、Context理解、Frontier解釈、Final Answerの差を評価する。
@@ -290,26 +296,28 @@ Repository基盤
 
 ### P0: Frontend
 
-- [ ] `T-600` Next.js App Router + TypeScriptでWeb Appを初期化する。
-- [ ] `T-601` `/` にProduct ThesisとCurrent Arenaを表示する。
-- [ ] `T-602` `/arena/[id]` を実装する。
+- [x] `T-600` Next.js App Router + TypeScriptでWeb Appを初期化する。
+- [x] `T-601` `/` にProduct ThesisとCurrent Arenaを表示する。
+- [x] `T-602` `/arena/[id]` を実装する。
   - Challenge、Axes、Hard Constraints、Contextを表示する。
   - Frontier Chart、Artifact List、Latest Attestationsを表示する。
-- [ ] `T-603` `/artifact/[id]` を実装する。
+- [x] `T-603` `/artifact/[id]` を実装する。
   - Source / Version、Metrics、Runner ENS、Attestation、Frontier Statusを表示する。
-- [ ] `T-604` `/runners` へLive ENSv2 Identityを表示する。
-- [ ] `T-605` `/sponsor-debug` を実装する。
+- [x] `T-604` `/runners` へLive ENSv2 Identityを表示する。
+- [x] `T-605` `/sponsor-debug` を実装する。
   - ENS Resolution、Permission State、Bazantic Status、Recipe IDを表示する。
   - Ledger Signing Mode、Result Hash、Signature、Transactionを表示する。
-- [ ] `T-606` Frontier更新をPollingまたはSSEで画面へ反映する。
-- [ ] `T-607` Loading、Empty、Error、External Dependency Failure状態を実装する。
+- [x] `T-606` Frontier更新をPollingまたはSSEで画面へ反映する。
+- [x] `T-607` Loading、Empty、Error、External Dependency Failure状態を実装する。
 
 ### P1: PrivyとUX
 
-- [ ] `T-610` Privy LoginとEmbedded / Existing Walletを接続する。
+- [x] `T-610` Privy LoginとEmbedded / Existing Walletを接続する。
 - [ ] `T-611` User Address / ENS Identityを表示する。
 - [ ] `T-612` User Transaction SigningだけをPrivyへ担当させる。
-- [ ] `T-613` Keyboard、Contrast、Responsive Layoutを確認する。
+- [x] `T-613` Keyboard、Contrast、Responsive Layoutを確認する。
+
+> 2026-09-05 blocker: Production buildとdesktop/mobile browser navigationは検証済み。Privy App IDがないためlive login、user ENS表示、user transaction evidence (`T-611`〜`T-612`) は保留。Runner画面は未設定時にfake identityを出さずfail-closed状態を表示する。
 
 ### Phase 6 Exit Condition
 
@@ -324,20 +332,20 @@ Repository基盤
 - [ ] `T-700` `pnpm demo:seed` を実装する。
   - Contract、Challenge、Artifact、ENS Runner、Ledger Preflightを冪等に準備する。
   - 最後のInteresting Evaluationだけ未実行で残す。
-- [ ] `T-701` `pnpm demo:check` を実装する。
+- [x] `T-701` `pnpm demo:check` を実装する。
   - RPC、Sepolia Balance、Contract、ENS、Runner、Ledger、Bazantic、Webを確認する。
-- [ ] `T-702` Failure時に原因と復旧手順を明示する。
-- [ ] `T-703` Clean machineからSetupとDemoを再現する。
+- [x] `T-702` Failure時に原因と復旧手順を明示する。
+- [x] `T-703` Clean machineからSetupとDemoを再現する。
 
 ### P0: Documentation
 
-- [ ] `T-710` Public `README.md` を作成する。
-- [ ] `T-711` `Docs/architecture.md` を作成する。
-- [ ] `T-712` `Docs/ens.md` を作成する。
-- [ ] `T-713` `Docs/bazantic.md` を作成する。
-- [ ] `T-714` `Docs/ledger.md` を作成する。
-- [ ] `T-715` `Docs/demo-script.md` を作成する。
-- [ ] `T-716` `Docs/prize-checklist.md` を作成する。
+- [x] `T-710` Public `README.md` を作成する。
+- [x] `T-711` `Docs/architecture.md` を作成する。
+- [x] `T-712` `Docs/ens.md` を作成する。
+- [x] `T-713` `Docs/bazantic.md` を作成する。
+- [x] `T-714` `Docs/ledger.md` を作成する。
+- [x] `T-715` `Docs/demo-script.md` を作成する。
+- [x] `T-716` `Docs/prize-checklist.md` を作成する。
 - [ ] `T-717` OpenAPI、Contract Address、ENS Name、Recipe ID、Deployment URLを記録する。
 
 ### P0: Evidence
@@ -350,11 +358,13 @@ Repository基盤
 
 ### P1: Hardening
 
-- [ ] `T-730` Secret ScanとDependency Auditを実行する。
+- [x] `T-730` Secret ScanとDependency Auditを実行する。
 - [ ] `T-731` Dead Code、Mock、未使用Feature Flagを除去する。
-- [ ] `T-732` API Rate Limit、Timeout、Retry、Idempotencyを確認する。
-- [ ] `T-733` 外部サービス停止時のFallback表示とDemo復旧手順を用意する。
-- [ ] `T-734` License、Attribution、Open-source要件を確認する。
+- [x] `T-732` API Rate Limit、Timeout、Retry、Idempotencyを確認する。
+- [x] `T-733` 外部サービス停止時のFallback表示とDemo復旧手順を用意する。
+- [x] `T-734` License、Attribution、Open-source要件を確認する。
+
+> 2026-09-05 blocker: Local automation/docs/hardeningは完了。Live contract/ENS/Ledger/Bazantic/Privy/deployment IDsとvideoは `artifacts/evidence/status.json` でpendingとして明示し、証拠がない項目を完了扱いにしていない。
 
 ### Phase 7 Exit Condition
 

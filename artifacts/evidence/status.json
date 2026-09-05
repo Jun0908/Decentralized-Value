@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1",
+  "generatedAt": "2026-09-05T00:00:00.000Z",
+  "network": "sepolia",
+  "contracts": { "status": "pending-credentials" },
+  "ens": { "status": "pending-parent-name-and-account" },
+  "ledger": { "status": "pending-device" },
+  "bazantic": { "status": "pending-public-url-and-credentials" },
+  "privy": { "status": "pending-app-id" },
+  "web": { "status": "verified-local-production-build", "url": null },
+  "video": { "status": "pending-live-integrations" }
+}

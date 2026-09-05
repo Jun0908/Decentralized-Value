@@ -3,7 +3,17 @@ packages:
   - benchmarks/*
   - packages/*
 
+overrides:
+  "axios@>=1.15.2 <1.18.0": 1.18.0
+  "decode-uri-component@<=0.4.2": 0.5.0
+  "uuid@<11.1.1": 11.1.1
+  "ws@>=8.0.0 <8.21.0": 8.21.0
+
 allowBuilds:
+  "@reown/appkit": false
+  bufferutil: false
   esbuild: true
+  keccak: false
   sharp: true
   unrs-resolver: true
+  utf-8-validate: false

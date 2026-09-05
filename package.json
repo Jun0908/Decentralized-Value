@@ -15,11 +15,14 @@
     "ci": "pnpm env:check && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm benchmark:orderbook && pnpm build",
     "dev": "pnpm --filter @frontier/web dev",
     "deploy:sepolia": "pnpm --dir packages/contracts exec forge script script/Deploy.s.sol:Deploy --rpc-url sepolia --broadcast --verify",
+    "demo:check": "tsx scripts/demo-check.ts",
+    "demo:seed": "tsx scripts/demo-seed.ts",
     "env:check": "tsx scripts/validate-env.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . && forge fmt --root packages/contracts --check",
     "lint:fix": "eslint . --fix",
+    "security:scan": "tsx scripts/secret-scan.ts",
     "test": "pnpm test:ts && pnpm test:contracts",
     "test:contracts": "forge test --root packages/contracts",
     "test:ts": "vitest run",
@@ -35,6 +38,7 @@
     "prettier": "3.9.6",
     "tsx": "4.23.13",
     "typescript": "6.0.3",
+    "viem": "2.56.3",
     "vitest": "5.0.0"
   }
 }

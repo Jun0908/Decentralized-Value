@@ -4,7 +4,9 @@ Frontier Protocol rewards artifacts that expand the space in which multiple inde
 
 ## Repository status
 
-Phases 0 and 1 are complete. Phase 2 is complete locally: registries, EIP-712 attestation verification, runner authorization, Pareto settlement, Foundry tests, gas snapshots, and a reproducible Sepolia deployment script are present. Live Sepolia deployment and verification remain pending because no RPC URL or funded deployer signing method is configured.
+Phases 0–7 now have a locally verified vertical slice: deterministic Solidity benchmarks, Pareto settlement contracts, fail-closed ENS discovery, Ledger DMK signing boundary, asynchronous HTTP API, Bazantic service material, Privy-ready Next.js UI, and demo automation. The real benchmark currently contains four artifacts and three non-dominated points.
+
+Live Sepolia deployment, ENSv2 names/EAC delegation, Ledger-device signing, Bazantic registration/A/B runs, Privy login, public hosting, and video evidence remain explicitly pending because their accounts, hardware, funding, and credentials are not available. The UI and `demo:check` report these boundaries without placeholder IDs.
 
 ## Requirements
 
@@ -34,6 +36,9 @@ Copy `.env.example` to `.env.local` only when local integration values are neede
 | `pnpm typecheck`           | Type-check all workspace packages                 |
 | `pnpm test`                | Run Vitest and Foundry unit/fuzz tests            |
 | `pnpm benchmark:orderbook` | Generate the measured order-book frontier fixture |
+| `pnpm demo:seed`           | Validate/rebuild idempotent local demo state      |
+| `pnpm demo:check`          | Report local and external demo readiness          |
+| `pnpm security:scan`       | Scan tracked source for likely committed secrets  |
 | `pnpm build`               | Build contracts and the web production bundle     |
 | `pnpm run ci`              | Run the full local CI sequence                    |
 
@@ -55,4 +60,21 @@ openapi                  Versioned Frontier API specification
 Docs                     Source briefs, decisions, and task tracking
 ```
 
-See [the implementation task list](Docs/IMPLEMENTATION_TASKS.md) and [implementation decisions](Docs/implementation-decisions.md) for the current plan.
+## Demo and integrations
+
+Start the production UI locally:
+
+```bash
+pnpm --filter @frontier/web build
+pnpm --filter @frontier/web start
+```
+
+The Arena and Artifact screens use only the checked-in Foundry result. Sponsor Debug distinguishes configuration from live evidence. Run `pnpm demo:check -- --strict` before a live presentation; the non-strict form is useful while provisioning and prints a recovery action for every missing boundary.
+
+- [Architecture and trust boundaries](Docs/architecture.md)
+- [ENSv2 records and EAC plan](Docs/ens.md)
+- [Ledger DMK and Key Ring operations](Docs/ledger.md)
+- [Bazantic registration and paid boundary](Docs/bazantic.md)
+- [Demo script](Docs/demo-script.md) and [failure recovery](Docs/recovery.md)
+- [Prize/evidence checklist](Docs/prize-checklist.md)
+- [Implementation task list](Docs/IMPLEMENTATION_TASKS.md) and [decisions](Docs/implementation-decisions.md)
