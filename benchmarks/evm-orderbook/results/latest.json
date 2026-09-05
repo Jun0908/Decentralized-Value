@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "1",
+  "workloadVersion": "orderbook-v1",
+  "sourceCommit": "069633751001f7929fdc4d9966ff3aea2ffc8d5e",
+  "compilerVersion": "solc 0.8.30",
+  "compilerFlags": [
+    "optimizer=true",
+    "optimizer_runs=200",
+    "evm_version=cancun",
+    "bytecode_hash=none"
+  ],
+  "contextHash": "0xe35a596bac6d9d11035927e26ea233031ae0d1ca0f7ccae965835f5029030a79",
+  "measuredAt": "2026-09-05T01:51:10.159Z",
+  "repetitions": 5,
+  "artifacts": [
+    {
+      "name": "PackedBook",
+      "artifactHash": "0x0b58818f14b08f972c7af6f53a4a5e96c8ed1cfca0f431a089edbfa25acb9685",
+      "correctness": true,
+      "constraintResultHash": "0x805cddb2c7f33f87433b6d8c7d6b5b91f592a375ead45ceac8b5c94dd8be95b7",
+      "gasPerOrder": "70270",
+      "parallelThroughput": "100",
+      "frontier": true
+    },
+    {
+      "name": "FrontierBook",
+      "artifactHash": "0x3884a0a6c733413eab68f8af7208675e3ee2c49cc14aea9be38340d0179834fa",
+      "correctness": true,
+      "constraintResultHash": "0x805cddb2c7f33f87433b6d8c7d6b5b91f592a375ead45ceac8b5c94dd8be95b7",
+      "gasPerOrder": "71935",
+      "parallelThroughput": "400",
+      "frontier": true
+    },
+    {
+      "name": "ShardedBook",
+      "artifactHash": "0xfeca6e981d8610fb25bc7c12cfde3e122656b339fc6caac73a7008dc1d898ff5",
+      "correctness": true,
+      "constraintResultHash": "0x805cddb2c7f33f87433b6d8c7d6b5b91f592a375ead45ceac8b5c94dd8be95b7",
+      "gasPerOrder": "121277",
+      "parallelThroughput": "800",
+      "frontier": true
+    },
+    {
+      "name": "BadBook",
+      "artifactHash": "0xe744095a8de3b459767a22c24f21657522f84dc1b0c39d1d541a7435d445338b",
+      "correctness": false,
+      "constraintResultHash": "0x3b3f8cf6d55ac37d6d56c301878038b27ea509a8dacaf7fb926b05d69bccafde",
+      "gasPerOrder": "64731",
+      "parallelThroughput": "100",
+      "frontier": false
+    }
+  ]
+}
