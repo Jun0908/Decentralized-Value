@@ -85,3 +85,19 @@ This log records decisions that affect the Frontier Protocol architecture. Spons
 - **Date:** 2026-09-05
 - **Decision:** Do not link a Vercel project, provision a database, pull remote environment variables, or run migrations in Phase 0.
 - **Reason:** No shared managed resource is required for the current foundation, and those operations would create external state before a project/storage decision exists. Linking and provisioning will be handled when deployment architecture is selected.
+
+## D-011 — Versioned hybrid benchmark boundary
+
+- **Status:** Accepted
+- **Date:** 2026-09-05
+- **Decision:** Measure `gasPerOrder` in Foundry's EVM and compute `parallelThroughput` with a deterministic, versioned storage-contention scheduler. Preserve both metrics and correctness evidence in one generated record.
+- **Reason:** Ordinary EVM execution provides real gas accounting but does not expose the target parallel scheduler. Naming the simulated boundary and hashing the workload/context prevents a normalized contention score from being misrepresented as observed production-chain throughput.
+- **Details:** See [benchmark methodology](benchmark-methodology.md).
+
+## D-012 — Phase 2 identity adapter and deployment boundary
+
+- **Status:** Accepted; Sepolia deployment pending credentials
+- **Date:** 2026-09-05
+- **Decision:** Keep `BenchmarkAttestation` dependent on `IRunnerIdentityAdapter`. Use an owner-managed allow-list implementation for local Phase 2 integration tests; implement the live ENSv2 adapter against the same interface in Phase 3.
+- **Reason:** Signature, replay, expiry, registry, and settlement behavior can be fully tested now without hard-coding ENS data into protocol contracts. The live adapter remains load-bearing because attestations fail closed when the configured adapter denies the runner.
+- **Deployment gate:** `packages/contracts/script/Deploy.s.sol` is ready, but live Sepolia mutation requires `SEPOLIA_RPC_URL`, a funded `DEPLOYER_PRIVATE_KEY`/approved signing flow, and an explorer API key for verification. None were present on 2026-09-05.

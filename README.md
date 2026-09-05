@@ -4,12 +4,13 @@ Frontier Protocol rewards artifacts that expand the space in which multiple inde
 
 ## Repository status
 
-Phase 0 is complete: the pnpm monorepo, strict TypeScript configuration, quality commands, environment validation, CI, and implementation-decision log are in place. Protocol schemas and benchmark code start in Phase 1.
+Phases 0 and 1 are complete. Phase 2 is complete locally: registries, EIP-712 attestation verification, runner authorization, Pareto settlement, Foundry tests, gas snapshots, and a reproducible Sepolia deployment script are present. Live Sepolia deployment and verification remain pending because no RPC URL or funded deployer signing method is configured.
 
 ## Requirements
 
 - Node.js 22 or later
 - pnpm 11.24.0 through Corepack
+- Foundry 1.8.1
 
 ## Setup
 
@@ -24,16 +25,17 @@ Copy `.env.example` to `.env.local` only when local integration values are neede
 
 ## Commands
 
-| Command             | Purpose                                           |
-| ------------------- | ------------------------------------------------- |
-| `pnpm dev`          | Start the Next.js web application                 |
-| `pnpm env:check`    | Validate environment keys without printing values |
-| `pnpm lint`         | Run ESLint across the workspace                   |
-| `pnpm format:check` | Check formatting                                  |
-| `pnpm typecheck`    | Type-check all workspace packages                 |
-| `pnpm test`         | Run unit tests                                    |
-| `pnpm build`        | Produce the web production build                  |
-| `pnpm run ci`       | Run the full local CI sequence                    |
+| Command                    | Purpose                                           |
+| -------------------------- | ------------------------------------------------- |
+| `pnpm dev`                 | Start the Next.js web application                 |
+| `pnpm env:check`           | Validate environment keys without printing values |
+| `pnpm lint`                | Run ESLint and check Solidity formatting          |
+| `pnpm format:check`        | Check formatting                                  |
+| `pnpm typecheck`           | Type-check all workspace packages                 |
+| `pnpm test`                | Run Vitest and Foundry unit/fuzz tests            |
+| `pnpm benchmark:orderbook` | Generate the measured order-book frontier fixture |
+| `pnpm build`               | Build contracts and the web production bundle     |
+| `pnpm run ci`              | Run the full local CI sequence                    |
 
 ## Workspace
 
@@ -41,13 +43,13 @@ Copy `.env.example` to `.env.local` only when local integration values are neede
 apps/web                 Next.js App Router application
 apps/api                 Frontier HTTP API
 apps/runner              Reproducible benchmark runner
-packages/contracts       Foundry contracts (Phase 2)
+packages/contracts       Foundry contracts and deployment scripts
 packages/sdk             Typed Frontier client
 packages/shared          Shared validation and protocol types
 packages/ens-adapter     ENSv2 integration boundary
 packages/ledger-adapter  Ledger integration boundary
-artifacts/orderbook      Comparable Solidity artifacts (Phase 1)
-benchmarks/evm-orderbook Deterministic benchmark harness (Phase 1)
+artifacts/orderbook      Artifact metadata and evidence
+benchmarks/evm-orderbook Deterministic workload, harness, and measured results
 bazantic                 Bazantic gateway and Recipe material
 openapi                  Versioned Frontier API specification
 Docs                     Source briefs, decisions, and task tracking

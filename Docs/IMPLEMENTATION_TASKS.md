@@ -97,88 +97,90 @@ Repository基盤
 
 ### P0: Shared Schema
 
-- [ ] `T-100` `Challenge` Schemaを定義する。
+- [x] `T-100` `Challenge` Schemaを定義する。
   - Challenge ID、Artifact Type、Context Hash、Constraint Spec Hashを含める。
   - `gasPerOrder: MINIMIZE` と `parallelThroughput: MAXIMIZE` を定義する。
-- [ ] `T-101` `Artifact`、`EvaluationContext`、`RunnerIdentity` Schemaを定義する。
-- [ ] `T-102` `OutcomeVector` と `OutcomeAttestation` Schemaを定義する。
-- [ ] `T-103` JSON BoundaryでBigInt / Hex / AddressのSerialization規則を定義する。
-- [ ] `T-104` Attestation用Canonical EncodingとStable HashのTest Vectorを作る。
+- [x] `T-101` `Artifact`、`EvaluationContext`、`RunnerIdentity` Schemaを定義する。
+- [x] `T-102` `OutcomeVector` と `OutcomeAttestation` Schemaを定義する。
+- [x] `T-103` JSON BoundaryでBigInt / Hex / AddressのSerialization規則を定義する。
+- [x] `T-104` Attestation用Canonical EncodingとStable HashのTest Vectorを作る。
 
 ### P0: Orderbook Artifact
 
-- [ ] `T-110` 4実装共通のOrderbook InterfaceとReference Modelを定義する。
-- [ ] `T-111` `PackedBook.sol` を実装する。
-- [ ] `T-112` `ShardedBook.sol` を実装する。
-- [ ] `T-113` `FrontierBook.sol` を実装する。
-- [ ] `T-114` `BadBook.sol` を意図が明確なFailureまたはDominated実装として作る。
-- [ ] `T-115` 同一Inputで同一の論理的Final StateになることをTestする。
-- [ ] `T-116` Foundry invariant / fuzz testを追加する。
-- [ ] `T-117` 禁止External State、Revert Semantics、決定性を検証する。
+- [x] `T-110` 4実装共通のOrderbook InterfaceとReference Modelを定義する。
+- [x] `T-111` `PackedBook.sol` を実装する。
+- [x] `T-112` `ShardedBook.sol` を実装する。
+- [x] `T-113` `FrontierBook.sol` を実装する。
+- [x] `T-114` `BadBook.sol` を意図が明確なFailureまたはDominated実装として作る。
+- [x] `T-115` 同一Inputで同一の論理的Final StateになることをTestする。
+- [x] `T-116` Foundry invariant / fuzz testを追加する。
+- [x] `T-117` 禁止External State、Revert Semantics、決定性を検証する。
 
 ### P0: Benchmark
 
-- [ ] `T-120` Versioned Reference Workloadを定義する。
-- [ ] `T-121` Gas per Orderを実測するHarnessを作る。
-- [ ] `T-122` Parallel Throughputを測るDeterministic Harnessを作る。
-- [ ] `T-123` Throughput値のうちReal EVM、Simulation、Assumptionの境界を文書化する。
-- [ ] `T-124` 複数回測定しMedianを採用する。
-- [ ] `T-125` Git Commit、Compiler Version / Flags、Bytecode Hash、Context Hash、Workload Version、Timestampを結果へ含める。
-- [ ] `T-126` Correctness Failure時はMetricをFrontierへ渡さない。
+- [x] `T-120` Versioned Reference Workloadを定義する。
+- [x] `T-121` Gas per Orderを実測するHarnessを作る。
+- [x] `T-122` Parallel Throughputを測るDeterministic Harnessを作る。
+- [x] `T-123` Throughput値のうちReal EVM、Simulation、Assumptionの境界を文書化する。
+- [x] `T-124` 複数回測定しMedianを採用する。
+- [x] `T-125` Git Commit、Compiler Version / Flags、Bytecode Hash、Context Hash、Workload Version、Timestampを結果へ含める。
+- [x] `T-126` Correctness Failure時はMetricをFrontierへ渡さない。
 
 ### P0: Pareto Engine
 
-- [ ] `T-130` 2次元Dominance判定を実装する。
-- [ ] `T-131` Non-dominated Setの追加、維持、削除を実装する。
-- [ ] `T-132` 同値、Tie、重複結果、境界値のUnit Testを追加する。
-- [ ] `T-133` 4 Artifact中、2つ以上がNon-dominatedになるBenchmark特性を確認する。
-- [ ] `T-134` 新ArtifactでFrontierが動くFixtureと可視化用JSONを生成する。
+- [x] `T-130` 2次元Dominance判定を実装する。
+- [x] `T-131` Non-dominated Setの追加、維持、削除を実装する。
+- [x] `T-132` 同値、Tie、重複結果、境界値のUnit Testを追加する。
+- [x] `T-133` 4 Artifact中、2つ以上がNon-dominatedになるBenchmark特性を確認する。
+- [x] `T-134` 新ArtifactでFrontierが動くFixtureと可視化用JSONを生成する。
 
 ### Phase 1 Exit Condition
 
-- [ ] 4 Artifactを同じContextで評価できる。
-- [ ] すべての表示値がBenchmark出力に由来する。
-- [ ] BadBookがCorrectness FailureまたはDominatedとして扱われる。
-- [ ] Real Benchmark OutputでFrontierの更新を確認できる。
+- [x] 4 Artifactを同じContextで評価できる。
+- [x] すべての表示値がBenchmark出力に由来する。
+- [x] BadBookがCorrectness FailureまたはDominatedとして扱われる。
+- [x] Real Benchmark OutputでFrontierの更新を確認できる。
 
 ## 7. Phase 2 — Smart Contracts
 
 ### P0: Contract実装
 
-- [ ] `T-200` Foundry projectを構成する。
-- [ ] `T-201` `ChallengeRegistry.sol` を実装する。
-- [ ] `T-202` `ArtifactRegistry.sol` を実装する。
-- [ ] `T-203` `RunnerIdentityAdapter` Interfaceを定義する。
-- [ ] `T-204` `BenchmarkAttestation.sol` を実装する。
+- [x] `T-200` Foundry projectを構成する。
+- [x] `T-201` `ChallengeRegistry.sol` を実装する。
+- [x] `T-202` `ArtifactRegistry.sol` を実装する。
+- [x] `T-203` `RunnerIdentityAdapter` Interfaceを定義する。
+- [x] `T-204` `BenchmarkAttestation.sol` を実装する。
   - SignatureとSigner Identityを検証する。
   - Challenge / Artifact / Context / Constraint Hashの一致を検証する。
   - Duplicate、Invalid、Expired AttestationをRejectする。
-- [ ] `T-205` `ParetoSettlement.sol` を実装する。
+- [x] `T-205` `ParetoSettlement.sol` を実装する。
   - 2次元Frontierのみを扱う。
   - Added、Dominated、Removed Eventを発行する。
-- [ ] `T-206` 必要なRole、Ownership、Emergency Controlを最小構成で定義する。
+- [x] `T-206` 必要なRole、Ownership、Emergency Controlを最小構成で定義する。
 
 ### P0: Contract検証
 
-- [ ] `T-210` RegistryのUnit Testを作る。
-- [ ] `T-211` Signature / Replay / Duplicate / Unauthorized Runner Testを作る。
-- [ ] `T-212` Pareto SettlementのInvariant / Fuzz Testを作る。
-- [ ] `T-213` Malformed Payload、Zero値、Overflow、TieをTestする。
-- [ ] `T-214` Local chainで登録からFrontier更新までのIntegration Testを作る。
-- [ ] `T-215` Gas Snapshotを保存する。
+- [x] `T-210` RegistryのUnit Testを作る。
+- [x] `T-211` Signature / Replay / Duplicate / Unauthorized Runner Testを作る。
+- [x] `T-212` Pareto SettlementのInvariant / Fuzz Testを作る。
+- [x] `T-213` Malformed Payload、Zero値、Overflow、TieをTestする。
+- [x] `T-214` Local chainで登録からFrontier更新までのIntegration Testを作る。
+- [x] `T-215` Gas Snapshotを保存する。
 
 ### P0: Sepolia
 
-- [ ] `T-220` Deployment Scriptを作る。
+- [x] `T-220` Deployment Scriptを作る。
 - [ ] `T-221` SepoliaへDeployし、AddressとTransactionを記録する。
 - [ ] `T-222` Contract Verificationを行う。
 - [ ] `T-223` Deploy済みContractでSample ChallengeとArtifactを登録する。
 
+> 2026-09-05 blocker: `SEPOLIA_RPC_URL`、funded deployer/signing method、`ETHERSCAN_API_KEY` が未設定のため、`T-221`〜`T-223` は外部状態を作らず保留。Deployment ScriptとLocal Integration Testまでは完了。
+
 ### Phase 2 Exit Condition
 
 - [ ] 実署名AttestationでSepolia上のFrontier Stateが更新される。
-- [ ] Invalid / Duplicate / Unauthorized AttestationがRejectされる。
-- [ ] DeploymentをScriptから再現できる。
+- [x] Invalid / Duplicate / Unauthorized AttestationがRejectされる。
+- [x] DeploymentをScriptから再現できる。
 
 ## 8. Phase 3 — ENSv2 Integration
 

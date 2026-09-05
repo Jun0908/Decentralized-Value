@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1",
   "workloadVersion": "orderbook-v1",
-  "sourceCommit": "069633751001f7929fdc4d9966ff3aea2ffc8d5e",
+  "sourceCommit": "dacc2b385bbfe34921caa50bed930a66fb06807c",
   "compilerVersion": "solc 0.8.30",
   "compilerFlags": [
     "optimizer=true",
@@ -10,7 +10,7 @@
     "bytecode_hash=none"
   ],
   "contextHash": "0xe35a596bac6d9d11035927e26ea233031ae0d1ca0f7ccae965835f5029030a79",
-  "measuredAt": "2026-09-05T01:51:10.159Z",
+  "measuredAt": "2026-09-05T01:58:29.385Z",
   "repetitions": 5,
   "artifacts": [
     {

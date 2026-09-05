@@ -1,7 +1,12 @@
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { computeParetoFrontier, stringifyProtocolJson, type FrontierPoint } from "@frontier/shared";
+import {
+  benchmarkRecordSchema,
+  computeParetoFrontier,
+  stringifyProtocolJson,
+  type FrontierPoint,
+} from "@frontier/shared";
 import { keccak256, stringToHex, type Hex } from "viem";
 
 const root = resolve(import.meta.dirname, "../../..");
@@ -179,7 +184,8 @@ const record = {
 };
 
 mkdirSync(dirname(outputPath), { recursive: true });
-writeFileSync(outputPath, `${stringifyProtocolJson(record, 2)}\n`, "utf8");
+const validatedRecord = benchmarkRecordSchema.parse(record);
+writeFileSync(outputPath, `${stringifyProtocolJson(validatedRecord, 2)}\n`, "utf8");
 process.stdout.write(`Wrote ${outputPath}\n`);
 for (const item of record.artifacts) {
   process.stdout.write(
