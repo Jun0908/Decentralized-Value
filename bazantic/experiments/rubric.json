@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1",
+  "controls": ["prompt", "model", "temperature", "seed", "apiSnapshot"],
+  "criteria": {
+    "correctToolSequence": 3,
+    "contextAndConstraintsExplained": 3,
+    "paretoReasoningCorrect": 3,
+    "pendingVsAttestedDistinguished": 2,
+    "evidenceIdentifiersIncluded": 2
+  },
+  "status": "pending-live-gateway"
+}

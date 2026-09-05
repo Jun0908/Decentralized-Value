@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "1",
+  "service": "frontier-protocol",
+  "tools": {
+    "list_arenas": "GET /v1/arenas",
+    "get_arena": "GET /v1/arenas/{id}",
+    "get_frontier": "GET /v1/challenges/{id}/frontier",
+    "list_artifacts": "GET /v1/challenges/{id}/artifacts",
+    "get_artifact": "GET /v1/artifacts/{id}",
+    "list_attestations": "GET /v1/challenges/{id}/attestations",
+    "list_runners": "GET /v1/runners",
+    "get_runner": "GET /v1/runners/{ensName}",
+    "evaluate_artifact": "POST /v1/evaluations",
+    "get_evaluation": "GET /v1/evaluations/{jobId}",
+    "create_dispute": "POST /v1/challenges/{id}/disputes"
+  },
+  "paid": ["evaluate_artifact"]
+}

@@ -1,0 +1,153 @@
+openapi: 3.1.0
+info:
+  title: Frontier Protocol API
+  version: 1.0.0
+  description: Reproducible Pareto-frontier discovery and asynchronous evaluation.
+servers: [{ url: "http://localhost:3001" }]
+paths:
+  /v1/health:
+    get: { operationId: getHealth, responses: { "200": { description: Healthy } } }
+  /v1/arenas:
+    get: { operationId: listArenas, responses: { "200": { description: Arena list } } }
+  /v1/arenas/{id}:
+    get:
+      operationId: getArena
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        { "200": { description: Arena }, "404": { $ref: "#/components/responses/NotFound" } }
+  /v1/arenas/{id}/frontier:
+    get:
+      operationId: getArenaFrontier
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: Non-dominated artifacts } }
+  /v1/challenges/{id}:
+    get:
+      operationId: getChallenge
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        { "200": { description: Challenge }, "404": { $ref: "#/components/responses/NotFound" } }
+  /v1/challenges/{id}/frontier:
+    get:
+      operationId: getFrontier
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: Non-dominated artifacts } }
+  /v1/challenges/{id}/artifacts:
+    get:
+      operationId: listArtifacts
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: Evaluated artifacts } }
+  /v1/challenges/{id}/attestations:
+    get:
+      operationId: listAttestations
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: Signed attestations } }
+  /v1/challenges/{id}/disputes:
+    post:
+      operationId: createDispute
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody:
+        {
+          required: true,
+          content: { application/json: { schema: { $ref: "#/components/schemas/DisputeInput" } } },
+        }
+      responses:
+        {
+          "201": { description: Dispute recorded },
+          "400": { $ref: "#/components/responses/BadRequest" },
+        }
+  /v1/artifacts:
+    post:
+      operationId: createArtifact
+      requestBody: { required: true, content: { application/json: { schema: { type: object } } } }
+      responses:
+        {
+          "201": { description: Artifact registered },
+          "400": { $ref: "#/components/responses/BadRequest" },
+        }
+  /v1/artifacts/{id}:
+    get:
+      operationId: getArtifact
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        { "200": { description: Artifact }, "404": { $ref: "#/components/responses/NotFound" } }
+  /v1/evaluations:
+    post:
+      operationId: evaluateArtifact
+      description: Paid/gated operation when routed through the Bazantic 402/MPP gateway.
+      parameters: [{ name: Idempotency-Key, in: header, schema: { type: string, maxLength: 128 } }]
+      requestBody:
+        {
+          required: true,
+          content:
+            { application/json: { schema: { $ref: "#/components/schemas/EvaluationInput" } } },
+        }
+      responses:
+        "202":
+          { description: Evaluation queued, headers: { Location: { schema: { type: string } } } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "402": { description: Payment required at the Bazantic gateway }
+  /v1/evaluations/{jobId}:
+    get:
+      operationId: getEvaluation
+      parameters:
+        [{ name: jobId, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        {
+          "200": { description: Evaluation state },
+          "404": { $ref: "#/components/responses/NotFound" },
+        }
+  /v1/runners:
+    get: { operationId: listRunners, responses: { "200": { description: Live ENS runners } } }
+  /v1/runners/{ensName}:
+    get:
+      operationId: getRunner
+      parameters:
+        [
+          {
+            name: ensName,
+            in: path,
+            required: true,
+            schema: { type: string, pattern: ".+\\.eth$" },
+          },
+        ]
+      responses:
+        {
+          "200": { description: ENS runner },
+          "503": { description: ENS unavailable or unconfigured },
+        }
+components:
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { $ref: "#/components/schemas/Bytes32" } }
+  schemas:
+    Bytes32: { type: string, pattern: "^0x[0-9a-fA-F]{64}$" }
+    EvaluationInput:
+      type: object
+      required: [artifactId]
+      properties: { artifactId: { $ref: "#/components/schemas/Bytes32" } }
+      additionalProperties: false
+    DisputeInput:
+      type: object
+      required: [artifactId, reason]
+      properties:
+        artifactId: { $ref: "#/components/schemas/Bytes32" }
+        reason: { type: string, minLength: 10, maxLength: 2000 }
+      additionalProperties: false
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties: { code: { type: string }, message: { type: string }, details: {} }
+  responses:
+    BadRequest:
+      {
+        description: Invalid input,
+        content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } },
+      }
+    NotFound:
+      {
+        description: Resource not found,
+        content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } },
+      }
