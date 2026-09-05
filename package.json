@@ -14,6 +14,7 @@
     "build:contracts": "forge build --root packages/contracts",
     "ci": "pnpm env:check && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm benchmark:orderbook && pnpm build",
     "dev": "pnpm --filter @frontier/web dev",
+    "deploy:sepolia": "forge script --root packages/contracts script/Deploy.s.sol:Deploy --rpc-url sepolia --broadcast --verify",
     "env:check": "tsx scripts/validate-env.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

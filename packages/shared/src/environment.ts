@@ -8,7 +8,15 @@ const optionalUrl = z.preprocess(blankToUndefined, z.url().optional());
 export const environmentSchema = z.object({
   API_PORT: z.coerce.number().int().positive().default(3001),
   BAZANTIC_GATEWAY_URL: optionalUrl,
+  DEPLOYER_PRIVATE_KEY: z.preprocess(
+    blankToUndefined,
+    z
+      .string()
+      .regex(/^0x[0-9a-fA-F]{64}$/)
+      .optional(),
+  ),
   ENS_PARENT_NAME: optionalString,
+  ETHERSCAN_API_KEY: optionalString,
   LEDGER_DERIVATION_PATH: optionalString,
   LEDGER_SIGNING_MODE: z.preprocess(blankToUndefined, z.enum(["development", "dmk"]).optional()),
   NEXT_PUBLIC_CHAIN_ID: z.coerce.number().int().default(11155111).pipe(z.literal(11155111)),

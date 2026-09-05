@@ -86,6 +86,7 @@ export const outcomeAttestationSchema = z.object({
   artifactId: bytes32Schema,
   artifactHash: bytes32Schema,
   contextHash: bytes32Schema,
+  constraintSpecHash: bytes32Schema,
   constraintResultHash: bytes32Schema,
   gasPerOrder: unsignedBigIntSchema,
   parallelThroughput: unsignedBigIntSchema,
@@ -126,7 +127,7 @@ export type OutcomeAttestation = z.infer<typeof outcomeAttestationSchema>;
 export type BenchmarkRecord = z.infer<typeof benchmarkRecordSchema>;
 
 const resultHashParameters = parseAbiParameters(
-  "bytes32 challengeId, bytes32 artifactId, bytes32 artifactHash, bytes32 contextHash, bytes32 constraintResultHash, uint256 gasPerOrder, uint256 parallelThroughput, string runnerEnsName, address runnerAddress, uint256 issuedAt",
+  "bytes32 challengeId, bytes32 artifactId, bytes32 artifactHash, bytes32 contextHash, bytes32 constraintSpecHash, bytes32 constraintResultHash, uint256 gasPerOrder, uint256 parallelThroughput, string runnerEnsName, address runnerAddress, uint256 issuedAt",
 );
 
 export function computeOutcomeResultHash(value: Omit<OutcomeAttestation, "resultHash">): Hex {
@@ -136,6 +137,7 @@ export function computeOutcomeResultHash(value: Omit<OutcomeAttestation, "result
       value.artifactId,
       value.artifactHash,
       value.contextHash,
+      value.constraintSpecHash,
       value.constraintResultHash,
       value.gasPerOrder,
       value.parallelThroughput,
@@ -152,6 +154,7 @@ export const outcomeAttestationTypes = {
     { name: "artifactId", type: "bytes32" },
     { name: "artifactHash", type: "bytes32" },
     { name: "contextHash", type: "bytes32" },
+    { name: "constraintSpecHash", type: "bytes32" },
     { name: "constraintResultHash", type: "bytes32" },
     { name: "gasPerOrder", type: "uint256" },
     { name: "parallelThroughput", type: "uint256" },

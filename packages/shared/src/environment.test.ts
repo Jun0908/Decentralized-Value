@@ -13,11 +13,15 @@ describe("parseEnvironment", () => {
 
   it("treats blank optional values as absent", () => {
     const environment = parseEnvironment({
+      DEPLOYER_PRIVATE_KEY: "",
       ENS_PARENT_NAME: "",
+      ETHERSCAN_API_KEY: "",
       SEPOLIA_RPC_URL: "",
     });
 
+    expect(environment.DEPLOYER_PRIVATE_KEY).toBeUndefined();
     expect(environment.ENS_PARENT_NAME).toBeUndefined();
+    expect(environment.ETHERSCAN_API_KEY).toBeUndefined();
     expect(environment.SEPOLIA_RPC_URL).toBeUndefined();
   });
 
@@ -29,6 +33,12 @@ describe("parseEnvironment", () => {
 
   it("rejects malformed integration URLs", () => {
     expect(() => parseEnvironment({ BAZANTIC_GATEWAY_URL: "not-a-url" })).toThrow(
+      "Invalid environment configuration",
+    );
+  });
+
+  it("rejects a malformed deployer key without exposing it", () => {
+    expect(() => parseEnvironment({ DEPLOYER_PRIVATE_KEY: "not-a-key" })).toThrow(
       "Invalid environment configuration",
     );
   });

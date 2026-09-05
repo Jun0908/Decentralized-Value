@@ -13,6 +13,7 @@ const base = {
   artifactHash: `0x${"33".repeat(32)}`,
   contextHash: `0x${"44".repeat(32)}`,
   constraintResultHash: `0x${"55".repeat(32)}`,
+  constraintSpecHash: `0x${"66".repeat(32)}`,
   gasPerOrder: 48_321n,
   parallelThroughput: 400n,
   runnerEnsName: "runner.frontier.eth",
@@ -29,8 +30,8 @@ describe("protocol schemas and canonical encoding", () => {
       verifyingContract: "0x0000000000000000000000000000000000001234",
     });
 
-    expect(resultHash).toBe("0xf1920e4cb50a4a0f90b030bc9c45f283b074e658f14408df6a42358822d6cfaa");
-    expect(digest).toBe("0x3ff30ad58d328056022ecb2275571b961d94b61783693c43e7f7dd4b40af5290");
+    expect(resultHash).toBe("0x6f957da2559b9e72d99bf5b83b91822fe4a87b40c3c857ad3cf3e7a1d8e50677");
+    expect(digest).toBe("0x68f8a123a46beacf10a3e88092166d4c15fe76c64616f2c284abc7742e925f1b");
   });
 
   it("serializes bigint as unsigned decimal strings at JSON boundaries", () => {
