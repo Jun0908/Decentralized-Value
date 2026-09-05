@@ -8,5 +8,11 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@frontier/shared": "workspace:*",
+    "@ledgerhq/device-management-kit": "1.9.0",
+    "@ledgerhq/device-signer-kit-ethereum": "1.18.0",
+    "viem": "2.56.3"
   }
 }

@@ -1,0 +1,32 @@
+name: Ledger runner evidence
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  attest:
+    runs-on: [self-hosted, ledger-frontier]
+    timeout-minutes: 15
+    environment: ledger-runner
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with: { version: 11.24.0 }
+      - uses: actions/setup-node@v5
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Verify genuine Ledger device
+        run: pnpm dlx @ledgerhq/wallet-cli@2.1.0 genuine-check --output json
+      - name: Verify provisioned Key Ring names
+        run: pnpm dlx @ledgerhq/wallet-cli@2.1.0 ring keys --output json
+      - name: Run fail-closed runner tests
+        run: pnpm --filter @frontier/runner exec vitest run
+        env:
+          NODE_ENV: production
+          LEDGER_SIGNING_MODE: dmk
+
+# WALLET_PASS must be supplied by the self-hosted runner's OS keychain at process launch.
+# It must not be stored as a GitHub secret, workflow literal, repository variable, or log output.
