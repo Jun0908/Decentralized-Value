@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 import type { ReactNode } from "react";
+import { WalletPanel, WalletProvider } from "@/components/wallet-panel";
 
 import "./globals.css";
 
@@ -20,9 +22,25 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
   return (
     <html className={`${sans.variable} ${mono.variable}`} lang="en">
-      <body>{children}</body>
+      <body>
+        <WalletProvider appId={privyAppId}>
+          <header className="site-header">
+            <Link className="wordmark" href="/">
+              FRONTIER/
+            </Link>
+            <nav aria-label="Primary navigation">
+              <Link href="/arena">Arena</Link>
+              <Link href="/runners">Runners</Link>
+              <Link href="/sponsor-debug">Integrations</Link>
+            </nav>
+            <WalletPanel configured={Boolean(privyAppId)} />
+          </header>
+          {children}
+        </WalletProvider>
+      </body>
     </html>
   );
 }
