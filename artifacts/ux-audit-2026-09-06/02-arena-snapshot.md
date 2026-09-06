@@ -1,0 +1,83 @@
+- generic [active] [ref=e1] [box=0,0,1425,1690]:
+  - banner [ref=e2] [box=89,0,1248,54]:
+    - link "FRONTIER/" [ref=e3] [cursor=pointer] [box=89,18,521,18]:
+      - /url: /
+    - navigation "Primary navigation" [ref=e4] [box=610,18,206,17]:
+      - link "Arena" [ref=e5] [cursor=pointer] [box=610,18,33,17]:
+        - /url: /arena
+      - link "Runners" [ref=e6] [cursor=pointer] [box=672,18,47,17]:
+        - /url: /runners
+      - link "Integrations" [ref=e7] [cursor=pointer] [box=748,18,68,17]:
+        - /url: /sponsor-debug
+    - generic [ref=e8] [box=1202,20,134,14]: Privy not configured
+  - alert [ref=e60] [box=-1,53,1,1]
+  - main [ref=e61] [box=89,54,1248,1636]:
+    - generic [ref=e62] [box=89,134,992,202]:
+      - paragraph [ref=e63] [box=89,134,992,14]: Arena / active benchmark
+      - heading "EVM Orderbook Frontier" [level=1] [ref=e64] [box=89,164,992,84]
+      - paragraph [ref=e65] [box=89,273,992,26]: Measured 9/5/2026, 1:58:29 AM UTC · commit dacc2b38…06807c
+      - generic [ref=e66] [box=89,320,223,14]: Live polling · updated 21:13:08
+    - generic [ref=e68] [box=89,400,1248,642]:
+      - figure "Measured by Foundry, five repetitions. Lower gas and higher throughput are better." [ref=e69] [box=89,425,813,480]:
+        - img "Gas per order versus parallel throughput Three correct artifacts form the Pareto frontier. BadBook is invalid." [ref=e70] [box=106,442,779,426]:
+          - generic [ref=e72] [box=507,841,131,17]: Gas per order →
+          - generic [ref=e73] [box=112,555,17,106]: Throughput →
+          - generic [ref=e74] [box=220,760,106,22]: PackedBook
+          - generic [ref=e77] [box=239,650,122,22]: FrontierBook
+          - generic [ref=e80] [box=813,504,114,22]: ShardedBook
+          - generic [ref=e83] [box=158,762,79,17]: BadBook
+      - complementary [ref=e87] [box=988,400,348,530]:
+        - paragraph [ref=e88] [box=1021,433,282,14]: Evaluation contract
+        - heading "Two axes. Zero shortcuts." [level=2] [ref=e89] [box=1021,463,282,69]
+        - generic [ref=e90] [box=1021,552,282,139]:
+          - generic [ref=e91] [box=1021,552,282,69]:
+            - term [ref=e92] [box=1021,566,282,13]: Gas / order
+            - definition [ref=e93] [box=1021,586,282,21]: minimize · gas
+          - generic [ref=e94] [box=1021,621,282,69]:
+            - term [ref=e95] [box=1021,635,282,13]: Parallel throughput
+            - definition [ref=e96] [box=1021,655,282,21]: maximize · normalized ops/s
+        - heading "Hard constraints" [level=3] [ref=e97] [box=1021,691,282,25]
+        - list [ref=e98] [box=1021,734,282,84]:
+          - listitem [ref=e99] [box=1039,734,265,42]: All reference orderbook operations return the expected state
+          - listitem [ref=e100] [box=1039,776,265,42]: Deployed bytecode hash matches the submitted artifact
+        - paragraph [ref=e101] [box=1021,834,282,52]: contextHash0xe35a596bac6d9d11035927e26ea233031ae0d1ca0f7ccae965835f5029030a79
+    - generic [ref=e102] [box=89,1043,1248,366]:
+      - generic [ref=e103] [box=89,1043,1248,103]:
+        - generic [ref=e104] [box=89,1043,280,103]:
+          - paragraph [ref=e105] [box=89,1043,280,14]: Measured artifacts
+          - heading "Frontier set" [level=2] [ref=e106] [box=89,1073,280,53]
+        - generic [ref=e107] [box=1231,1132,106,14]: non-dominated
+      - table "Evaluated artifacts" [ref=e109] [box=89,1146,1248,263]:
+        - row "Name Correct Gas/order Throughput Status" [ref=e110] [box=89,1147,1248,49]:
+          - generic [ref=e111] [box=98,1164,286,13]: Name
+          - generic [ref=e112] [box=400,1164,220,13]: Correct
+          - generic [ref=e113] [box=636,1164,220,13]: Gas/order
+          - generic [ref=e114] [box=871,1164,220,13]: Throughput
+          - generic [ref=e115] [box=1107,1164,220,13]: Status
+        - row "PackedBook Pass 70,270 100 Frontier" [ref=e116] [cursor=pointer] [box=89,1196,1248,53]:
+          - strong [ref=e117] [box=98,1214,286,17]: PackedBook
+          - generic [ref=e118] [box=400,1214,220,17]: Pass
+          - generic [ref=e119] [box=636,1214,220,17]: 70,270
+          - generic [ref=e120] [box=871,1214,220,17]: "100"
+          - generic [ref=e121] [box=1107,1214,220,17]: Frontier
+        - row "FrontierBook Pass 71,935 400 Frontier" [ref=e122] [cursor=pointer] [box=89,1249,1248,53]:
+          - strong [ref=e123] [box=98,1267,286,17]: FrontierBook
+          - generic [ref=e124] [box=400,1267,220,17]: Pass
+          - generic [ref=e125] [box=636,1267,220,17]: 71,935
+          - generic [ref=e126] [box=871,1267,220,17]: "400"
+          - generic [ref=e127] [box=1107,1267,220,17]: Frontier
+        - row "ShardedBook Pass 121,277 800 Frontier" [ref=e128] [cursor=pointer] [box=89,1302,1248,53]:
+          - strong [ref=e129] [box=98,1320,286,17]: ShardedBook
+          - generic [ref=e130] [box=400,1320,220,17]: Pass
+          - generic [ref=e131] [box=636,1320,220,17]: 121,277
+          - generic [ref=e132] [box=871,1320,220,17]: "800"
+          - generic [ref=e133] [box=1107,1320,220,17]: Frontier
+        - row "BadBook Fail 64,731 100 Ineligible" [ref=e134] [cursor=pointer] [box=89,1356,1248,53]:
+          - strong [ref=e135] [box=98,1373,286,17]: BadBook
+          - generic [ref=e136] [box=400,1373,220,17]: Fail
+          - generic [ref=e137] [box=636,1373,220,17]: 64,731
+          - generic [ref=e138] [box=871,1373,220,17]: "100"
+          - generic [ref=e139] [box=1107,1373,220,17]: Ineligible
+    - generic [ref=e142] [box=148,1490,1089,52]:
+      - strong [ref=e143] [box=148,1490,143,21]: Public demo mode
+      - paragraph [ref=e144] [box=148,1516,1089,26]: The benchmark values are checked-in Foundry output. API evaluations are clearly marked as simulated until optional Sepolia settlement is connected.

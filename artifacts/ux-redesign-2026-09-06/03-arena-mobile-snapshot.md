@@ -1,0 +1,145 @@
+- generic [active] [ref=f5e1] [box=0,0,375,3383]:
+  - banner [ref=f5e2] [box=16,0,343,87]:
+    - link "FRONTIER/" [ref=f5e3] [cursor=pointer] [box=16,18,343,18]:
+      - /url: /
+    - navigation "Primary navigation" [ref=f5e4] [box=16,36,343,33]:
+      - link "Run demo" [ref=f5e5] [cursor=pointer] [box=16,52,58,17]:
+        - /url: /demo
+      - link "Results" [ref=f5e6] [cursor=pointer] [box=158,52,43,17]:
+        - /url: /arena
+      - link "How it works" [ref=f5e7] [cursor=pointer] [box=285,52,74,17]:
+        - /url: /#how-it-works
+  - main [ref=f5e8] [box=16,87,343,3132]:
+    - generic [ref=f5e9] [box=16,167,343,310]:
+      - paragraph [ref=f5e10] [box=16,167,343,14]: Sample benchmark / comparison results
+      - heading "EVM Orderbook Frontier" [level=1] [ref=f5e11] [box=16,197,343,84]
+      - paragraph [ref=f5e12] [box=16,306,343,79]: Four solutions were tested under the same rules. Three remain because each offers a useful advantage that the others do not.
+      - generic [ref=f5e13] [box=16,401,343,77]:
+        - link "Evaluate a sample" [ref=f5e14] [cursor=pointer] [box=16,401,162,40]:
+          - /url: /demo
+        - generic [ref=f5e15] [box=16,460,274,17]: Measured 9/5/2026 · commit dacc2b38…06807c
+    - region "Result summary" [ref=f5e16] [box=16,541,343,211]:
+      - strong [ref=f5e17] [box=16,566,343,23]: The answer is not one winner.
+      - paragraph [ref=f5e18] [box=16,621,343,106]: PackedBook leads on cost, FrontierBook balances both dimensions, and ShardedBook leads on parallel capacity. BadBook is excluded because it fails correctness.
+    - generic [ref=f5e19] [box=16,800,343,983]:
+      - generic [ref=f5e20] [box=16,800,610,402]:
+        - figure "Measured by Foundry, five repetitions. Lower gas and higher throughput are better." [ref=f5e21] [box=16,800,610,369]:
+          - img "Gas per order versus parallel throughput Three correct artifacts form the Pareto frontier. BadBook is invalid." [ref=f5e22] [box=33,817,576,315]:
+            - generic [ref=f5e24] [box=330,1111,96,13]: Gas per order →
+            - generic [ref=f5e25] [box=37,900,13,79]: Throughput →
+            - generic [ref=f5e26] [box=118,1052,78,16]: PackedBook
+            - generic [ref=f5e29] [box=132,971,90,16]: FrontierBook
+            - generic [ref=f5e32] [box=556,863,84,16]: ShardedBook
+            - generic [ref=f5e35] [box=72,1054,59,13]: BadBook
+        - paragraph [ref=f5e39] [box=16,1179,610,13]: Swipe horizontally to inspect the full chart.
+      - complementary [ref=f5e40] [box=16,1234,610,437]:
+        - paragraph [ref=f5e41] [box=49,1267,544,14]: Evaluation rules
+        - heading "Shared rules before ranking." [level=2] [ref=f5e42] [box=49,1297,544,34]
+        - generic [ref=f5e43] [box=49,1351,544,139]:
+          - generic [ref=f5e44] [box=49,1351,544,69]:
+            - term [ref=f5e45] [box=49,1365,544,13]: Gas / order
+            - definition [ref=f5e46] [box=49,1385,544,21]: minimize · gas
+          - generic [ref=f5e47] [box=49,1421,544,69]:
+            - term [ref=f5e48] [box=49,1434,544,13]: Parallel throughput
+            - definition [ref=f5e49] [box=49,1455,544,21]: maximize · normalized ops/s
+        - heading "Must pass" [level=3] [ref=f5e50] [box=49,1490,544,25]
+        - list [ref=f5e51] [box=49,1534,544,42]:
+          - listitem [ref=f5e52] [box=67,1534,526,21]: All reference orderbook operations return the expected state
+          - listitem [ref=f5e53] [box=67,1555,526,21]: Deployed bytecode hash matches the submitted artifact
+        - paragraph [ref=f5e54] [box=49,1592,544,35]: contextHash0xe35a596bac6d9d11035927e26ea233031ae0d1ca0f7ccae965835f5029030a79
+    - generic [ref=f5e55] [box=16,1783,343,1075]:
+      - generic [ref=f5e56] [box=16,1783,343,81]:
+        - generic [ref=f5e57] [box=16,1783,165,81]:
+          - paragraph [ref=f5e58] [box=16,1783,165,14]: Measured solutions
+          - heading "Frontier set" [level=2] [ref=f5e59] [box=16,1813,165,31]
+        - generic [ref=f5e60] [box=253,1850,106,14]: worth keeping
+      - generic [ref=f5e62] [box=16,1864,343,993]:
+        - link "Lowest cost PackedBook Correct Pass Gas / order 70,270 Capacity 100 Status Frontier View evidence" [ref=f5e63] [cursor=pointer] [box=16,1864,343,236]:
+          - /url: /artifact/0x0b58818f14b08f972c7af6f53a4a5e96c8ed1cfca0f431a089edbfa25acb9685
+          - generic [ref=f5e64] [box=38,1886,299,46]:
+            - generic [ref=f5e65] [box=38,1886,299,13]: Lowest cost
+            - strong [ref=f5e66] [box=38,1906,299,26]: PackedBook
+          - generic [ref=f5e67] [box=38,1948,299,90]:
+            - generic [ref=f5e68] [box=38,1948,142,37]:
+              - term [ref=f5e69] [box=38,1948,142,13]: Correct
+              - definition [ref=f5e70] [box=38,1968,142,17]: Pass
+            - generic [ref=f5e71] [box=196,1948,142,37]:
+              - term [ref=f5e72] [box=196,1948,142,13]: Gas / order
+              - definition [ref=f5e73] [box=196,1968,142,17]: 70,270
+            - generic [ref=f5e74] [box=38,2001,142,37]:
+              - term [ref=f5e75] [box=38,2001,142,13]: Capacity
+              - definition [ref=f5e76] [box=38,2021,142,17]: "100"
+            - generic [ref=f5e77] [box=196,2001,142,37]:
+              - term [ref=f5e78] [box=196,2001,142,13]: Status
+              - definition [ref=f5e79] [box=196,2021,142,17]: Frontier
+          - text: View evidence
+        - link "Best balance FrontierBook Correct Pass Gas / order 71,935 Capacity 400 Status Frontier View evidence" [ref=f5e80] [cursor=pointer] [box=16,2116,343,236]:
+          - /url: /artifact/0x3884a0a6c733413eab68f8af7208675e3ee2c49cc14aea9be38340d0179834fa
+          - generic [ref=f5e81] [box=38,2138,299,46]:
+            - generic [ref=f5e82] [box=38,2138,299,13]: Best balance
+            - strong [ref=f5e83] [box=38,2158,299,26]: FrontierBook
+          - generic [ref=f5e84] [box=38,2200,299,90]:
+            - generic [ref=f5e85] [box=38,2200,142,37]:
+              - term [ref=f5e86] [box=38,2200,142,13]: Correct
+              - definition [ref=f5e87] [box=38,2220,142,17]: Pass
+            - generic [ref=f5e88] [box=196,2200,142,37]:
+              - term [ref=f5e89] [box=196,2200,142,13]: Gas / order
+              - definition [ref=f5e90] [box=196,2220,142,17]: 71,935
+            - generic [ref=f5e91] [box=38,2253,142,37]:
+              - term [ref=f5e92] [box=38,2253,142,13]: Capacity
+              - definition [ref=f5e93] [box=38,2274,142,17]: "400"
+            - generic [ref=f5e94] [box=196,2253,142,37]:
+              - term [ref=f5e95] [box=196,2253,142,13]: Status
+              - definition [ref=f5e96] [box=196,2274,142,17]: Frontier
+          - text: View evidence
+        - link "Highest capacity ShardedBook Correct Pass Gas / order 121,277 Capacity 800 Status Frontier View evidence" [ref=f5e97] [cursor=pointer] [box=16,2369,343,236]:
+          - /url: /artifact/0xfeca6e981d8610fb25bc7c12cfde3e122656b339fc6caac73a7008dc1d898ff5
+          - generic [ref=f5e98] [box=38,2390,299,46]:
+            - generic [ref=f5e99] [box=38,2390,299,13]: Highest capacity
+            - strong [ref=f5e100] [box=38,2411,299,26]: ShardedBook
+          - generic [ref=f5e101] [box=38,2453,299,90]:
+            - generic [ref=f5e102] [box=38,2453,142,37]:
+              - term [ref=f5e103] [box=38,2453,142,13]: Correct
+              - definition [ref=f5e104] [box=38,2473,142,17]: Pass
+            - generic [ref=f5e105] [box=196,2453,142,37]:
+              - term [ref=f5e106] [box=196,2453,142,13]: Gas / order
+              - definition [ref=f5e107] [box=196,2473,142,17]: 121,277
+            - generic [ref=f5e108] [box=38,2506,142,37]:
+              - term [ref=f5e109] [box=38,2506,142,13]: Capacity
+              - definition [ref=f5e110] [box=38,2526,142,17]: "800"
+            - generic [ref=f5e111] [box=196,2506,142,37]:
+              - term [ref=f5e112] [box=196,2506,142,13]: Status
+              - definition [ref=f5e113] [box=196,2526,142,17]: Frontier
+          - text: View evidence
+        - link "Fails correctness BadBook Correct Fail Gas / order 64,731 Capacity 100 Status Ineligible View evidence" [ref=f5e114] [cursor=pointer] [box=16,2621,343,236]:
+          - /url: /artifact/0xe744095a8de3b459767a22c24f21657522f84dc1b0c39d1d541a7435d445338b
+          - generic [ref=f5e115] [box=38,2643,299,46]:
+            - generic [ref=f5e116] [box=38,2643,299,13]: Fails correctness
+            - strong [ref=f5e117] [box=38,2663,299,26]: BadBook
+          - generic [ref=f5e118] [box=38,2705,299,90]:
+            - generic [ref=f5e119] [box=38,2705,142,37]:
+              - term [ref=f5e120] [box=38,2705,142,13]: Correct
+              - definition [ref=f5e121] [box=38,2725,142,17]: Fail
+            - generic [ref=f5e122] [box=196,2705,142,37]:
+              - term [ref=f5e123] [box=196,2705,142,13]: Gas / order
+              - definition [ref=f5e124] [box=196,2725,142,17]: 64,731
+            - generic [ref=f5e125] [box=38,2758,142,37]:
+              - term [ref=f5e126] [box=38,2758,142,13]: Capacity
+              - definition [ref=f5e127] [box=38,2778,142,17]: "100"
+            - generic [ref=f5e128] [box=196,2758,142,37]:
+              - term [ref=f5e129] [box=196,2758,142,13]: Status
+              - definition [ref=f5e130] [box=196,2778,142,17]: Ineligible
+          - text: View evidence
+    - generic [ref=f5e133] [box=75,2938,251,184]:
+      - strong [ref=f5e134] [box=75,2938,204,21]: Reproducible sample data
+      - paragraph [ref=f5e135] [box=75,2964,251,158]: These values come from checked-in Foundry output with five repetitions. Interactive evaluations are labeled as public demo results; no wallet or hardware is required.
+  - contentinfo [ref=f5e136] [box=16,3219,343,164]:
+    - paragraph [ref=f5e137] [box=16,3252,343,37]: Frontier Protocol · A public, reproducible benchmark demo.
+    - generic [ref=f5e138] [box=16,3321,343,14]:
+      - link "GitHub" [ref=f5e139] [cursor=pointer] [box=16,3321,40,14]:
+        - /url: https://github.com/Jun0908/Decentralized-Value
+      - link "API spec" [ref=f5e140] [cursor=pointer] [box=79,3321,54,14]:
+        - /url: /openapi.yaml
+      - link "Developer status" [ref=f5e141] [cursor=pointer] [box=155,3321,108,14]:
+        - /url: /sponsor-debug
+  - alert [ref=f5e142] [box=-1,3382,1,1]

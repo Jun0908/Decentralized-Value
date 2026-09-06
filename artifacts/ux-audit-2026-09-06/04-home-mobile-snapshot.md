@@ -1,0 +1,58 @@
+- generic [active] [ref=f1e1] [box=0,0,375,2297]:
+  - banner [ref=f1e2] [box=16,0,343,87]:
+    - link "FRONTIER/" [ref=f1e3] [cursor=pointer] [box=16,18,343,18]:
+      - /url: /
+    - navigation "Primary navigation" [ref=f1e4] [box=16,36,343,33]:
+      - link "Arena" [ref=f1e5] [cursor=pointer] [box=16,52,33,17]:
+        - /url: /arena
+      - link "Runners" [ref=f1e6] [cursor=pointer] [box=147,52,47,17]:
+        - /url: /runners
+      - link "Integrations" [ref=f1e7] [cursor=pointer] [box=291,52,68,17]:
+        - /url: /sponsor-debug
+    - generic [box=359,27,0,0]: Privy not configured
+  - main [ref=f1e8] [box=16,87,343,2210]:
+    - generic [ref=f1e9] [box=16,151,343,549]:
+      - paragraph [ref=f1e10] [box=16,188,343,14]: ETHOnline 2026 · Verifiable coordination
+      - heading "Progress has more than one direction." [level=1] [ref=f1e11] [box=16,218,343,148]
+      - paragraph [ref=f1e12] [box=16,390,343,116]: Frontier Protocol rewards artifacts that expand a reproducible Pareto frontier without hiding tradeoffs inside one arbitrary score.
+      - generic [ref=f1e13] [box=16,538,343,77]:
+        - link "Explore the live benchmark" [ref=f1e14] [cursor=pointer] [box=16,538,230,40]:
+          - /url: /arena/0x6159655c23ad3343cc2eb94aa6660e6efa42a1f4b13e94509c1894104820967f
+        - generic [ref=f1e15] [box=16,597,150,17]: context 0xe35a59…030a79
+    - generic [ref=f1e16] [box=16,700,343,817]:
+      - generic [ref=f1e17] [box=16,812,343,323]:
+        - paragraph [ref=f1e18] [box=16,812,343,14]: Current arena
+        - heading "EVM Orderbook Frontier" [level=2] [ref=f1e19] [box=16,842,343,63]
+        - paragraph [ref=f1e20] [box=16,925,343,106]: Four Solidity orderbooks compete on execution cost and parallel capacity. Correctness is a hard gate, never a soft penalty.
+        - generic [ref=f1e21] [box=16,1078,343,57]:
+          - generic [ref=f1e22] [box=16,1078,56,57]:
+            - term [ref=f1e23] [box=16,1078,56,13]: Artifacts
+            - definition [ref=f1e24] [box=16,1098,56,37]: "4"
+          - generic [ref=f1e25] [box=104,1078,50,57]:
+            - term [ref=f1e26] [box=104,1078,50,13]: Frontier
+            - definition [ref=f1e27] [box=104,1098,50,37]: "3"
+          - generic [ref=f1e28] [box=186,1078,56,57]:
+            - term [ref=f1e29] [box=186,1078,56,13]: Runs each
+            - definition [ref=f1e30] [box=186,1098,56,37]: "5"
+      - figure "Measured by Foundry, five repetitions. Lower gas and higher throughput are better." [ref=f1e31] [box=16,1167,343,238]:
+        - img "Gas per order versus parallel throughput Three correct artifacts form the Pareto frontier. BadBook is invalid." [ref=f1e32] [box=33,1184,309,169]:
+          - generic [ref=f1e34] [box=191,1342,53,7]: Gas per order →
+          - generic [ref=f1e35] [box=36,1229,7,43]: Throughput →
+          - generic [ref=f1e36] [box=78,1310,43,9]: PackedBook
+          - generic [ref=f1e39] [box=86,1267,49,9]: FrontierBook
+          - generic [ref=f1e42] [box=314,1209,46,9]: ShardedBook
+          - generic [ref=f1e45] [box=54,1311,32,7]: BadBook
+    - generic [ref=f1e49] [box=16,1517,343,716]:
+      - article [ref=f1e50] [box=16,1518,343,230]:
+        - text: "01"
+        - heading "Constrain" [level=3] [ref=f1e51] [box=48,1587,278,25]
+        - paragraph [ref=f1e52] [box=48,1631,278,53]: Invalid artifacts never reach the frontier.
+      - article [ref=f1e53] [box=16,1748,343,230]:
+        - text: "02"
+        - heading "Measure" [level=3] [ref=f1e54] [box=48,1817,278,25]
+        - paragraph [ref=f1e55] [box=48,1860,278,53]: Immutable contexts make outcomes replayable.
+      - article [ref=f1e56] [box=16,1977,343,256]:
+        - text: "03"
+        - heading "Verify" [level=3] [ref=f1e57] [box=48,2046,278,25]
+        - paragraph [ref=f1e58] [box=48,2090,278,79]: Every result identifies whether its evidence is simulated or settled onchain.
+  - alert [ref=f1e59] [box=-1,2296,1,1]

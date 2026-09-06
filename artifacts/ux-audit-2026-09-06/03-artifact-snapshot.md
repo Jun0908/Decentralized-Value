@@ -1,0 +1,60 @@
+- generic [active] [ref=e1] [box=0,0,1425,1240]:
+  - banner [ref=e2] [box=89,0,1248,54]:
+    - link "FRONTIER/" [ref=e3] [cursor=pointer] [box=89,18,521,18]:
+      - /url: /
+    - navigation "Primary navigation" [ref=e4] [box=610,18,206,17]:
+      - link "Arena" [ref=e5] [cursor=pointer] [box=610,18,33,17]:
+        - /url: /arena
+      - link "Runners" [ref=e6] [cursor=pointer] [box=672,18,47,17]:
+        - /url: /runners
+      - link "Integrations" [ref=e7] [cursor=pointer] [box=748,18,68,17]:
+        - /url: /sponsor-debug
+    - generic [ref=e8] [box=1202,20,134,14]: Privy not configured
+  - alert [ref=e60] [box=-1,53,1,1]: PackedBook
+  - main [ref=e145] [box=89,54,1248,1186]:
+    - generic [ref=e146] [box=89,134,992,170]:
+      - paragraph [ref=e147] [box=89,134,992,14]: Artifact / 0x0b5881…cb9685
+      - heading "PackedBook" [level=1] [ref=e148] [box=89,164,992,84]
+      - generic [ref=e149] [box=89,273,125,32]: Pareto frontier
+    - generic [ref=e150] [box=89,369,1248,225]:
+      - article [ref=e151] [box=90,370,415,223]:
+        - paragraph [ref=e152] [box=122,402,350,26]: Correctness
+        - strong [ref=e153] [box=122,444,350,83]: PASS
+        - generic [ref=e154] [box=122,543,183,17]: constraint 0x805cdd…be95b7
+      - article [ref=e155] [box=505,370,415,223]:
+        - paragraph [ref=e156] [box=537,402,350,26]: Gas / order
+        - strong [ref=e157] [box=537,444,350,83]: 70,270
+        - text: minimize
+      - article [ref=e158] [box=920,370,415,223]:
+        - paragraph [ref=e159] [box=952,402,350,26]: Parallel throughput
+        - strong [ref=e160] [box=952,444,350,83]: "100"
+        - text: maximize · normalized ops/s
+    - generic [ref=e161] [box=89,594,1248,531]:
+      - generic [ref=e162] [box=89,706,465,300]:
+        - paragraph [ref=e163] [box=89,706,465,14]: Reproducibility
+        - generic [ref=e164] [box=89,736,465,270]:
+          - generic [ref=e165] [box=89,736,465,69]:
+            - term [ref=e166] [box=89,749,465,13]: Version
+            - definition [ref=e167] [box=89,770,465,21]: evm-orderbook-v1
+          - generic [ref=e168] [box=89,805,465,66]:
+            - term [ref=e169] [box=89,819,465,13]: Source commit
+            - definition [ref=e170] [box=89,839,465,17]: dacc2b385bbfe34921caa50bed930a66fb06807c
+          - generic [ref=e171] [box=89,871,465,66]:
+            - term [ref=e172] [box=89,885,465,13]: Artifact hash
+            - definition [ref=e173] [box=89,905,465,17]: "0x0b58818f14b08f972c7af6f53a4a5e96c8ed1cfca0f431a089edbfa25acb9685"
+          - generic [ref=e174] [box=89,937,465,69]:
+            - term [ref=e175] [box=89,950,465,13]: Compiler
+            - definition [ref=e176] [box=89,971,465,21]: solc 0.8.30
+      - generic [ref=e177] [box=640,706,697,307]:
+        - paragraph [ref=e178] [box=640,706,697,14]: Attestation
+        - generic [ref=e179] [box=640,736,697,208]:
+          - generic [ref=e180] [box=640,736,697,69]:
+            - term [ref=e181] [box=640,749,697,13]: Runner ENS
+            - definition [ref=e182] [box=640,770,697,21]: Not attested
+          - generic [ref=e183] [box=640,805,697,69]:
+            - term [ref=e184] [box=640,819,697,13]: Signature
+            - definition [ref=e185] [box=640,839,697,21]: Not available
+          - generic [ref=e186] [box=640,875,697,69]:
+            - term [ref=e187] [box=640,888,697,13]: Sepolia tx
+            - definition [ref=e188] [box=640,908,697,21]: Not available
+        - paragraph [ref=e189] [box=640,944,697,53]: No placeholder identifiers are shown. These fields populate only after a verified runner submission.

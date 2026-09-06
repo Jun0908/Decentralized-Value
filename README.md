@@ -10,6 +10,11 @@ The public demo does not require hardware or signing credentials. Evaluation res
 
 Public demo: <https://web-rho-seven-d6te7t3f0y.vercel.app>
 
+The homepage now leads directly to an interactive, zero-configuration evaluation at `/demo`.
+Choose a sample solution, run the public demo API, and see in plain language why the solution joins
+the frontier or fails the shared correctness gate. No wallet, test tokens, ENS name, or hardware is
+required for this central product flow.
+
 ## Requirements
 
 - Node.js 22 or later
@@ -71,7 +76,10 @@ pnpm --filter @frontier/web build
 pnpm --filter @frontier/web start
 ```
 
-The Arena and Artifact screens use only the checked-in Foundry result. Sponsor Debug distinguishes configuration from live evidence. Run `pnpm demo:check -- --strict` before a live presentation; the non-strict form is useful while provisioning and prints a recovery action for every missing boundary.
+The Demo, Arena, and Artifact screens use only the checked-in Foundry result. Sponsor Debug is kept
+out of the primary product navigation and distinguishes configuration from live evidence for
+developers. Run `pnpm demo:check -- --strict` before a live presentation; the non-strict form is
+useful while provisioning and prints a recovery action for every missing boundary.
 
 The Next.js deployment also exposes the Bazantic-ready API on the same origin:
 

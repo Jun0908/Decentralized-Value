@@ -6,34 +6,61 @@ export default function HomePage() {
   return (
     <main className="page-shell">
       <section className="hero">
-        <p className="eyebrow">ETHOnline 2026 · Verifiable coordination</p>
-        <h1>Progress has more than one direction.</h1>
+        <p className="eyebrow">A better way to choose what deserves support</p>
+        <h1>
+          Stop choosing one winner. <span>Find every solution that moves the frontier.</span>
+        </h1>
         <p className="lede">
-          Frontier Protocol rewards artifacts that expand a reproducible Pareto frontier without
-          hiding tradeoffs inside one arbitrary score.
+          Compare solutions across cost and performance without crushing their tradeoffs into one
+          score. Run a sample evaluation in under a minute—no wallet or setup required.
         </p>
         <div className="actions">
-          <Link className="primary-action" href={`/arena/${arena.id}`}>
-            Explore the live benchmark
+          <Link className="primary-action" href="/demo">
+            Run the demo
           </Link>
-          <span className="proof">context {shortHash(arena.contextHash)}</span>
+          <Link className="secondary-action" href={`/arena/${arena.id}`}>
+            See current results
+          </Link>
         </div>
       </section>
-      <section className="section-grid">
+
+      <section className="outcome-section" aria-labelledby="outcome-heading">
+        <p className="eyebrow">The useful answer</p>
+        <h2 id="outcome-heading">Three different strengths. Three solutions worth keeping.</h2>
+        <div className="outcome-grid">
+          <article>
+            <p className="outcome-label">Lowest cost</p>
+            <h3>PackedBook</h3>
+            <p>Uses the least gas per order while still passing every correctness check.</p>
+          </article>
+          <article>
+            <p className="outcome-label">Best balance</p>
+            <h3>FrontierBook</h3>
+            <p>Trades a little more gas for four times the parallel capacity.</p>
+          </article>
+          <article>
+            <p className="outcome-label">Highest capacity</p>
+            <h3>ShardedBook</h3>
+            <p>Costs more to execute, but handles the most work in parallel.</p>
+          </article>
+        </div>
+      </section>
+
+      <section className="section-grid" id="how-it-works">
         <div>
-          <p className="eyebrow">Current arena</p>
-          <h2>{arena.name}</h2>
+          <p className="eyebrow">How it works</p>
+          <h2>Pass the rules. Then earn a place on the frontier.</h2>
           <p className="section-copy">
-            Four Solidity orderbooks compete on execution cost and parallel capacity. Correctness is
-            a hard gate, never a soft penalty.
+            This sample compares four Solidity orderbooks. Incorrect entries are rejected first.
+            Every remaining entry is kept if no other solution beats it on both cost and capacity.
           </p>
           <dl className="stats">
             <div>
-              <dt>Artifacts</dt>
+              <dt>Solutions</dt>
               <dd>{arena.artifacts.length}</dd>
             </div>
             <div>
-              <dt>Frontier</dt>
+              <dt>Worth keeping</dt>
               <dd>{arena.artifacts.filter((item) => item.frontier).length}</dd>
             </div>
             <div>
@@ -42,24 +69,42 @@ export default function HomePage() {
             </div>
           </dl>
         </div>
-        <FrontierChart />
+        <div>
+          <FrontierChart />
+          <p className="chart-summary">
+            The green points are not tied. Each leads on a different tradeoff, so all three remain
+            visible instead of being forced into a single ranking.
+          </p>
+        </div>
       </section>
+
       <section className="principles">
         <article>
           <span>01</span>
-          <h3>Constrain</h3>
-          <p>Invalid artifacts never reach the frontier.</p>
+          <h3>Choose</h3>
+          <p>Select a sample solution to evaluate.</p>
         </article>
         <article>
           <span>02</span>
-          <h3>Measure</h3>
-          <p>Immutable contexts make outcomes replayable.</p>
+          <h3>Evaluate</h3>
+          <p>Check correctness, cost, and capacity together.</p>
         </article>
         <article>
           <span>03</span>
-          <h3>Verify</h3>
-          <p>Every result identifies whether its evidence is simulated or settled onchain.</p>
+          <h3>Understand</h3>
+          <p>See exactly why it joins the frontier or gets rejected.</p>
         </article>
+      </section>
+
+      <section className="final-cta">
+        <p className="eyebrow">Try it yourself</p>
+        <h2>Which solution moves the frontier?</h2>
+        <div className="actions">
+          <Link className="primary-action" href="/demo">
+            Evaluate a sample
+          </Link>
+          <span className="proof">context {shortHash(arena.contextHash)}</span>
+        </div>
       </section>
     </main>
   );

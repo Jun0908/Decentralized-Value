@@ -1,0 +1,94 @@
+- generic [active] [ref=f3e1] [box=0,-551,1425,1722]:
+  - banner [ref=f3e2] [box=89,0,1248,54]:
+    - link "FRONTIER/" [ref=f3e3] [cursor=pointer] [box=89,18,1016,18]:
+      - /url: /
+    - navigation "Primary navigation" [ref=f3e4] [box=1104,18,232,17]:
+      - link "Run demo" [ref=f3e5] [cursor=pointer] [box=1104,18,58,17]:
+        - /url: /demo
+      - link "Results" [ref=f3e6] [cursor=pointer] [box=1191,18,43,17]:
+        - /url: /arena
+      - link "How it works" [ref=f3e7] [cursor=pointer] [box=1262,18,74,17]:
+        - /url: /#how-it-works
+  - main [ref=f3e8] [box=89,-497,1248,1568]:
+    - generic [ref=f3e9] [box=89,-417,992,363]:
+      - paragraph [ref=f3e10] [box=89,-417,992,14]: Interactive public demo
+      - heading "Find out what deserves a place on the frontier." [level=1] [ref=f3e11] [box=89,-387,865,253]
+      - paragraph [ref=f3e12] [box=89,-109,784,55]: Pick an orderbook, run the evaluation, and see how Frontier keeps meaningful tradeoffs visible. This uses reproducible sample benchmark data and never asks for payment.
+    - generic [ref=f3e13] [box=89,-6,1248,962]:
+      - list "Demo progress" [ref=f3e14] [box=89,-6,1248,58]:
+        - listitem [ref=f3e15] [box=89,-6,415,58]:
+          - generic [ref=f3e16] [box=105,10,26,26]: "1"
+          - text: Choose
+        - listitem [ref=f3e17] [box=505,-6,415,58]:
+          - generic [ref=f3e18] [box=521,10,26,26]: "2"
+          - text: Evaluate
+        - listitem [ref=f3e19] [box=921,-6,415,58]:
+          - generic [ref=f3e20] [box=937,10,26,26]: "3"
+          - text: Understand
+      - region [ref=f3e21] [box=89,76,1248,493]:
+        - generic [ref=f3e22] [box=138,125,1150,83]:
+          - generic [ref=f3e23] [box=138,125,658,83]:
+            - paragraph [ref=f3e24] [box=138,125,658,14]: Step 1
+            - heading "Choose a sample solution" [level=2] [ref=f3e25] [box=138,155,658,53]
+          - paragraph [ref=f3e26] [box=827,155,460,53]: Each solution makes a different tradeoff between execution cost and parallel capacity.
+        - radiogroup "Sample solutions" [ref=f3e27] [box=138,248,1150,192]:
+          - generic [ref=f3e28] [cursor=pointer] [box=138,248,279,192]:
+            - radio "Lowest cost PackedBook 70,270 gas 100 parallel ops/s" [ref=f3e29] [box=380,268,16,16]
+            - generic [ref=f3e30] [box=161,271,232,13]: Lowest cost
+            - strong [ref=f3e31] [box=161,346,232,25]: PackedBook
+            - generic [ref=f3e32] [box=161,380,232,14]: 70,270 gas
+            - generic [ref=f3e33] [box=161,403,232,14]: 100 parallel ops/s
+          - generic [ref=f3e34] [cursor=pointer] [box=428,248,279,192]:
+            - radio "Best balance FrontierBook 71,935 gas 400 parallel ops/s" [checked] [ref=f3e35] [box=671,268,16,16]
+            - generic [ref=f3e36] [box=451,271,232,13]: Best balance
+            - strong [ref=f3e37] [box=451,346,232,25]: FrontierBook
+            - generic [ref=f3e38] [box=451,380,232,14]: 71,935 gas
+            - generic [ref=f3e39] [box=451,403,232,14]: 400 parallel ops/s
+          - generic [ref=f3e40] [cursor=pointer] [box=719,248,279,192]:
+            - radio "Highest capacity ShardedBook 121,277 gas 800 parallel ops/s" [ref=f3e41] [box=961,268,16,16]
+            - generic [ref=f3e42] [box=742,271,232,13]: Highest capacity
+            - strong [ref=f3e43] [box=742,346,232,25]: ShardedBook
+            - generic [ref=f3e44] [box=742,380,232,14]: 121,277 gas
+            - generic [ref=f3e45] [box=742,403,232,14]: 800 parallel ops/s
+          - generic [ref=f3e46] [cursor=pointer] [box=1009,248,279,192]:
+            - radio "Fails correctness BadBook 64,731 gas 100 parallel ops/s" [ref=f3e47] [box=1252,268,16,16]
+            - generic [ref=f3e48] [box=1032,271,232,13]: Fails correctness
+            - strong [ref=f3e49] [box=1032,346,232,25]: BadBook
+            - generic [ref=f3e50] [box=1032,380,232,14]: 64,731 gas
+            - generic [ref=f3e51] [box=1032,403,232,14]: 100 parallel ops/s
+        - generic [ref=f3e52] [box=138,480,1150,40]:
+          - button "Evaluate FrontierBook" [ref=f3e53] [cursor=pointer] [box=138,480,192,40]
+          - generic [ref=f3e54] [box=349,493,294,14]: No wallet, test tokens, or hardware required.
+      - generic [ref=f3e55] [box=89,593,1248,363]:
+        - generic [ref=f3e56] [box=138,642,638,265]:
+          - paragraph [ref=f3e57] [box=138,642,638,14]: Step 3 · Result
+          - heading "This solution moves the frontier." [level=2] [ref=f3e66] [box=138,672,565,107]
+          - paragraph [ref=f3e67] [box=138,799,638,53]: FrontierBook moves the frontier by balancing cost and capacity. It handles four times the parallel work for only a small gas increase.
+          - generic [ref=f3e68] [box=138,867,638,40]:
+            - link "View the evidence" [ref=f3e69] [cursor=pointer] [box=138,867,162,40]:
+              - /url: /artifact/0x3884a0a6c733413eab68f8af7208675e3ee2c49cc14aea9be38340d0179834fa
+            - link "Compare all results" [ref=f3e70] [cursor=pointer] [box=319,871,142,32]:
+              - /url: /arena
+        - generic [ref=f3e71] [box=862,642,425,265]:
+          - generic [ref=f3e72] [box=862,642,425,54]:
+            - term [ref=f3e73] [box=862,658,69,21]: Correctness
+            - definition [ref=f3e74] [box=1252,658,35,21]: Pass
+          - generic [ref=f3e75] [box=862,696,425,54]:
+            - term [ref=f3e76] [box=862,712,69,21]: Gas / order
+            - definition [ref=f3e77] [box=1240,712,47,21]: 71,935
+          - generic [ref=f3e78] [box=862,750,425,54]:
+            - term [ref=f3e79] [box=862,766,106,21]: Parallel capacity
+            - definition [ref=f3e80] [box=1256,766,31,21]: "400"
+          - generic [ref=f3e81] [box=862,804,425,54]:
+            - term [ref=f3e82] [box=862,820,62,21]: Evaluation
+            - definition [ref=f3e83] [box=1197,820,90,21]: Public demo
+  - contentinfo [ref=f3e59] [box=89,1072,1248,99]:
+    - paragraph [ref=f3e60] [box=89,1105,390,18]: Frontier Protocol · A public, reproducible benchmark demo.
+    - generic [ref=f3e61] [box=1090,1105,246,18]:
+      - link "GitHub" [ref=f3e62] [cursor=pointer] [box=1090,1105,40,18]:
+        - /url: https://github.com/Jun0908/Decentralized-Value
+      - link "API spec" [ref=f3e63] [cursor=pointer] [box=1153,1105,54,18]:
+        - /url: /openapi.yaml
+      - link "Developer status" [ref=f3e64] [cursor=pointer] [box=1229,1105,108,18]:
+        - /url: /sponsor-debug
+  - alert [ref=f3e65] [box=-1,1170,1,1]

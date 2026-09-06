@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Frontier UX comparison</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #151515;
+        color: #fff;
+        font: 14px system-ui;
+      }
+      main {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2px;
+      }
+      figure {
+        margin: 0;
+        background: #080a0d;
+      }
+      figcaption {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        padding: 14px 18px;
+        background: #222;
+      }
+      img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <figure>
+        <figcaption>Before · static benchmark report</figcaption>
+        <img alt="Frontier Protocol before UX redesign" src="../ux-audit-2026-09-06/01-home.png" />
+      </figure>
+      <figure>
+        <figcaption>After · user-first public demo</figcaption>
+        <img alt="Frontier Protocol after UX redesign" src="01-home-implemented.png" />
+      </figure>
+    </main>
+  </body>
+</html>
