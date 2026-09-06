@@ -80,6 +80,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@frontier/api':
+        specifier: workspace:*
+        version: link:../api
       '@frontier/ens-adapter':
         specifier: workspace:*
         version: link:../../packages/ens-adapter

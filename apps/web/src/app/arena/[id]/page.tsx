@@ -83,12 +83,12 @@ export default async function ArenaPage({ params }: { params: Promise<{ id: stri
         </div>
       </section>
       <section className="notice">
-        <span className="signal" />
+        <span className="signal live" />
         <div>
-          <strong>Awaiting live attestations</strong>
+          <strong>Public demo mode</strong>
           <p>
-            The benchmark values are real local Foundry output. Ledger signatures and Sepolia
-            transactions remain visibly unavailable until the external setup passes.
+            The benchmark values are checked-in Foundry output. API evaluations are clearly marked
+            as simulated until optional Sepolia settlement is connected.
           </p>
         </div>
       </section>

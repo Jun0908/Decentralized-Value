@@ -1,12 +1,16 @@
 {
   "schemaVersion": "1",
-  "generatedAt": "2026-09-05T00:00:00.000Z",
+  "generatedAt": "2026-09-06T06:22:14.898Z",
   "network": "sepolia",
   "contracts": { "status": "pending-credentials" },
   "ens": { "status": "pending-parent-name-and-account" },
-  "ledger": { "status": "pending-device" },
-  "bazantic": { "status": "pending-public-url-and-credentials" },
+  "ledger": { "status": "not-required-for-public-demo" },
+  "bazantic": { "status": "pending-credentials", "publicApiReady": true },
   "privy": { "status": "pending-app-id" },
-  "web": { "status": "verified-local-production-build", "url": null },
+  "web": {
+    "status": "deployed-and-verified",
+    "url": "https://web-rho-seven-d6te7t3f0y.vercel.app",
+    "deploymentId": "dpl_7B4w7XysEXMAH3i62nszoKZxPdoY"
+  },
   "video": { "status": "pending-live-integrations" }
 }

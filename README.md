@@ -4,9 +4,11 @@ Frontier Protocol rewards artifacts that expand the space in which multiple inde
 
 ## Repository status
 
-Phases 0–7 now have a locally verified vertical slice: deterministic Solidity benchmarks, Pareto settlement contracts, fail-closed ENS discovery, Ledger DMK signing boundary, asynchronous HTTP API, Bazantic service material, Privy-ready Next.js UI, and demo automation. The real benchmark currently contains four artifacts and three non-dominated points.
+Phases 0–7 now have a locally verified vertical slice: deterministic Solidity benchmarks, Pareto settlement contracts, fail-closed ENS discovery, a zero-configuration demo API, Bazantic service material, Privy-ready Next.js UI, and demo automation. The real benchmark currently contains four artifacts and three non-dominated points.
 
-Live Sepolia deployment, ENSv2 names/EAC delegation, Ledger-device signing, Bazantic registration/A/B runs, Privy login, public hosting, and video evidence remain explicitly pending because their accounts, hardware, funding, and credentials are not available. The UI and `demo:check` report these boundaries without placeholder IDs.
+The public demo does not require hardware or signing credentials. Evaluation responses use the explicit terminal state `simulated` and never fabricate a signature or transaction. Live Sepolia deployment, ENSv2 names/EAC delegation, Bazantic registration/A/B runs, Privy login, and video evidence remain optional integration work.
+
+Public demo: <https://web-rho-seven-d6te7t3f0y.vercel.app>
 
 ## Requirements
 
@@ -23,7 +25,7 @@ pnpm env:check
 pnpm run ci
 ```
 
-Copy `.env.example` to `.env.local` only when local integration values are needed. Never commit `.env.local`, private keys, Ledger passwords, Bazantic credentials, or wallet material.
+Copy `.env.example` to `.env.local` only when optional live integration values are needed. The repository ignores `.env` and `.env.*` files except `.env.example`; never commit private keys, Bazantic credentials, or wallet material.
 
 ## Commands
 
@@ -52,7 +54,7 @@ packages/contracts       Foundry contracts and deployment scripts
 packages/sdk             Typed Frontier client
 packages/shared          Shared validation and protocol types
 packages/ens-adapter     ENSv2 integration boundary
-packages/ledger-adapter  Ledger integration boundary
+packages/ledger-adapter  Archived optional hardware adapter; unused by the public demo
 artifacts/orderbook      Artifact metadata and evidence
 benchmarks/evm-orderbook Deterministic workload, harness, and measured results
 bazantic                 Bazantic gateway and Recipe material
@@ -71,9 +73,19 @@ pnpm --filter @frontier/web start
 
 The Arena and Artifact screens use only the checked-in Foundry result. Sponsor Debug distinguishes configuration from live evidence. Run `pnpm demo:check -- --strict` before a live presentation; the non-strict form is useful while provisioning and prints a recovery action for every missing boundary.
 
+The Next.js deployment also exposes the Bazantic-ready API on the same origin:
+
+```text
+GET  /v1/health
+GET  /v1/arenas
+POST /v1/evaluations
+GET  /openapi.yaml
+```
+
+Production base URL: `https://web-rho-seven-d6te7t3f0y.vercel.app`
+
 - [Architecture and trust boundaries](Docs/architecture.md)
 - [ENSv2 records and EAC plan](Docs/ens.md)
-- [Ledger DMK and Key Ring operations](Docs/ledger.md)
 - [Bazantic registration and paid boundary](Docs/bazantic.md)
 - [Demo script](Docs/demo-script.md) and [failure recovery](Docs/recovery.md)
 - [Prize/evidence checklist](Docs/prize-checklist.md)

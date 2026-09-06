@@ -1,7 +1,7 @@
 import type { BenchmarkRecord } from "@frontier/shared";
 import { keccak256, stringToHex, type Hex } from "viem";
 
-export type JobState = "queued" | "dispatching" | "running" | "attested" | "failed";
+export type JobState = "queued" | "dispatching" | "running" | "attested" | "simulated" | "failed";
 export type EvaluationJob = {
   jobId: string;
   artifactId: Hex;

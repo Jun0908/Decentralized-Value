@@ -1,6 +1,6 @@
 import type { EnsRunnerDirectory } from "@frontier/ens-adapter";
-import type { EvaluationDispatcher } from "./index.js";
-import type { EvaluationJob } from "./store.js";
+import type { EvaluationDispatcher } from "./index";
+import type { EvaluationJob } from "./store";
 
 export class EnsEvaluationDispatcher implements EvaluationDispatcher {
   constructor(

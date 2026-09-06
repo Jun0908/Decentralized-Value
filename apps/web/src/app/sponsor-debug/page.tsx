@@ -4,24 +4,24 @@ const integrations = [
   {
     name: "ENSv2",
     ready: Boolean(process.env.SEPOLIA_RPC_URL && process.env.ENS_PARENT_NAME),
-    detail: process.env.ENS_PARENT_NAME ?? "Parent name not configured",
+    detail: process.env.ENS_PARENT_NAME ?? "Optional live namespace not configured",
   },
   {
     name: "Bazantic",
     ready: Boolean(process.env.BAZANTIC_GATEWAY_URL),
     detail: process.env.BAZANTIC_GATEWAY_URL
       ? "Gateway configured"
-      : "Gateway and Recipe ID unavailable",
+      : "Public API is ready; Gateway and Recipe registration remain",
   },
   {
-    name: "Ledger",
-    ready: process.env.LEDGER_SIGNING_MODE === "dmk",
-    detail: process.env.LEDGER_SIGNING_MODE ?? "Signing mode not configured",
+    name: "Demo API",
+    ready: true,
+    detail: "Public API with explicitly simulated evaluations; no hardware required",
   },
   {
     name: "Privy",
     ready: Boolean(process.env.NEXT_PUBLIC_PRIVY_APP_ID),
-    detail: process.env.NEXT_PUBLIC_PRIVY_APP_ID ? "App ID configured" : "App ID not configured",
+    detail: process.env.NEXT_PUBLIC_PRIVY_APP_ID ? "App ID configured" : "Optional login disabled",
   },
 ] as const;
 
@@ -32,8 +32,8 @@ export default function SponsorDebugPage() {
         <p className="eyebrow">Integration evidence</p>
         <h1>Sponsor debug</h1>
         <p>
-          Configuration is reported without exposing credentials. Unavailable external evidence
-          stays explicitly unavailable.
+          Configuration is reported without exposing credentials. The public demo works without
+          optional external integrations.
         </p>
       </header>
       <section className="integration-grid">
@@ -45,7 +45,7 @@ export default function SponsorDebugPage() {
             </div>
             <p>{item.detail}</p>
             <span className={item.ready ? "status-good" : "status-warn"}>
-              {item.ready ? "configured" : "blocked externally"}
+              {item.ready ? "configured" : "optional"}
             </span>
           </article>
         ))}
@@ -71,19 +71,19 @@ export default function SponsorDebugPage() {
           </dl>
         </div>
         <div>
-          <p className="eyebrow">Live settlement</p>
+          <p className="eyebrow">Evidence mode</p>
           <dl>
             <div>
-              <dt>Result hash</dt>
-              <dd>Not attested</dd>
+              <dt>Evaluation</dt>
+              <dd>Simulated public demo</dd>
             </div>
             <div>
               <dt>Signature</dt>
-              <dd>Not available</dd>
+              <dd>Not claimed</dd>
             </div>
             <div>
               <dt>Transaction</dt>
-              <dd>Not available</dd>
+              <dd>Optional Sepolia integration</dd>
             </div>
           </dl>
         </div>

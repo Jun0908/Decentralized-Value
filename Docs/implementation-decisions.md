@@ -2,6 +2,19 @@
 
 This log records decisions that affect the Frontier Protocol architecture. Sponsor APIs and beta contracts can change, so each integration decision includes a verification date and primary source.
 
+## D-000 — Public demo does not require Ledger hardware
+
+- **Status:** Accepted on 2026-09-06; supersedes Ledger as a deployment gate
+- **Decision:** Keep the existing Ledger adapter as optional implementation evidence, but exclude it from runtime configuration and public-demo readiness. Zero-configuration evaluations terminate as `simulated`, with `signature` and `txHash` left null. The Next.js deployment serves both the UI and `/v1/*` API so Bazantic can integrate through one public HTTPS origin.
+- **Reason:** No Ledger device is available for the online hackathon. Explicit simulation preserves a usable demo without presenting fabricated cryptographic or onchain evidence.
+
+## D-000A — Vercel production deployment
+
+- **Status:** Deployed and externally verified on 2026-09-06
+- **Decision:** Publish `apps/web` as the single Vercel surface for the UI, `/v1/*` API, and `/openapi.yaml`.
+- **Production URL:** <https://web-rho-seven-d6te7t3f0y.vercel.app>
+- **Verification:** Landing page and OpenAPI returned HTTP 200, health returned `ok`, and a production evaluation returned `simulated` with null signature and transaction hash.
+
 ## D-001 — pnpm workspace with explicit service boundaries
 
 - **Status:** Accepted

@@ -1,7 +1,9 @@
 # Frontier Protocol 実装タスク
 
-最終更新: 2026-09-05
+最終更新: 2026-09-06
 対象: ETHOnline 2026 Technical Frontier MVP
+
+> 2026-09-06 scope update: Ledger実機はPublic Demoの必須条件から外した。Deploy版APIは設定不要で`simulated`状態を返し、署名やSepolia Transactionを偽装しない。既存Ledger Adapterは任意の過去実装として残すが、DeploymentとDemo ReadinessをBlockしない。
 
 ## 1. ゴール
 
@@ -329,7 +331,7 @@ Repository基盤
 
 ### P0: Demo Safety
 
-- [ ] `T-700` `pnpm demo:seed` を実装する。
+- [x] `T-700` `pnpm demo:seed` を実装する。
   - Contract、Challenge、Artifact、ENS Runner、Ledger Preflightを冪等に準備する。
   - 最後のInteresting Evaluationだけ未実行で残す。
 - [x] `T-701` `pnpm demo:check` を実装する。
@@ -348,11 +350,13 @@ Repository基盤
 - [x] `T-716` `Docs/prize-checklist.md` を作成する。
 - [ ] `T-717` OpenAPI、Contract Address、ENS Name、Recipe ID、Deployment URLを記録する。
 
+> 2026-09-06 deployment update: Vercel production is live at `https://web-rho-seven-d6te7t3f0y.vercel.app`. The public UI, `/v1/*` API, and `/openapi.yaml` were verified from outside the deployment. Contract Address、ENS Name、Recipe IDは任意Live Integrationとして未記録のため、`T-717`全体は未完了のままにする。
+
 ### P0: Evidence
 
 - [ ] `T-720` ENSv2 Namespace、Live Records、EAC、DelegationのEvidenceを保存する。
 - [ ] `T-721` Bazantic MCP、Gateway、Recipe、A/B TestのEvidenceを保存する。
-- [ ] `T-722` Ledger Enrollment、Key Ring Signing、Recovered SignerのEvidenceを保存する。
+- [ ] `T-722` Ledger Enrollment、Key Ring Signing、Recovered SignerのEvidenceを保存する（D-000によりPublic Demo対象外）。
 - [ ] `T-723` Sepolia Attestation TransactionとFrontier UpdateのEvidenceを保存する。
 - [ ] `T-724` 90–120秒のDemoを録画する。
 

@@ -3,7 +3,7 @@ info:
   title: Frontier Protocol API
   version: 1.0.0
   description: Reproducible Pareto-frontier discovery and asynchronous evaluation.
-servers: [{ url: "http://localhost:3001" }]
+servers: [{ url: "/" }]
 paths:
   /v1/health:
     get: { operationId: getHealth, responses: { "200": { description: Healthy } } }
@@ -83,7 +83,10 @@ paths:
         }
       responses:
         "202":
-          { description: Evaluation queued, headers: { Location: { schema: { type: string } } } }
+          {
+            description: Evaluation accepted. Public demo deployments return a clearly labeled simulated terminal state without a signature or transaction.,
+            headers: { Location: { schema: { type: string } } },
+          }
         "400": { $ref: "#/components/responses/BadRequest" }
         "402": { description: Payment required at the Bazantic gateway }
   /v1/evaluations/{jobId}:
@@ -93,7 +96,7 @@ paths:
         [{ name: jobId, in: path, required: true, schema: { type: string, format: uuid } }]
       responses:
         {
-          "200": { description: Evaluation state },
+          "200": { description: Evaluation state, including simulated demo results },
           "404": { $ref: "#/components/responses/NotFound" },
         }
   /v1/runners:

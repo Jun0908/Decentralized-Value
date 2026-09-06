@@ -36,7 +36,6 @@ export const environmentSchema = z.object({
   LEDGER_RING_KEY: optionalString,
   LEDGER_SIGNING_MODE: z.preprocess(blankToUndefined, z.enum(["development", "dmk"]).optional()),
   NEXT_PUBLIC_CHAIN_ID: z.coerce.number().int().default(11155111).pipe(z.literal(11155111)),
-  NEXT_PUBLIC_FRONTIER_API_URL: z.url().default("http://localhost:3001"),
   NEXT_PUBLIC_DEPLOYMENT_URL: optionalUrl,
   NEXT_PUBLIC_PRIVY_APP_ID: optionalString,
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),

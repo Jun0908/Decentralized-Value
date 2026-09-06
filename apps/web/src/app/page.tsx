@@ -9,7 +9,7 @@ export default function HomePage() {
         <p className="eyebrow">ETHOnline 2026 · Verifiable coordination</p>
         <h1>Progress has more than one direction.</h1>
         <p className="lede">
-          Frontier Protocol rewards artifacts that expand a reproducible Pareto frontier—without
+          Frontier Protocol rewards artifacts that expand a reproducible Pareto frontier without
           hiding tradeoffs inside one arbitrary score.
         </p>
         <div className="actions">
@@ -57,8 +57,8 @@ export default function HomePage() {
         </article>
         <article>
           <span>03</span>
-          <h3>Attest</h3>
-          <p>Ledger-backed runners bind evidence to ENS identities.</p>
+          <h3>Verify</h3>
+          <p>Every result identifies whether its evidence is simulated or settled onchain.</p>
         </article>
       </section>
     </main>

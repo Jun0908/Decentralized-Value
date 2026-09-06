@@ -50,11 +50,6 @@ const checks: Check[] = [
     recovery: "deploy the runner and set RUNNER_PUBLIC_URL",
   },
   {
-    name: "Ledger DMK",
-    ok: process.env.LEDGER_SIGNING_MODE === "dmk" && present("LEDGER_RING_FILE"),
-    recovery: "enroll a genuine device, initialize wallet-cli ring, and set LEDGER_RING_FILE",
-  },
-  {
     name: "Bazantic",
     ok: ["BAZANTIC_GATEWAY_URL", "BAZANTIC_SERVICE_ID", "BAZANTIC_RECIPE_ID"].every(present),
     recovery: "register/activate the public OpenAPI service and Recipe, then copy returned IDs",

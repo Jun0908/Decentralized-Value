@@ -51,9 +51,7 @@ if (!process.env.SEPOLIA_RPC_URL || !process.env.DEPLOYER_PRIVATE_KEY) {
   );
 }
 
-if (process.env.LEDGER_SIGNING_MODE !== "dmk") {
-  process.stdout.write(
-    "[seed] external: skipped Ledger signing (DMK device/session unavailable)\n",
-  );
-}
+process.stdout.write(
+  "[seed] demo API ready; evaluations are labeled simulated until Sepolia settlement is connected\n",
+);
 process.stdout.write("[seed] local seed ready; last measured frontier retained\n");

@@ -6,7 +6,7 @@ import { EnsRunnerDirectory, ViemEnsRecordReader } from "@frontier/ens-adapter";
 import { parseEnvironment } from "@frontier/shared";
 import { createPublicClient, http } from "viem";
 import { sepolia } from "viem/chains";
-import { createApi } from "./index.js";
+import { createApi } from "./index";
 
 const root = resolve(import.meta.dirname, "../../..");
 const benchmark = JSON.parse(

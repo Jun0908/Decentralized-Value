@@ -6,8 +6,8 @@ import {
 } from "@frontier/shared";
 import type { EnsRunnerDirectory } from "@frontier/ens-adapter";
 import { z } from "zod";
-import type { Hex } from "viem";
-import { FrontierStore, type EvaluationJob } from "./store.js";
+import { keccak256, stringToHex, type Hex } from "viem";
+import { FrontierStore, type EvaluationJob } from "./store";
 
 const evaluationSchema = z.object({ artifactId: bytes32Schema });
 const disputeSchema = z.object({
@@ -225,4 +225,30 @@ export function createApi(
     dispatcher,
     runnerDirectory,
   );
+}
+
+/**
+ * Creates a zero-configuration API for the public demo. It uses the checked-in
+ * benchmark result, marks the terminal state as simulated, and never fabricates
+ * a signature or transaction.
+ */
+export function createDemoApi(
+  benchmark: unknown,
+  runnerDirectory?: EnsRunnerDirectory,
+): FrontierApi {
+  const store = new FrontierStore(benchmarkRecordSchema.parse(benchmark));
+  const dispatcher: EvaluationDispatcher = {
+    async dispatch(job) {
+      const artifact = store.artifacts.get(job.artifactId);
+      if (!artifact) throw new Error("Artifact not found");
+
+      job.state = "simulated";
+      job.resultHash = keccak256(
+        stringToHex(`demo:${job.artifactId}:${store.benchmark.contextHash}`),
+      );
+      job.frontier = artifact.frontier;
+    },
+  };
+
+  return new FrontierApi(store, dispatcher, runnerDirectory);
 }
