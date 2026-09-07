@@ -1,4 +1,7 @@
 import {
+  allocateContributionRewards,
+  computeOutcomeFrontier,
+  dominatesOutcome,
   hashChallengeManifest,
   parseChallengeManifest,
   computeContributionEvidence,
@@ -84,6 +87,38 @@ export type SupplyEvaluation = {
   contribution: ContributionEvidence;
 };
 
+export type SupplyAgentReplayEntry = {
+  id: "agent-a" | "agent-b" | "agent-c";
+  name: string;
+  approach: string;
+  allocation: SupplyAllocation;
+  totalProcurementCost: number;
+  worstCaseDeliveredKits: number;
+  correctness: boolean;
+  frontier: boolean;
+  dominatedBy: string[];
+  contribution: ContributionEvidence;
+  rewardCredits: number;
+  resultHash: Hex;
+};
+
+export type SupplyAgentSubmission = Pick<
+  SupplyAgentReplayEntry,
+  "id" | "name" | "approach" | "allocation"
+> & { wallet: string };
+
+export type SupplyAgentReplay = {
+  schemaVersion: "1";
+  arenaId: string;
+  contextId: SupplyContextId;
+  contextHash: Hex;
+  evaluator: "emergency-supply-v1";
+  poolCredits: number;
+  entries: SupplyAgentReplayEntry[];
+  participantFrontier: string[];
+  replayHash: Hex;
+};
+
 export const emergencySupplyMetrics = [
   {
     key: "totalProcurementCost",
@@ -102,6 +137,56 @@ export const emergencySupplyMetrics = [
     upperBound: 1_000,
   },
 ] as const satisfies readonly OutcomeMetric[];
+
+export const emergencySupplyDemoAllocation: SupplyAllocation = {
+  "harbor-aid": 300,
+  northstar: 150,
+  "inland-works": 300,
+  "local-grid": 150,
+  airbridge: 100,
+};
+
+export const emergencySupplyAgentAllocations = [
+  {
+    id: "agent-a",
+    name: "Agent A",
+    approach: "Cheapest agent submission",
+    wallet: "0x1111111111111111111111111111111111111111",
+    allocation: {
+      "harbor-aid": 450,
+      northstar: 300,
+      "inland-works": 250,
+      "local-grid": 0,
+      airbridge: 0,
+    },
+  },
+  {
+    id: "agent-b",
+    name: "Agent B",
+    approach: "Resilience-first submission",
+    wallet: "0x2222222222222222222222222222222222222222",
+    allocation: {
+      "harbor-aid": 200,
+      northstar: 100,
+      "inland-works": 250,
+      "local-grid": 250,
+      airbridge: 200,
+    },
+  },
+  {
+    id: "agent-c",
+    name: "Agent C",
+    approach: "Higher cost with weaker resilience",
+    wallet: "0x3333333333333333333333333333333333333333",
+    allocation: {
+      "harbor-aid": 200,
+      northstar: 250,
+      "inland-works": 0,
+      "local-grid": 300,
+      airbridge: 250,
+    },
+  },
+] as const satisfies readonly SupplyAgentSubmission[];
 
 export const emergencySupplyScenario = {
   arenaId: "emergency-supply-v1",
@@ -582,6 +667,98 @@ export function evaluateSupplyAllocation(
   return {
     ...resultWithoutHash,
     resultHash: keccak256(stringToHex(canonicalJson(resultWithoutHash))),
+  };
+}
+
+/**
+ * Replays three agent submissions through the same public evaluator. Frontier
+ * membership and rewards are calculated from the complete set, so reversing
+ * submission order cannot change the outcome.
+ */
+export function replayEmergencySupplyAgents(
+  submissions: readonly SupplyAgentSubmission[] = emergencySupplyAgentAllocations,
+): SupplyAgentReplay {
+  const baselineOutcomes = emergencySupplyBaselinePoints.map((point) => outcomePoint(point, true));
+  const measured = [...submissions]
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .map((agent) => ({
+      ...agent,
+      evaluation: evaluateSupplyAllocation({ ...agent.allocation }),
+    }));
+  const agentOutcomes = measured.map(({ id, name, evaluation }) =>
+    outcomePoint(
+      {
+        id,
+        name,
+        totalProcurementCost: evaluation.totalProcurementCost,
+        worstCaseDeliveredKits: evaluation.worstCaseDeliveredKits,
+      },
+      false,
+    ),
+  );
+  const complete = [...baselineOutcomes, ...agentOutcomes];
+  const frontierIds = new Set(
+    computeOutcomeFrontier(complete, emergencySupplyMetrics).map(({ id }) => id),
+  );
+  const contributionById = new Map(
+    agentOutcomes.map((candidate) => [
+      candidate.id,
+      computeContributionEvidence(
+        complete.filter(({ id }) => id !== candidate.id),
+        candidate,
+        emergencySupplyMetrics,
+      ),
+    ]),
+  );
+  const rewards = new Map(
+    allocateContributionRewards(
+      10_000n,
+      measured.map(({ id, wallet, evaluation }) => ({
+        participantId: id,
+        wallet,
+        correctness: evaluation.correctness,
+        baseline: false,
+        exclusiveContributionPpm: contributionById.get(id)!.exclusiveContributionPpm,
+        reproducibilityFactorPpm: 1_000_000,
+        evidenceFactorPpm: 1_000_000,
+      })),
+    ).map(({ participantId, amount }) => [participantId, Number(amount)]),
+  );
+  const entries = measured.map(({ id, name, approach, allocation, evaluation }) => {
+    const point = agentOutcomes.find((candidate) => candidate.id === id)!;
+    return {
+      id,
+      name,
+      approach,
+      allocation: { ...allocation },
+      totalProcurementCost: evaluation.totalProcurementCost,
+      worstCaseDeliveredKits: evaluation.worstCaseDeliveredKits,
+      correctness: evaluation.correctness,
+      frontier: frontierIds.has(id),
+      dominatedBy: complete
+        .filter(
+          (candidate) =>
+            candidate.id !== id && dominatesOutcome(candidate, point, emergencySupplyMetrics),
+        )
+        .map(({ name: candidateName }) => candidateName),
+      contribution: contributionById.get(id)!,
+      rewardCredits: rewards.get(id) ?? 0,
+      resultHash: evaluation.resultHash,
+    } satisfies SupplyAgentReplayEntry;
+  });
+  const replayWithoutHash = {
+    schemaVersion: "1" as const,
+    arenaId: emergencySupplyScenario.arenaId,
+    contextId: "public-normal-operations" as const,
+    contextHash: emergencySupplyContextHash,
+    evaluator: "emergency-supply-v1" as const,
+    poolCredits: 10_000,
+    entries,
+    participantFrontier: entries.filter(({ frontier }) => frontier).map(({ id }) => id),
+  };
+  return {
+    ...replayWithoutHash,
+    replayHash: keccak256(stringToHex(canonicalJson(replayWithoutHash))),
   };
 }
 

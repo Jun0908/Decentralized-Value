@@ -35,6 +35,15 @@ paths:
           "200": { description: Measured allocation with failure evidence and result hash },
           "400": { $ref: "#/components/responses/BadRequest" },
         }
+  /v1/emergency-supply/replay:
+    get:
+      operationId: replayEmergencySupplyAgents
+      description: Recalculates three reference agent submissions with the public evaluator, derives the final participant frontier, and allocates 10,000 deterministic practice credits by exclusive contribution.
+      responses:
+        {
+          "200":
+            { description: Deterministic Agent A/B/C replay, frontier, rewards, and replay hash },
+        }
   /v1/calldata-compression:
     get:
       operationId: getCalldataCompressionScenario

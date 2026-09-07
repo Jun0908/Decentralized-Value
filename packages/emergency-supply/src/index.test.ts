@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   emergencySupplyBaselinePoints,
+  emergencySupplyAgentAllocations,
   emergencySupplyContextHash,
   emergencySupplyManifestHash,
   emergencySupplyScenario,
   evaluateSupplyAllocation,
+  replayEmergencySupplyAgents,
 } from "./index";
 
 describe("Emergency Supply Allocation evaluator", () => {
@@ -42,6 +44,7 @@ describe("Emergency Supply Allocation evaluator", () => {
 
     expect(result.correctness).toBe(false);
     expect(result.pareto.frontier).toBe(false);
+    expect(result.contribution.exclusiveContributionPpm).toBe(0);
     expect(result.constraintFailures).toEqual(
       expect.arrayContaining([
         expect.stringContaining("capacity"),
@@ -59,6 +62,9 @@ describe("Emergency Supply Allocation evaluator", () => {
     expect(first.resultHash).toBe(second.resultHash);
     expect(first.failureOutcomes).toEqual(second.failureOutcomes);
     expect(first.contribution).toEqual(second.contribution);
+    expect(
+      evaluateSupplyAllocation(emergencySupplyScenario.strategies[2]!.allocation).resultHash,
+    ).not.toBe(first.resultHash);
   });
 
   it("measures positive frontier expansion for a new cost-resilience tradeoff", () => {
@@ -87,5 +93,25 @@ describe("Emergency Supply Allocation evaluator", () => {
     expect(constrained.contextHash).not.toBe(normal.contextHash);
     expect(constrained.resultHash).not.toBe(normal.resultHash);
     expect(constrained.totalProcurementCost).toBeGreaterThan(normal.totalProcurementCost);
+  });
+
+  it("replays agent submissions through one evaluator and rewards only the final frontier", () => {
+    const replay = replayEmergencySupplyAgents();
+    const [agentA, agentB, agentC] = replay.entries;
+
+    expect(replay.participantFrontier).toEqual(["agent-a", "agent-b"]);
+    expect(agentA).toMatchObject({ correctness: true, frontier: true });
+    expect(agentB).toMatchObject({ correctness: true, frontier: true });
+    expect(agentC).toMatchObject({
+      correctness: true,
+      frontier: false,
+      rewardCredits: 0,
+      dominatedBy: expect.arrayContaining(["Agent B"]),
+    });
+    expect(replay.entries.reduce((sum, entry) => sum + entry.rewardCredits, 0)).toBe(10_000);
+    expect(replayEmergencySupplyAgents()).toEqual(replay);
+    expect(replayEmergencySupplyAgents([...emergencySupplyAgentAllocations].reverse())).toEqual(
+      replay,
+    );
   });
 });

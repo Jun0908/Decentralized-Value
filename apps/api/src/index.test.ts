@@ -101,6 +101,23 @@ describe("Frontier API contracts", () => {
     expect(scenario.evidenceLevel).toBe(0);
   });
 
+  it("serves a deterministic agent replay with contribution rewards", async () => {
+    const api = createApi(benchmark);
+    const first = await (await api.fetch(request("/v1/emergency-supply/replay"))).json();
+    const second = await (await api.fetch(request("/v1/emergency-supply/replay"))).json();
+
+    expect(first).toEqual(second);
+    expect(first.participantFrontier).toEqual(["agent-a", "agent-b"]);
+    expect(first.entries).toHaveLength(3);
+    expect(first.entries[2]).toMatchObject({ frontier: false, rewardCredits: 0 });
+    expect(
+      first.entries.reduce(
+        (sum: number, entry: { rewardCredits: number }) => sum + entry.rewardCredits,
+        0,
+      ),
+    ).toBe(10_000);
+  });
+
   it("measures calldata bytes and real EVM decoder gas", async () => {
     const api = createApi(benchmark);
     const scenarioResponse = await api.fetch(request("/v1/calldata-compression"));

@@ -58,4 +58,10 @@ Submit it to:
 POST /v1/emergency-supply/evaluations
 ```
 
+## Agent competition replay
+
+`GET /v1/emergency-supply/replay` measures three agent allocations with this same evaluator. Agent A is the cheapest participant result, Agent B preserves substantially more kits after a failure, and Agent C costs more than B while delivering less. The complete participant frontier is therefore A + B; C is dominated and receives zero practice credits.
+
+The replay computes each entry before allocating a 10,000-credit practice pool, so submission order cannot affect frontier membership or reward amounts. The response includes every result hash and a deterministic replay hash. Credits demonstrate allocation math only; they are not tokens and do not claim settlement.
+
 This request is a real deterministic measurement. It is not an official tournament submission and does not claim a World ID proof, signed attestation, Sepolia settlement, or token transfer. Those remain separate Plan 2 deployment phases.

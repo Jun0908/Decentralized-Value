@@ -11,6 +11,7 @@ import {
 import {
   evaluateSupplyAllocation,
   publicEmergencySupplyScenario,
+  replayEmergencySupplyAgents,
 } from "@frontier/emergency-supply";
 import { evaluateMicrogridDispatch, publicMicrogridScenario } from "@frontier/microgrid-dispatch";
 import type { EnsRunnerDirectory } from "@frontier/ens-adapter";
@@ -158,6 +159,7 @@ export class FrontierApi {
         .parse(url.searchParams.get("contextId") ?? undefined);
       return json(publicEmergencySupplyScenario(contextId));
     }
+    if (path === "/v1/emergency-supply/replay") return json(replayEmergencySupplyAgents());
     if (path === "/v1/calldata-compression") {
       const contextId = z
         .enum(["public-transfer-mix", "public-low-reuse"])
