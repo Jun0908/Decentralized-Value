@@ -1,20 +1,19 @@
-import {
-  emergencySupplyBaselinePoints,
-  emergencySupplyDemoAllocation,
-  evaluateSupplyAllocation,
-  publicEmergencySupplyScenario,
-} from "@frontier/emergency-supply";
+import { publicEmergencySupplyScenario } from "@frontier/emergency-supply";
+import { evaluateCalldataCodec, measureCodecPoints } from "@frontier/calldata-compression";
 import Link from "next/link";
 import { ArenaCard } from "@/components/arena-card";
-import { HomeFrontierPreview } from "@/components/home-frontier-preview";
+import { HomeEvmDemo } from "@/components/home-evm-demo";
 import { SettlementEvidence } from "@/components/settlement-evidence";
 import { SupplyAllocationDemo } from "@/components/supply-allocation-demo";
 import { arenaRegistry } from "@/lib/arenas";
 
 const github = "https://github.com/Jun0908/Decentralized-Value";
 
-export default function HomePage() {
-  const previewEvaluation = evaluateSupplyAllocation(emergencySupplyDemoAllocation);
+export default async function HomePage() {
+  const [evmResult, codecPoints] = await Promise.all([
+    evaluateCalldataCodec("packed"),
+    measureCodecPoints(),
+  ]);
   const scenario = publicEmergencySupplyScenario();
   const deploymentCommit = process.env.VERCEL_GIT_COMMIT_SHA;
   const commit = deploymentCommit?.slice(0, 7) ?? "local build";
@@ -24,43 +23,24 @@ export default function HomePage() {
 
   return (
     <main className="page-shell platform-home">
-      <section className="finalist-hero">
-        <div className="finalist-hero-copy">
-          <p className="eyebrow">Open competition protocol for multi-objective problems</p>
-          <h1>Build cheaper and more resilient systems—without hiding tradeoffs in one score.</h1>
-          <p className="lede">
-            Sponsors publish problems with multiple goals. Builders and AI agents submit solutions.
-            Frontier rewards every valid solution that expands what is possible.
-          </p>
-          <div className="actions">
-            <Link className="primary-action" href="/#live-demo">
-              Run the 60-second live demo
-            </Link>
-            <Link className="secondary-action" href="/#reward-evidence">
-              See how rewards are calculated
-            </Link>
-          </div>
-        </div>
-        <HomeFrontierPreview
-          baselines={emergencySupplyBaselinePoints}
-          evaluation={previewEvaluation}
-        />
+      <section className="finalist-hero" id="evm-demo">
+        <HomeEvmDemo initialResult={evmResult} points={codecPoints} />
         <dl className="finalist-proof-strip">
           <div>
-            <dt>Failure tests</dt>
-            <dd>9 exhaustive cases</dd>
+            <dt>Real Solidity</dt>
+            <dd>Cancun EVM execution</dd>
           </div>
           <div>
-            <dt>Reproducibility</dt>
+            <dt>Tested</dt>
+            <dd>68 automated tests</dd>
+          </div>
+          <div>
+            <dt>Verifiable</dt>
             <dd>Deterministic result hash</dd>
           </div>
           <div>
-            <dt>Rules</dt>
-            <dd>Public evaluation context</dd>
-          </div>
-          <div>
-            <dt>Extensibility</dt>
-            <dd>3 independent arenas</dd>
+            <dt>Ethereum</dt>
+            <dd>Sepolia reward recorded</dd>
           </div>
         </dl>
       </section>
@@ -97,7 +77,7 @@ export default function HomePage() {
       <section className="home-live-demo" id="live-demo" aria-labelledby="live-demo-heading">
         <header className="home-live-heading">
           <div>
-            <p className="eyebrow">60-second live demo · Emergency Supply</p>
+            <p className="eyebrow">Social application · Emergency Supply</p>
             <h2 id="live-demo-heading">Can you lower cost without making aid fragile?</h2>
           </div>
           <p>

@@ -8,7 +8,16 @@ Open the Top page.
 
 > Most competitions add cost, safety, and quality into one weighted score. Whoever chooses those weights quietly chooses the winner. Frontier keeps each value independent.
 
-Point to the Hero preview: procurement cost is minimized, worst-case delivery is maximized, and the same real fixture shows `46.22% → 47.10% (+0.88%)`.
+Read the headline and point to the live Cancun EVM card. The product rewards every correct solution that adds a useful tradeoff instead of forcing all values into one score.
+
+Press **Run the 10-second EVM demo**. The preloaded Packed Solidity codec reproduces:
+
+- `8,200` calldata gas
+- `13,061` decoder gas
+- a correctness pass
+- `5.27%` frontier contribution
+
+Point to the illustration: Dictionary minimizes calldata gas, Packed minimizes decoder gas, so both remain rewardable. Standard ABI loses on both axes and is dominated.
 
 ## 0:20–0:50 — Who does what
 
@@ -21,7 +30,7 @@ Show the four-role strip.
 
 ## 0:50–1:40 — Measure a real allocation
 
-Jump to **Run the 60-second live demo**. Change one of the five supplier allocations while keeping the total at 1,000, then press **Evaluate allocation**.
+Scroll to **Social application · Emergency Supply**. Change one of the five supplier allocations while keeping the total at 1,000, then press **Evaluate allocation**.
 
 Show, in order:
 

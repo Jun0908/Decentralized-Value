@@ -20,10 +20,11 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       <body>
         <header className="site-header">
           <Link className="wordmark" href="/" aria-label="Value Decentralization home">
-            VALUE<span>/</span>DECENTRALIZED
+            <span className="wordmark-title">VALUE DECENTRALIZATION</span>
+            <small>Powered by Frontier Protocol</small>
           </Link>
           <nav aria-label="Primary navigation">
-            <Link href="/#live-demo">Live demo</Link>
+            <Link href="/#evm-demo">EVM demo</Link>
             <Link href="/#how-it-works">How it works</Link>
             <Link href="/arenas">Arenas</Link>
             <Link href="/architecture">Architecture</Link>
