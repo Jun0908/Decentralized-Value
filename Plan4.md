@@ -1,6 +1,6 @@
 # Frontier Protocol Plan 4 — Finalist Readiness
 
-更新日: 2026-09-07  
+更新日: 2026-09-07
 基準: 公開Topページ、Arena一覧、Emergency Supply実測フローのJudge監査
 
 実装状況（2026-09-07）: Milestone 1・2とSubmission Packageのコード／文書部分を実装。Reward Contract、wallet manifest署名、Explorer Evidence UIを実装し、Sepolia Demo Tokenの供給、allocation commit、RewardPaid、残高増加まで実行済み。Durable Storage、World ID、最終大会、Demo動画収録は未完了であり、公開UIでもDemo payoutとTournament settlementを区別する。
