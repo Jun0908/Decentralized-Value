@@ -507,9 +507,9 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
         <div>
           <strong>Measurement is live; tournament settlement is not configured.</strong>
           <p>
-            This practice evaluation is calculated from your input. World ID registration, the
-            final-day workload, and Sepolia token distribution remain separate deployment steps; no
-            reward transaction is being claimed here.
+            This practice result is calculated from your input and is not the entry paid by the
+            separate Sepolia reward-path demonstration below. World ID, durable entries, and
+            final-day tournament distribution remain incomplete.
           </p>
         </div>
       </section>
