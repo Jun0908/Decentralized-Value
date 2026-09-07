@@ -1,5 +1,5 @@
 import { publicEmergencySupplyScenario } from "@frontier/emergency-supply";
-import { evaluateCalldataCodec, measureCodecPoints } from "@frontier/calldata-compression";
+import { evaluateCalldataCodec } from "@frontier/calldata-compression";
 import Link from "next/link";
 import { ArenaCard } from "@/components/arena-card";
 import { HomeProtocolHero } from "@/components/home-protocol-hero";
@@ -10,10 +10,7 @@ import { arenaRegistry } from "@/lib/arenas";
 const github = "https://github.com/Jun0908/Decentralized-Value";
 
 export default async function HomePage() {
-  const [evmResult, codecPoints] = await Promise.all([
-    evaluateCalldataCodec("packed"),
-    measureCodecPoints(),
-  ]);
+  const evmResult = await evaluateCalldataCodec("packed");
   const scenario = publicEmergencySupplyScenario();
   const deploymentCommit = process.env.VERCEL_GIT_COMMIT_SHA;
   const commit = deploymentCommit?.slice(0, 7) ?? "local build";
@@ -24,23 +21,19 @@ export default async function HomePage() {
   return (
     <main className="page-shell platform-home">
       <section className="finalist-hero" id="evm-demo">
-        <HomeProtocolHero initialResult={evmResult} points={codecPoints} />
+        <HomeProtocolHero initialResult={evmResult} />
         <dl className="finalist-proof-strip">
           <div>
-            <dt>Real Solidity</dt>
-            <dd>Cancun EVM execution</dd>
+            <dt>Live Cancun EVM</dt>
+            <dd>Real Solidity execution</dd>
           </div>
           <div>
-            <dt>Tested</dt>
-            <dd>68 automated tests</dd>
+            <dt>68 tests</dt>
+            <dd>Automated checks passed</dd>
           </div>
           <div>
-            <dt>Verifiable</dt>
-            <dd>Deterministic result hash</dd>
-          </div>
-          <div>
-            <dt>Ethereum</dt>
-            <dd>Sepolia reward recorded</dd>
+            <dt>Sepolia payout</dt>
+            <dd>RewardPaid recorded</dd>
           </div>
         </dl>
       </section>

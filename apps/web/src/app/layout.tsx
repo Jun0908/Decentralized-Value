@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html className={`${sans.variable} ${mono.variable}`} lang="en">
+    <html className={`${sans.variable} ${mono.variable}`} lang="en" translate="no">
       <body>
         <header className="site-header">
           <Link className="wordmark" href="/" aria-label="Value Decentralization home">
