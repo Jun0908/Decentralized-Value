@@ -110,21 +110,56 @@ if (process.env.SEPOLIA_RPC_URL) {
     }
     if (existsSync(rewardEvidencePath)) {
       const evidence = JSON.parse(readFileSync(rewardEvidencePath, "utf8")) as {
+        challengeId: `0x${string}`;
+        resultRoot: `0x${string}`;
         rewardPoolAddress: `0x${string}`;
         demoTokenAddress: `0x${string}`;
+        recipient: `0x${string}`;
+        rewardAmountWei: string;
         transactions: { rewardPayout: `0x${string}` };
       };
-      const [poolCode, tokenCode, payout] = await Promise.all([
+      const [poolCode, tokenCode, payout, committedRoot, recipientBalance] = await Promise.all([
         client.getCode({ address: getAddress(evidence.rewardPoolAddress) }),
         client.getCode({ address: getAddress(evidence.demoTokenAddress) }),
         client.getTransactionReceipt({ hash: evidence.transactions.rewardPayout }),
+        client.readContract({
+          address: getAddress(evidence.rewardPoolAddress),
+          abi: [
+            {
+              type: "function",
+              name: "resultRoots",
+              stateMutability: "view",
+              inputs: [{ name: "challengeId", type: "bytes32" }],
+              outputs: [{ name: "resultRoot", type: "bytes32" }],
+            },
+          ],
+          functionName: "resultRoots",
+          args: [evidence.challengeId],
+        }),
+        client.readContract({
+          address: getAddress(evidence.demoTokenAddress),
+          abi: [
+            {
+              type: "function",
+              name: "balanceOf",
+              stateMutability: "view",
+              inputs: [{ name: "account", type: "address" }],
+              outputs: [{ name: "balance", type: "uint256" }],
+            },
+          ],
+          functionName: "balanceOf",
+          args: [getAddress(evidence.recipient)],
+        }),
       ]);
       checks.find((check) => check.name === "Sepolia reward demo evidence")!.ok = Boolean(
         poolCode &&
         poolCode !== "0x" &&
         tokenCode &&
         tokenCode !== "0x" &&
-        payout.status === "success",
+        payout.status === "success" &&
+        payout.logs.length > 0 &&
+        committedRoot === evidence.resultRoot &&
+        recipientBalance >= BigInt(evidence.rewardAmountWei),
       );
     }
   } catch {
