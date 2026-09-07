@@ -34,6 +34,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           <div>
             <Link href="/arenas">Arenas</Link>
             <Link href="/#about">About</Link>
+            <Link href="/glossary">Glossary</Link>
             <a href="https://github.com/Jun0908/Decentralized-Value">GitHub</a>
           </div>
         </footer>

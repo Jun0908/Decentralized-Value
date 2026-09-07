@@ -15,7 +15,7 @@ export default function ArenasPage() {
         <h1>Choose a frontier to expand.</h1>
         <p>
           Every arena defines its own inputs and measurements, but follows the same rule: pass the
-          shared correctness gate, then compete on two independent axes.
+          shared correctness gate, then compare independent outcome metrics.
         </p>
       </header>
       <section className="arena-catalog" aria-label="Available arenas">
@@ -28,8 +28,8 @@ export default function ArenasPage() {
         <div>
           <h2>Designed for the next problem, too.</h2>
           <p>
-            Arena pages are generated from one registry. New domains, metrics, deadlines, and
-            rewards can be added without redesigning the platform.
+            Catalog metadata and URLs are generated from one registry. A new problem type plugs in
+            its own deterministic evaluator while reusing the catalog and challenge shell.
           </p>
         </div>
       </aside>

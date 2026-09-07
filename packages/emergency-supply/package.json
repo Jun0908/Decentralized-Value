@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@frontier/shared": "workspace:*",
     "viem": "2.56.3"
   },
   "devDependencies": {

@@ -19,7 +19,12 @@ export function ArenaPageShell({
         </div>
         <div className="platform-arena-heading">
           <div>
-            <span className="arena-status">{arena.status}</span>
+            <div className="arena-labels">
+              <span className="arena-status">{arena.status}</span>
+              <span className="evidence-level">
+                Evidence L{arena.evidenceLevel} · Synthetic simulation
+              </span>
+            </div>
             <h1>{arena.headline}</h1>
             <p>{arena.summary}</p>
           </div>
@@ -37,7 +42,7 @@ export function ArenaPageShell({
             </dl>
           </aside>
         </div>
-        <ol className="arena-steps" aria-label="Arena process">
+        <ol className="arena-steps" aria-label="Challenge lifecycle">
           <li>
             <span>01</span>
             <div>
@@ -56,10 +61,27 @@ export function ArenaPageShell({
             <span>03</span>
             <div>
               <strong>Expand</strong>
-              <small>Improve the Pareto frontier.</small>
+              <small>Measure contribution.</small>
+            </div>
+          </li>
+          <li className="pending">
+            <span>04</span>
+            <div>
+              <strong>Attest</strong>
+              <small>Runner evidence pending.</small>
+            </div>
+          </li>
+          <li className="pending">
+            <span>05</span>
+            <div>
+              <strong>Settle</strong>
+              <small>No funded pool.</small>
             </div>
           </li>
         </ol>
+        <Link className="challenge-terms-link" href={`/challenges/${arena.challengeId}`}>
+          View immutable challenge terms →
+        </Link>
       </header>
       {children}
     </main>

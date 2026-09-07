@@ -2,6 +2,14 @@ import { Common, Hardfork, Mainnet } from "@ethereumjs/common";
 import { createEVM } from "@ethereumjs/evm";
 import { bytesToHex, hexToBytes } from "@ethereumjs/util";
 import {
+  hashChallengeManifest,
+  parseChallengeManifest,
+  computeContributionEvidence,
+  type ContributionEvidence,
+  type OutcomeMetric,
+  type OutcomePoint,
+} from "@frontier/shared";
+import {
   concatHex,
   encodeAbiParameters,
   encodeFunctionData,
@@ -52,6 +60,7 @@ export type CodecEvaluation = {
   arenaId: string;
   workloadVersion: string;
   contextHash: Hex;
+  manifestHash: Hex;
   resultHash: Hex;
   codecId: CodecId;
   codecName: string;
@@ -66,7 +75,40 @@ export type CodecEvaluation = {
     dominatedBy: CodecPoint[];
     improvesOver: CodecPoint[];
   };
+  contribution: ContributionEvidence;
 };
+
+export const calldataCompressionMetrics = [
+  {
+    key: "calldataGas",
+    name: "Calldata gas",
+    direction: "MINIMIZE",
+    unit: "gas",
+    lowerBound: 0,
+    upperBound: 40_000,
+  },
+  {
+    key: "decodeExecutionGas",
+    name: "Decoder execution",
+    direction: "MINIMIZE",
+    unit: "gas",
+    lowerBound: 0,
+    upperBound: 100_000,
+  },
+] as const satisfies readonly OutcomeMetric[];
+
+function codecOutcomePoint(point: CodecPoint, baseline: boolean): OutcomePoint {
+  return {
+    id: point.id,
+    name: point.name,
+    correctness: true,
+    baseline,
+    values: {
+      calldataGas: point.calldataGas,
+      decodeExecutionGas: point.decodeExecutionGas,
+    },
+  };
+}
 
 const addresses = {
   alice: "0x1111111111111111111111111111111111111111",
@@ -170,6 +212,59 @@ const contextDocument = {
 export const calldataCompressionContextHash = keccak256(
   stringToHex(canonicalJson(contextDocument)),
 );
+
+export const calldataCompressionManifest = parseChallengeManifest({
+  schemaVersion: "2",
+  id: calldataCompressionScenario.arenaId,
+  slug: "calldata-compression",
+  name: calldataCompressionScenario.name,
+  lifecycle: "PRACTICE",
+  sponsor: {
+    name: "Frontier Protocol practice",
+    wallet: null,
+    statement: "Demonstrating transparent funding rules without claiming a funded sponsor.",
+  },
+  valueTension: "Lower calldata gas versus lower Solidity decoder execution gas.",
+  artifactType: "calldata-codec-v1",
+  hardConstraints: [
+    "Decode every action to the reference state digest",
+    "Reject malformed input",
+    "Use the pinned compiler and Cancun EVM context",
+  ],
+  metrics: calldataCompressionMetrics,
+  contexts: [
+    {
+      id: "public-transfer-mix",
+      version: calldataCompressionScenario.workloadVersion,
+      name: "Public transfer mix",
+      description: "Repeated recipients, mixed recipients, and integer boundary values.",
+      datasetHash: calldataCompressionContextHash,
+      constraintHash: keccak256(
+        stringToHex(
+          canonicalJson({
+            digest: "reference-state-digest",
+            malformedInput: "must-revert",
+            evmRevision: calldataCompressionScenario.evmRevision,
+          }),
+        ),
+      ),
+      evidenceLevel: 0,
+    },
+  ],
+  activeContextId: "public-transfer-mix",
+  workload: { publicHash: calldataCompressionContextHash, finalCommitment: null },
+  submission: {
+    methods: ["INLINE", "UPLOAD"],
+    sourceVisibility: "PUBLIC",
+    opensAt: null,
+    closesAt: null,
+    maxRevisions: 20,
+  },
+  reviewEndsAt: null,
+  reward: { kind: "PREVIEW", poolCredits: 10_000 },
+});
+
+export const calldataCompressionManifestHash = hashChallengeManifest(calldataCompressionManifest);
 
 const decodeAbi = [
   {
@@ -366,11 +461,17 @@ export async function evaluateCalldataCodec(codecId: CodecId): Promise<CodecEval
   const improvesOver = correctness
     ? comparisonPoints.filter((point) => dominatesCodec(candidate, point))
     : [];
+  const contribution = computeContributionEvidence(
+    comparisonPoints.map((point) => codecOutcomePoint(point, true)),
+    { ...codecOutcomePoint(candidate, false), correctness },
+    calldataCompressionMetrics,
+  );
   const resultWithoutHash = {
     schemaVersion: "1" as const,
     arenaId: calldataCompressionScenario.arenaId,
     workloadVersion: calldataCompressionScenario.workloadVersion,
     contextHash: calldataCompressionContextHash,
+    manifestHash: calldataCompressionManifestHash,
     codecId,
     codecName: measurement.codec.name,
     calldataGas: measurement.calldataGas,
@@ -384,6 +485,7 @@ export async function evaluateCalldataCodec(codecId: CodecId): Promise<CodecEval
       dominatedBy,
       improvesOver,
     },
+    contribution,
   };
   return {
     ...resultWithoutHash,
@@ -397,13 +499,12 @@ export async function publicCalldataCompressionScenario() {
     name: calldataCompressionScenario.name,
     workloadVersion: calldataCompressionScenario.workloadVersion,
     contextHash: calldataCompressionContextHash,
+    manifest: calldataCompressionManifest,
+    manifestHash: calldataCompressionManifestHash,
+    axes: calldataCompressionMetrics,
     evmRevision: calldataCompressionScenario.evmRevision,
     compiler: codecCompiler,
     calldataRule: calldataCompressionScenario.calldataRule,
-    axes: [
-      { key: "calldataGas", direction: "MINIMIZE", unit: "gas" },
-      { key: "decodeExecutionGas", direction: "MINIMIZE", unit: "gas" },
-    ],
     batches: calldataCompressionScenario.batches.map((batch) => ({
       id: batch.id,
       name: batch.name,

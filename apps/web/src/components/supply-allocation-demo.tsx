@@ -2,6 +2,7 @@
 
 import type { SupplyAllocation, SupplyEvaluation, SupplyPoint } from "@frontier/emergency-supply";
 import { useState } from "react";
+import { ContributionPanel } from "@/components/contribution-panel";
 
 type PublicScenario = {
   arenaId: string;
@@ -342,6 +343,8 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
                 <small>{evaluation.failureOutcomes.length} failures measured</small>
               </article>
             </div>
+
+            <ContributionPanel contribution={evaluation.contribution} />
 
             <div className="supply-evidence-grid">
               <SupplyFrontierChart baselines={scenario.baselinePoints} evaluation={evaluation} />

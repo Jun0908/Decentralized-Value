@@ -2,6 +2,7 @@
 
 import type { CodecEvaluation, CodecId, CodecPoint } from "@frontier/calldata-compression";
 import { useState } from "react";
+import { ContributionPanel } from "@/components/contribution-panel";
 
 type PublicCalldataScenario = {
   arenaId: string;
@@ -211,6 +212,8 @@ export function CalldataCompressionDemo({ scenario }: { scenario: PublicCalldata
               </small>
             </article>
           </div>
+
+          <ContributionPanel contribution={evaluation.contribution} />
 
           <div className="codec-evidence-grid">
             <CompressionChart points={scenario.baselinePoints} selected={evaluation.codecId} />

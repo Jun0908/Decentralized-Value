@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   calldataCompressionContextHash,
+  calldataCompressionManifestHash,
   evaluateCalldataCodec,
   measureCalldataGas,
   measureCodecPoints,
@@ -32,6 +33,8 @@ describe("calldata compression evaluator", () => {
     const second = await evaluateCalldataCodec("dictionary");
     expect(second).toEqual(first);
     expect(first.contextHash).toBe(calldataCompressionContextHash);
+    expect(first.manifestHash).toBe(calldataCompressionManifestHash);
+    expect(first.contribution.hypervolumeAfterPpm).toBeGreaterThan(0);
     expect(first.resultHash).toMatch(/^0x[0-9a-f]{64}$/);
   }, 30_000);
 

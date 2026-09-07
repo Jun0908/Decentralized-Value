@@ -14,12 +14,19 @@ export default function HomePage() {
           Build a solution, measure every meaningful tradeoff under shared rules, and keep every
           result that expands what is possible.
         </p>
+        <p className="market-positioning">
+          Prediction markets pay for discovering what is true. Frontier markets pay for expanding
+          what is possible.
+        </p>
         <div className="actions">
           <Link className="primary-action" href="/arenas">
             Explore arenas
           </Link>
           <Link className="secondary-action" href="/#how-it-works">
             How it works
+          </Link>
+          <Link className="secondary-action" href="/glossary">
+            Learn the language
           </Link>
         </div>
         <dl className="value-proof-strip">

@@ -1,3 +1,11 @@
+import {
+  hashChallengeManifest,
+  parseChallengeManifest,
+  computeContributionEvidence,
+  type ContributionEvidence,
+  type OutcomeMetric,
+  type OutcomePoint,
+} from "@frontier/shared";
 import { keccak256, stringToHex, type Hex } from "viem";
 
 export type SupplyVendor = {
@@ -45,6 +53,7 @@ export type SupplyEvaluation = {
   arenaId: string;
   dataVersion: string;
   contextHash: Hex;
+  manifestHash: Hex;
   resultHash: Hex;
   allocation: SupplyAllocation;
   totalAllocatedKits: number;
@@ -58,7 +67,27 @@ export type SupplyEvaluation = {
     dominatedBy: SupplyPoint[];
     improvesOver: SupplyPoint[];
   };
+  contribution: ContributionEvidence;
 };
+
+export const emergencySupplyMetrics = [
+  {
+    key: "totalProcurementCost",
+    name: "Procurement cost",
+    direction: "MINIMIZE",
+    unit: "USD",
+    lowerBound: 35_000,
+    upperBound: 78_000,
+  },
+  {
+    key: "worstCaseDeliveredKits",
+    name: "Worst-case delivery",
+    direction: "MAXIMIZE",
+    unit: "kits",
+    lowerBound: 0,
+    upperBound: 1_000,
+  },
+] as const satisfies readonly OutcomeMetric[];
 
 export const emergencySupplyScenario = {
   arenaId: "emergency-supply-v1",
@@ -225,6 +254,58 @@ const contextDocument = {
 
 export const emergencySupplyContextHash = keccak256(stringToHex(canonicalJson(contextDocument)));
 
+export const emergencySupplyManifest = parseChallengeManifest({
+  schemaVersion: "2",
+  id: emergencySupplyScenario.arenaId,
+  slug: "emergency-supply",
+  name: emergencySupplyScenario.name,
+  lifecycle: "PRACTICE",
+  sponsor: {
+    name: "Frontier Protocol practice",
+    wallet: null,
+    statement: "Demonstrating transparent funding rules without claiming a funded sponsor.",
+  },
+  valueTension: "Lower procurement cost versus delivery resilience after any single failure.",
+  artifactType: "supply-allocation-v1",
+  hardConstraints: [
+    "Allocate exactly 1,000 whole kits",
+    "Do not exceed published vendor capacity",
+    "Use only published vendors and routes",
+  ],
+  metrics: emergencySupplyMetrics,
+  contexts: [
+    {
+      id: "public-normal-operations",
+      version: emergencySupplyScenario.dataVersion,
+      name: "Public normal operations",
+      description: "Published supplier, price, capacity, route, and single-failure data.",
+      datasetHash: emergencySupplyContextHash,
+      constraintHash: keccak256(
+        stringToHex(
+          canonicalJson({
+            targetKits: emergencySupplyScenario.targetKits,
+            rules: ["integer", "non-negative", "capacity", "known-vendor"],
+          }),
+        ),
+      ),
+      evidenceLevel: 0,
+    },
+  ],
+  activeContextId: "public-normal-operations",
+  workload: { publicHash: emergencySupplyContextHash, finalCommitment: null },
+  submission: {
+    methods: ["INLINE"],
+    sourceVisibility: "PUBLIC",
+    opensAt: null,
+    closesAt: null,
+    maxRevisions: 20,
+  },
+  reviewEndsAt: null,
+  reward: { kind: "PREVIEW", poolCredits: 10_000 },
+});
+
+export const emergencySupplyManifestHash = hashChallengeManifest(emergencySupplyManifest);
+
 function normalizeAllocation(input: SupplyAllocation): {
   allocation: SupplyAllocation;
   failures: string[];
@@ -308,6 +389,19 @@ function strategyPoint(strategy: SupplyStrategy): SupplyPoint {
 
 export const emergencySupplyBaselinePoints = emergencySupplyScenario.strategies.map(strategyPoint);
 
+function outcomePoint(point: SupplyPoint, baseline: boolean): OutcomePoint {
+  return {
+    id: point.id,
+    name: point.name,
+    correctness: true,
+    baseline,
+    values: {
+      totalProcurementCost: point.totalProcurementCost,
+      worstCaseDeliveredKits: point.worstCaseDeliveredKits,
+    },
+  };
+}
+
 export function dominatesSupply(left: SupplyPoint, right: SupplyPoint): boolean {
   const noWorse =
     left.totalProcurementCost <= right.totalProcurementCost &&
@@ -334,11 +428,17 @@ export function evaluateSupplyAllocation(input: SupplyAllocation): SupplyEvaluat
   const improvesOver = correctness
     ? emergencySupplyBaselinePoints.filter((point) => dominatesSupply(candidate, point))
     : [];
+  const contribution = computeContributionEvidence(
+    emergencySupplyBaselinePoints.map((point) => outcomePoint(point, true)),
+    { ...outcomePoint(candidate, false), correctness },
+    emergencySupplyMetrics,
+  );
   const resultWithoutHash = {
     schemaVersion: "1" as const,
     arenaId: emergencySupplyScenario.arenaId,
     dataVersion: emergencySupplyScenario.dataVersion,
     contextHash: emergencySupplyContextHash,
+    manifestHash: emergencySupplyManifestHash,
     allocation: normalized.allocation,
     ...metrics,
     correctness,
@@ -348,6 +448,7 @@ export function evaluateSupplyAllocation(input: SupplyAllocation): SupplyEvaluat
       dominatedBy,
       improvesOver,
     },
+    contribution,
   };
   return {
     ...resultWithoutHash,
@@ -363,10 +464,9 @@ export function publicEmergencySupplyScenario() {
     currency: emergencySupplyScenario.currency,
     targetKits: emergencySupplyScenario.targetKits,
     contextHash: emergencySupplyContextHash,
-    axes: [
-      { key: "totalProcurementCost", direction: "MINIMIZE", unit: "USD" },
-      { key: "worstCaseDeliveredKits", direction: "MAXIMIZE", unit: "kits" },
-    ],
+    manifest: emergencySupplyManifest,
+    manifestHash: emergencySupplyManifestHash,
+    axes: emergencySupplyMetrics,
     vendors: emergencySupplyScenario.vendors,
     failures: emergencySupplyScenario.failures.map(({ id, name }) => ({ id, name })),
     strategies: emergencySupplyScenario.strategies,

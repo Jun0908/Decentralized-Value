@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   emergencySupplyBaselinePoints,
   emergencySupplyContextHash,
+  emergencySupplyManifestHash,
   emergencySupplyScenario,
   evaluateSupplyAllocation,
 } from "./index";
@@ -15,6 +16,8 @@ describe("Emergency Supply Allocation evaluator", () => {
     expect(result.totalProcurementCost).toBe(38_500);
     expect(result.worstCaseDeliveredKits).toBe(0);
     expect(result.failureOutcomes).toHaveLength(9);
+    expect(result.manifestHash).toBe(emergencySupplyManifestHash);
+    expect(result.contribution.frontierExpansionPpm).toBe(0);
     expect(
       result.failureOutcomes.find((outcome) => outcome.scenarioId === "route-seaport-east"),
     ).toMatchObject({ deliveredKits: 0, lostKits: 1_000 });
@@ -55,5 +58,19 @@ describe("Emergency Supply Allocation evaluator", () => {
     expect(first.contextHash).toBe(emergencySupplyContextHash);
     expect(first.resultHash).toBe(second.resultHash);
     expect(first.failureOutcomes).toEqual(second.failureOutcomes);
+    expect(first.contribution).toEqual(second.contribution);
+  });
+
+  it("measures positive frontier expansion for a new cost-resilience tradeoff", () => {
+    const result = evaluateSupplyAllocation({
+      "harbor-aid": 300,
+      northstar: 150,
+      "inland-works": 300,
+      "local-grid": 150,
+      airbridge: 100,
+    });
+    expect(result.pareto.frontier).toBe(true);
+    expect(result.contribution.frontierExpansionPpm).toBeGreaterThan(0);
+    expect(result.contribution.exclusiveContributionPpm).toBeGreaterThan(0);
   });
 });

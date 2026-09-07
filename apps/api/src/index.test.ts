@@ -71,6 +71,9 @@ describe("Frontier API contracts", () => {
     expect(evaluation.totalProcurementCost).toBe(49_950);
     expect(evaluation.worstCaseDeliveredKits).toBe(550);
     expect(evaluation.failureOutcomes).toHaveLength(9);
+    expect(evaluation.contribution.frontierExpansionPpm).toBeGreaterThan(0);
+    expect(scenario.manifest.lifecycle).toBe("PRACTICE");
+    expect(scenario.manifestHash).toMatch(/^0x[0-9a-f]{64}$/);
     expect(evaluation.resultHash).toMatch(/^0x[0-9a-f]{64}$/);
   });
 
@@ -111,6 +114,8 @@ describe("Frontier API contracts", () => {
     expect(evaluation.batchEvidence).toHaveLength(3);
     expect(evaluation.calldataGas).toBeGreaterThan(0);
     expect(evaluation.decodeExecutionGas).toBeGreaterThan(0);
+    expect(evaluation.contribution.hypervolumeAfterPpm).toBeGreaterThan(0);
+    expect(scenario.manifest.lifecycle).toBe("PRACTICE");
     expect(evaluation.resultHash).toMatch(/^0x[0-9a-f]{64}$/);
   }, 30_000);
 
