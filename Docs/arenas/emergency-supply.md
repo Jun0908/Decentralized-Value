@@ -1,5 +1,7 @@
 # Emergency Supply Allocation Frontier
 
+**Status:** Active deterministic practice-arena specification. Tournament-layer limits are tracked in [`../STATUS.md`](../STATUS.md).
+
 `emergency-supply-v1` is the first user-controlled Frontier Protocol arena. It does not select a checked-in Artifact ID: every request supplies a new allocation and the API recalculates the result.
 
 ## Inputs
@@ -64,4 +66,4 @@ POST /v1/emergency-supply/evaluations
 
 The replay computes each entry before allocating a 10,000-credit practice pool, so submission order cannot affect frontier membership or reward amounts. The response includes every result hash and a deterministic replay hash. Credits demonstrate allocation math only; they are not tokens and do not claim settlement.
 
-This request is a real deterministic measurement. It is not an official tournament submission and does not claim a World ID proof, signed attestation, Sepolia settlement, or token transfer. Those remain separate Plan 2 deployment phases.
+This request is a real deterministic measurement. It is not an official tournament submission and does not claim a World ID proof, signed attestation, Sepolia settlement, or token transfer. Production-tournament work is tracked in [`../STATUS.md`](../STATUS.md).

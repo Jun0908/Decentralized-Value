@@ -1,5 +1,7 @@
 # Ethereum Calldata Compression Frontier
 
+**Status:** Active deterministic practice-arena specification. Tournament-layer limits are tracked in [`../STATUS.md`](../STATUS.md).
+
 `calldata-compression-v1` is a deterministic practice arena for a real Ethereum tradeoff: sending fewer bytes lowers transaction calldata cost, while a more sophisticated encoding can require more EVM gas to decode.
 
 ## Public workload

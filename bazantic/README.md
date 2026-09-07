@@ -10,7 +10,7 @@ Important operating constraints confirmed on 2026-09-05:
 - The CLI can create a draft gateway, while credentials, delivery settings, method prices, and activation require the dashboard.
 - Preserve identical prompt, model, settings, and API access for the required raw-vs-Recipe comparison.
 
-See [implementation decisions](../Docs/implementation-decisions.md) for sources and prize eligibility notes.
+See [current integration status](../Docs/INTEGRATIONS.md). Historical prize-specific decisions are retained under `Docs/archive/legacy/`.
 
 ## Registration runbook
 
