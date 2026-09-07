@@ -547,7 +547,7 @@ Topから2つのArenaを選べるようにする。既存Orderbook Artifactを�
 ### Phase F: Sponsor ConsoleとParticipant UI
 
 - [ ] Challenge設定画面を実装する
-- [ ] TopとArena一覧に2つのChallengeを表示する
+- [x] TopとArena一覧に2つのChallengeを表示する
 - [ ] Wallet / World ID参加画面を実装する
 - [ ] 3種類のSource入力を実装する
 - [ ] Submission履歴とFinal Entry選択を実装する

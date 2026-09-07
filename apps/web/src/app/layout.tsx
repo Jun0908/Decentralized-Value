@@ -9,8 +9,9 @@ const sans = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
-  description: "Compare solutions without hiding meaningful tradeoffs in one score.",
-  title: "Frontier Protocol",
+  description:
+    "Value Decentralization through reproducible, multi-objective competition and Pareto frontiers.",
+  title: "Value Decentralization | Frontier Protocol",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
@@ -18,23 +19,22 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     <html className={`${sans.variable} ${mono.variable}`} lang="en">
       <body>
         <header className="site-header">
-          <Link className="wordmark" href="/">
-            FRONTIER/
+          <Link className="wordmark" href="/" aria-label="Value Decentralization home">
+            VALUE<span>/</span>DECENTRALIZED
           </Link>
           <nav aria-label="Primary navigation">
-            <Link href="/emergency-supply">Supply arena</Link>
-            <Link href="/calldata-compression">Calldata arena</Link>
-            <Link href="/arena">Technical sample</Link>
+            <Link href="/arenas">Arenas</Link>
             <Link href="/#how-it-works">How it works</Link>
+            <Link href="/#about">About</Link>
           </nav>
         </header>
         {children}
         <footer className="site-footer">
-          <p>Frontier Protocol · Public, reproducible multi-objective evaluation.</p>
+          <p>Value Decentralization, powered by Frontier Protocol.</p>
           <div>
+            <Link href="/arenas">Arenas</Link>
+            <Link href="/#about">About</Link>
             <a href="https://github.com/Jun0908/Decentralized-Value">GitHub</a>
-            <Link href="/openapi.yaml">API spec</Link>
-            <Link href="/sponsor-debug">Developer status</Link>
           </div>
         </footer>
       </body>

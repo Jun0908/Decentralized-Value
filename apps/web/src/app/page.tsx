@@ -1,144 +1,155 @@
 import Link from "next/link";
-import { arena, shortHash } from "@/lib/data";
+import { ArenaCard } from "@/components/arena-card";
+import { arenaRegistry } from "@/lib/arenas";
 
 export default function HomePage() {
   return (
-    <main className="page-shell">
-      <section className="hero">
-        <p className="eyebrow">Live arena · Emergency supply allocation</p>
+    <main className="page-shell platform-home">
+      <section className="value-hero">
+        <p className="eyebrow">Value Decentralization</p>
         <h1>
-          Spend less. <span>Keep aid moving when one link fails.</span>
+          One score should not <span>decide everything.</span>
         </h1>
         <p className="lede">
-          Allocate 1,000 emergency kits across five suppliers. The API calculates the real cost,
-          breaks every supplier and route one at a time, and shows whether your plan expands the
-          Pareto frontier.
+          Build a solution, measure every meaningful tradeoff under shared rules, and keep every
+          result that expands what is possible.
         </p>
         <div className="actions">
-          <Link className="primary-action" href="/emergency-supply">
-            Build an allocation
+          <Link className="primary-action" href="/arenas">
+            Explore arenas
           </Link>
-          <Link className="secondary-action" href={`/arena/${arena.id}`}>
-            View the EVM sample
-          </Link>
-          <Link className="secondary-action" href="/calldata-compression">
-            Compress calldata
+          <Link className="secondary-action" href="/#how-it-works">
+            How it works
           </Link>
         </div>
+        <dl className="value-proof-strip">
+          <div>
+            <dt>Correctness</dt>
+            <dd>One shared gate</dd>
+          </div>
+          <div>
+            <dt>Measurement</dt>
+            <dd>Multiple real axes</dd>
+          </div>
+          <div>
+            <dt>Outcome</dt>
+            <dd>More than one winner</dd>
+          </div>
+        </dl>
       </section>
 
-      <section className="arena-choice" aria-labelledby="arena-choice-heading">
-        <p className="eyebrow">Two live practice arenas</p>
-        <h2 id="arena-choice-heading">Human impact and Ethereum infrastructure.</h2>
-        <div className="outcome-grid">
-          <article>
-            <p className="outcome-label">Arena 01 · Supply</p>
-            <h3>Emergency allocation</h3>
-            <p>Minimize procurement cost while maximizing delivery after any one failure.</p>
-            <Link href="/emergency-supply">Open supply arena →</Link>
-          </article>
-          <article>
-            <p className="outcome-label">Arena 02 · Ethereum</p>
-            <h3>Calldata compression</h3>
-            <p>Minimize encoded-byte gas and real Solidity decoder execution gas.</p>
-            <Link href="/calldata-compression">Open calldata arena →</Link>
-          </article>
-        </div>
-      </section>
-
-      <section className="outcome-section" aria-labelledby="outcome-heading">
-        <p className="eyebrow">A decision anyone can inspect</p>
-        <h2 id="outcome-heading">Your numbers go in. Every failure gets tested.</h2>
-        <div className="outcome-grid">
-          <article>
-            <p className="outcome-label">01 · Allocate</p>
-            <h3>Choose suppliers</h3>
-            <p>Set the exact kit count for each supplier within its published capacity.</p>
-          </article>
-          <article>
-            <p className="outcome-label">02 · Break links</p>
-            <h3>Test nine failures</h3>
-            <p>Supplier outages and shared route closures are enumerated, not guessed.</p>
-          </article>
-          <article>
-            <p className="outcome-label">03 · Compare</p>
-            <h3>Keep tradeoffs</h3>
-            <p>Low-cost and high-resilience plans can both remain on the frontier.</p>
-          </article>
-        </div>
-      </section>
-
-      <section className="section-grid" id="how-it-works">
+      <section className="value-definition" id="about" aria-labelledby="value-definition-heading">
         <div>
+          <p className="eyebrow">What is Value Decentralization?</p>
+          <h2 id="value-definition-heading">Move judgment out of a single number.</h2>
+        </div>
+        <div className="definition-copy">
+          <p>
+            Most competitions combine cost, speed, safety, and quality into one weighted score.
+            Whoever chose those weights quietly chose the winner.
+          </p>
+          <p>
+            Frontier Protocol verifies correctness first, measures each value independently, and
+            keeps every non-dominated solution on the Pareto frontier. A cheaper answer and a more
+            resilient answer can both deserve support.
+          </p>
+        </div>
+      </section>
+
+      <section className="featured-arenas" aria-labelledby="featured-arenas-heading">
+        <header className="section-heading-row">
+          <div>
+            <p className="eyebrow">Practice arenas</p>
+            <h2 id="featured-arenas-heading">Different problems. The same fair structure.</h2>
+          </div>
+          <Link href="/arenas">View all arenas →</Link>
+        </header>
+        <div className="arena-catalog compact">
+          {arenaRegistry.map((arena, index) => (
+            <ArenaCard arena={arena} index={index} key={arena.slug} />
+          ))}
+        </div>
+      </section>
+
+      <section className="platform-process" id="how-it-works" aria-labelledby="process-heading">
+        <header>
           <p className="eyebrow">How it works</p>
-          <h2>Correct first. Competitive second.</h2>
-          <p className="section-copy">
-            A plan must allocate exactly 1,000 whole kits without exceeding supply limits. Valid
-            plans are measured on total procurement cost and the number delivered in their worst
-            single failure. No weighted score hides the tradeoff.
+          <h2 id="process-heading">Build. Measure. Expand.</h2>
+          <p>
+            Each arena changes the problem and metrics—not the promise that everyone receives the
+            same opportunity and evaluation rules.
           </p>
-          <dl className="stats">
+        </header>
+        <ol>
+          <li>
+            <span>01</span>
             <div>
-              <dt>Suppliers</dt>
-              <dd>5</dd>
+              <h3>Build a valid solution</h3>
+              <p>Read the public inputs, constraints, and submission interface.</p>
             </div>
+          </li>
+          <li>
+            <span>02</span>
             <div>
-              <dt>Failure cases</dt>
-              <dd>9</dd>
+              <h3>Measure every axis</h3>
+              <p>The shared evaluator checks correctness and produces reproducible evidence.</p>
             </div>
+          </li>
+          <li>
+            <span>03</span>
             <div>
-              <dt>Hidden weights</dt>
-              <dd>0</dd>
+              <h3>Expand the frontier</h3>
+              <p>Your solution remains when no other valid result beats it on every axis.</p>
             </div>
-          </dl>
-        </div>
-        <aside className="constraint-card">
-          <p className="eyebrow">Two independent axes</p>
-          <h2>There may be more than one answer worth keeping.</h2>
-          <dl>
-            <div>
-              <dt>Total procurement cost</dt>
-              <dd>Minimize · USD</dd>
-            </div>
-            <div>
-              <dt>Worst-case delivered</dt>
-              <dd>Maximize · kits</dd>
-            </div>
-          </dl>
-          <p className="chart-summary">
-            A cheaper plan may be fragile. A resilient plan may cost more. Frontier preserves both
-            until another plan beats one on both axes.
-          </p>
-        </aside>
+          </li>
+        </ol>
       </section>
 
-      <section className="principles">
-        <article>
-          <span>01</span>
-          <h3>Enter numbers</h3>
-          <p>Allocate the real target across the published suppliers.</p>
-        </article>
-        <article>
-          <span>02</span>
-          <h3>Run the API</h3>
-          <p>Recalculate cost and enumerate every single failure.</p>
-        </article>
-        <article>
-          <span>03</span>
-          <h3>Inspect evidence</h3>
-          <p>See the worst case, every scenario, and the deterministic result hash.</p>
-        </article>
+      <section className="fairness-section" aria-labelledby="fairness-heading">
+        <div>
+          <p className="eyebrow">Why the result can be trusted</p>
+          <h2 id="fairness-heading">The rules are fixed before the result.</h2>
+        </div>
+        <div className="fairness-grid">
+          <article>
+            <span>Public context</span>
+            <p>Inputs, constraints, metric directions, and environment versions are declared.</p>
+          </article>
+          <article>
+            <span>Hard correctness</span>
+            <p>
+              An invalid solution cannot buy its way onto the frontier with an attractive score.
+            </p>
+          </article>
+          <article>
+            <span>Reproducible evidence</span>
+            <p>
+              Each practice run returns detailed measurements and deterministic context and result
+              hashes.
+            </p>
+          </article>
+          <article>
+            <span>No hidden weighting</span>
+            <p>
+              Independent axes stay independent. Users see the actual tradeoff instead of a mystery
+              score.
+            </p>
+          </article>
+        </div>
       </section>
 
-      <section className="final-cta">
-        <p className="eyebrow">The live vertical slice</p>
-        <h2>What would you optimize?</h2>
-        <div className="actions">
-          <Link className="primary-action" href="/emergency-supply">
-            Open the supply arena
-          </Link>
-          <span className="proof">EVM sample context {shortHash(arena.contextHash)}</span>
+      <section className="platform-status">
+        <div>
+          <p className="eyebrow">Platform status</p>
+          <h2>Two practice arenas today. More frontiers next.</h2>
         </div>
+        <p>
+          Live practice measurement is available now. Participant identity, source-code isolation,
+          final-day workloads, and token rewards are the next tournament layer—not simulated claims.
+        </p>
+        <Link className="primary-action" href="/arenas">
+          Choose an arena
+        </Link>
       </section>
     </main>
   );

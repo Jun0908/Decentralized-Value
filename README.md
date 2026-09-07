@@ -10,7 +10,7 @@ The practice arena does not require hardware, a wallet, or signing credentials. 
 
 Public demo: <https://web-rho-seven-d6te7t3f0y.vercel.app>
 
-The homepage links to `/emergency-supply` and `/calldata-compression` (`/demo` redirects to the first). No wallet, test token, ENS name, or hardware is required for either practice flow.
+The concept-first homepage links to the data-driven catalog at `/arenas`. Canonical arena routes are `/arenas/emergency-supply` and `/arenas/calldata-compression`; previous demo URLs redirect safely. No wallet, test token, ENS name, or hardware is required for either practice flow.
 
 ## Requirements
 
@@ -96,6 +96,7 @@ Production base URL: `https://web-rho-seven-d6te7t3f0y.vercel.app`
 - [Architecture and trust boundaries](Docs/architecture.md)
 - [Emergency Supply evaluator and API](Docs/emergency-supply.md)
 - [Calldata Compression evaluator and API](Docs/calldata-compression.md)
+- [Frontend information architecture and arena expansion](Docs/frontend-architecture.md)
 - [ENSv2 records and EAC plan](Docs/ens.md)
 - [Bazantic registration and paid boundary](Docs/bazantic.md)
 - [Demo script](Docs/demo-script.md) and [failure recovery](Docs/recovery.md)

@@ -4,11 +4,11 @@ export default function NotFound() {
     <main className="page-shell detail-page">
       <section className="empty-state">
         <div>
-          <p className="eyebrow">404 / outside the set</p>
-          <h1>Artifact not found.</h1>
-          <p>No measured artifact or arena matches this identifier.</p>
-          <Link className="primary-action" href="/arena">
-            Return to the frontier
+          <p className="eyebrow">404 / no arena here</p>
+          <h1>This frontier does not exist.</h1>
+          <p>Choose one of the available arenas and start from its shared rules.</p>
+          <Link className="primary-action" href="/arenas">
+            Explore arenas
           </Link>
         </div>
       </section>
