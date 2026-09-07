@@ -10,7 +10,7 @@ Open the Top page.
 
 Read the headline and point to the live Cancun EVM card. The product rewards every correct solution that adds a useful tradeoff instead of forcing all values into one score.
 
-Press **Run the 10-second EVM demo**. The preloaded Packed Solidity codec reproduces:
+Press **Run the live EVM proof**. The preloaded Packed Solidity codec reproduces:
 
 - `8,200` calldata gas
 - `13,061` decoder gas

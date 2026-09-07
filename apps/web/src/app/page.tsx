@@ -2,7 +2,7 @@ import { publicEmergencySupplyScenario } from "@frontier/emergency-supply";
 import { evaluateCalldataCodec, measureCodecPoints } from "@frontier/calldata-compression";
 import Link from "next/link";
 import { ArenaCard } from "@/components/arena-card";
-import { HomeEvmDemo } from "@/components/home-evm-demo";
+import { HomeProtocolHero } from "@/components/home-protocol-hero";
 import { SettlementEvidence } from "@/components/settlement-evidence";
 import { SupplyAllocationDemo } from "@/components/supply-allocation-demo";
 import { arenaRegistry } from "@/lib/arenas";
@@ -24,7 +24,7 @@ export default async function HomePage() {
   return (
     <main className="page-shell platform-home">
       <section className="finalist-hero" id="evm-demo">
-        <HomeEvmDemo initialResult={evmResult} points={codecPoints} />
+        <HomeProtocolHero initialResult={evmResult} points={codecPoints} />
         <dl className="finalist-proof-strip">
           <div>
             <dt>Real Solidity</dt>

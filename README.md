@@ -2,7 +2,7 @@
 
 Frontier Protocol is an open competition protocol for problems with more than one valid definition of “better.” Sponsors publish a problem, independent metrics, constraints, and a reward pool. Human builders and AI agents submit solutions. The shared evaluator rejects invalid entries, preserves every non-dominated tradeoff on a Pareto frontier, and allocates rewards by exclusive contribution instead of a hidden weighted score.
 
-**Judge quickstart:** open the [public demo](https://web-rho-seven-d6te7t3f0y.vercel.app) and press **Run the 10-second EVM demo**. A preloaded Solidity codec is executed in a Cancun EVM and reproduces 8,200 calldata gas, 13,061 decoder gas, a correctness pass, 5.27% frontier contribution, and a deterministic result hash. The illustration shows why two different gas tradeoffs remain rewardable. Continue to Emergency Supply to see the same protocol applied to a social problem with editable inputs and nine exhaustive failure cases.
+**Judge quickstart:** open the [public demo](https://web-rho-seven-d6te7t3f0y.vercel.app) and press **Run the live EVM proof**. A preloaded Solidity codec is executed in a Cancun EVM and reproduces 8,200 calldata gas, 13,061 decoder gas, a correctness pass, 5.27% frontier contribution, and a deterministic result hash. The illustration shows why two different gas tradeoffs remain rewardable under one public ruleset. Continue to Emergency Supply to see the same protocol applied to a social problem with editable inputs and nine exhaustive failure cases.
 
 ```text
 Sponsor commitment → Builder / AI solution → Deterministic evaluator
@@ -10,7 +10,7 @@ Sponsor commitment → Builder / AI solution → Deterministic evaluator
                          Pareto contribution → Ethereum reward allocation
 ```
 
-The MVP has three working practice arenas: Ethereum Calldata Compression is the ten-second technical proof; Emergency Supply Allocation is the editable social application; Microgrid Dispatch proves that the same protocol supports three independent axes.
+The MVP has three working practice arenas: Ethereum Calldata Compression is the live technical proof; Emergency Supply Allocation is the editable social application; Microgrid Dispatch proves that the same protocol supports three independent axes.
 
 ## Repository status
 

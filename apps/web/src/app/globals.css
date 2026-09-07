@@ -2122,12 +2122,12 @@ a.table-row:hover {
 .hero-run-status.error {
   color: var(--orange);
 }
-.hero-evm-proof {
+.hero-protocol-proof {
   position: relative;
   min-width: 0;
   overflow: hidden;
   margin: 0;
-  padding: 1.2rem;
+  padding: 1.35rem;
   border: 1px solid rgb(199 255 69 / 44%);
   background:
     linear-gradient(rgb(255 255 255 / 2%) 1px, transparent 1px),
@@ -2143,222 +2143,219 @@ a.table-row:hover {
     border-color 180ms ease,
     box-shadow 180ms ease;
 }
-.hero-evm-proof.is-live {
+.hero-protocol-proof.is-live {
   border-color: var(--lime);
   box-shadow:
     0 0 0 1px rgb(199 255 69 / 22%),
     0 1.5rem 5rem rgb(0 0 0 / 32%);
 }
-.evm-proof-heading,
-.evm-proof-heading > div,
-.evm-proof-footer {
+.protocol-proof-heading,
+.protocol-live-badge,
+.protocol-proof-footer {
   display: flex;
   align-items: center;
 }
-.evm-proof-heading {
+.protocol-proof-heading {
   justify-content: space-between;
-  gap: 1rem;
-  color: var(--muted);
-  font: 0.62rem var(--font-mono);
-  letter-spacing: 0.07em;
+  gap: 1.4rem;
+}
+.protocol-proof-heading p {
+  margin: 0 0 0.35rem;
+  color: var(--lime);
+  font: 0.59rem var(--font-mono);
+  letter-spacing: 0.09em;
   text-transform: uppercase;
 }
-.evm-proof-heading > div {
-  gap: 0.55rem;
+.protocol-proof-heading h2 {
+  margin: 0;
+  font-size: clamp(1.55rem, 2.4vw, 2.2rem);
+  line-height: 1;
 }
-.evm-proof-heading strong {
+.protocol-proof-heading > div > span {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--muted);
+  font: 0.62rem var(--font-mono);
+}
+.protocol-live-badge {
+  flex: 0 0 auto;
+  gap: 0.5rem;
+  padding: 0.52rem 0.66rem;
+  border: 1px solid rgb(199 255 69 / 38%);
+  border-radius: 999px;
   color: var(--ink);
+  font: 0.59rem var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
-.live-indicator {
-  width: 0.48rem;
-  height: 0.48rem;
+.protocol-live-badge i {
+  width: 0.42rem;
+  height: 0.42rem;
   border-radius: 50%;
   background: var(--lime);
   box-shadow:
     0 0 0 4px rgb(199 255 69 / 12%),
     0 0 16px var(--lime);
 }
-.evm-metric-grid {
+.protocol-metric-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1px;
-  margin: 1rem 0 0.25rem;
+  margin: 1.15rem 0 0.4rem;
   border: 1px solid var(--line);
   background: var(--line);
 }
-.evm-metric-grid > div {
+.protocol-metric-grid > div {
   min-width: 0;
-  padding: 0.8rem 0.9rem;
+  padding: 0.8rem;
   background: rgb(8 10 13 / 92%);
 }
-.evm-metric-grid dd {
+.protocol-metric-grid dd {
   margin: 0 0 0.18rem;
   color: var(--ink);
-  font: 650 clamp(1.35rem, 2.4vw, 2rem)/1 var(--font-mono);
+  font: 650 clamp(1.05rem, 1.8vw, 1.45rem) / 1 var(--font-mono);
   letter-spacing: -0.06em;
 }
-.evm-metric-grid dt {
+.protocol-metric-grid dt {
   color: var(--muted);
-  font: 0.58rem var(--font-mono);
-  letter-spacing: 0.04em;
+  font: 0.5rem var(--font-mono);
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
-.evm-metric-grid .metric-pass,
-.evm-metric-grid .metric-contribution {
+.protocol-metric-grid .metric-pass,
+.protocol-metric-grid .metric-contribution {
   color: var(--lime);
 }
-.evm-metric-grid .metric-fail {
+.protocol-metric-grid .metric-fail {
   color: var(--orange);
 }
-.evm-frontier-illustration {
+.frontier-proof-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 10.5rem;
+  gap: 1rem;
+  align-items: stretch;
+}
+.reward-frontier-illustration {
   display: block;
   width: 100%;
   height: auto;
 }
-.evm-axis,
-.evm-axis-arrow {
+.reward-axis,
+.reward-axis-arrow {
   fill: none;
   stroke: #737b80;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.2;
 }
-.evm-axis-caption,
-.evm-point-name,
-.evm-point-value,
-.frontier-callout text {
+.reward-axis-label,
+.reward-point-name {
   font-family: var(--font-mono);
 }
-.evm-axis-caption {
+.reward-axis-label {
   fill: #9fa6aa;
   font-size: 7px;
   letter-spacing: 0.08em;
 }
-.evm-frontier-glow {
+.reward-frontier-glow {
   fill: none;
   stroke: rgb(199 255 69 / 20%);
   stroke-linecap: round;
-  stroke-width: 14;
+  stroke-width: 13;
 }
-.evm-frontier-line {
+.reward-frontier-line {
   fill: none;
-  stroke: url(#frontierGlow);
+  stroke: url(#rewardFrontier);
   stroke-linecap: round;
   stroke-width: 3;
 }
-.dominance-guide {
+.reward-dominance-guide {
   fill: none;
   stroke: #7e8589;
   stroke-dasharray: 4 5;
   stroke-width: 1;
 }
-.frontier-halo {
+.reward-frontier-halo {
   fill: rgb(199 255 69 / 10%);
   stroke: rgb(199 255 69 / 35%);
 }
-.frontier-node {
+.reward-frontier-node {
   fill: var(--lime);
   stroke: #080a0d;
   stroke-width: 2;
 }
-.packed-node {
+.reward-frontier-node.packed {
   fill: #efffb5;
 }
-.dominated-node {
+.reward-dominated-node {
   fill: var(--orange);
   stroke: #080a0d;
   stroke-width: 2;
 }
-.evm-point-name {
+.reward-point-name {
   fill: #f4f1e8;
-  font-size: 8px;
+  font-size: 8.5px;
   font-weight: 700;
   letter-spacing: 0.04em;
 }
-.evm-point-name.dominated {
+.reward-point-name.dominated {
   fill: #ff9c79;
 }
-.evm-point-value {
-  fill: #aeb4b7;
-  font-size: 7px;
+.frontier-reward-outcomes {
+  display: grid;
+  align-content: center;
+  margin: 0;
+  border-left: 1px solid var(--line);
 }
-.frontier-callout rect {
-  fill: #141a13;
-  stroke: rgb(199 255 69 / 55%);
+.frontier-reward-outcomes > div {
+  padding: 0.9rem 0 0.9rem 1rem;
 }
-.frontier-callout text {
-  fill: var(--lime);
-  font-size: 7px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-anchor: middle;
+.frontier-reward-outcomes > div + div {
+  border-top: 1px solid var(--line);
 }
-.evm-proof-footer {
+.frontier-reward-outcomes dt {
+  margin-bottom: 0.65rem;
+  color: var(--lime);
+  font: 0.55rem var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.frontier-reward-outcomes dd {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0.4rem 0 0;
+  color: #d8dbdc;
+  font: 0.6rem var(--font-mono);
+}
+.frontier-reward-outcomes strong {
+  color: var(--lime);
+  font-weight: 650;
+  text-transform: uppercase;
+}
+.frontier-reward-outcomes .dominated-outcome dt,
+.frontier-reward-outcomes .dominated-outcome strong {
+  color: var(--orange);
+}
+.protocol-proof-footer {
   justify-content: space-between;
   gap: 1rem;
   padding-top: 0.65rem;
   border-top: 1px solid var(--line);
   color: var(--lime);
-  font: 0.58rem var(--font-mono);
+  font: 0.55rem var(--font-mono);
   text-transform: uppercase;
 }
-.evm-proof-footer code {
+.protocol-proof-footer > span:nth-child(2) {
+  color: #d8dbdc;
+}
+.protocol-proof-footer code {
   overflow: hidden;
   color: var(--muted);
-  font-size: 0.58rem;
+  font-size: 0.55rem;
   text-overflow: ellipsis;
   text-transform: none;
   white-space: nowrap;
-}
-.hero-frontier-preview {
-  min-width: 0;
-  margin: 0;
-  padding: 1.2rem;
-  border: 1px solid rgb(199 255 69 / 38%);
-  background: radial-gradient(circle at 80% 10%, rgb(199 255 69 / 10%), transparent 16rem), #0d1013;
-  box-shadow: 0 1.5rem 5rem rgb(0 0 0 / 28%);
-}
-.preview-heading {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: start;
-  font: 0.62rem/1.5 var(--font-mono);
-  text-transform: uppercase;
-}
-.preview-heading > div {
-  display: grid;
-  gap: 0.25rem;
-}
-.preview-heading span,
-.preview-evidence {
-  color: var(--muted);
-}
-.preview-heading strong {
-  font-size: 0.8rem;
-}
-.hero-frontier-preview svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  margin: 0.4rem 0;
-}
-.preview-contribution {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  border: 1px solid var(--line);
-  background: var(--line);
-}
-.preview-contribution div {
-  padding: 0.8rem;
-  background: #090b0e;
-}
-.preview-contribution dd {
-  font: 0.9rem var(--font-mono);
-}
-.preview-contribution .preview-expansion dd {
-  color: var(--lime);
 }
 .finalist-proof-strip {
   grid-column: 1 / -1;
@@ -3219,13 +3216,6 @@ a.table-row:hover {
   .finalist-hero-copy h1 {
     font-size: clamp(2.6rem, 12vw, 4rem);
   }
-  .hero-frontier-preview {
-    padding: 0.75rem;
-  }
-  .preview-heading {
-    flex-direction: column;
-  }
-  .preview-contribution,
   .role-flow ol,
   .agent-entry-grid,
   .architecture-flow ol {
@@ -3250,14 +3240,40 @@ a.table-row:hover {
   .finalist-proof-strip div:last-child {
     border-bottom: 0;
   }
-  .hero-evm-proof {
+  .hero-protocol-proof {
     padding: 0.8rem;
   }
-  .evm-metric-grid dd {
+  .protocol-proof-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .protocol-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .protocol-metric-grid dd {
     font-size: clamp(1.2rem, 7vw, 1.8rem);
   }
-  .evm-frontier-illustration {
+  .frontier-proof-body {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .reward-frontier-illustration {
     margin-block: 0.35rem;
+  }
+  .frontier-reward-outcomes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+  .frontier-reward-outcomes > div {
+    padding: 0.9rem;
+  }
+  .frontier-reward-outcomes > div + div {
+    border-top: 0;
+    border-left: 1px solid var(--line);
+  }
+  .protocol-proof-footer {
+    flex-wrap: wrap;
   }
   .role-flow,
   .home-live-demo,

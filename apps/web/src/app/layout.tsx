@@ -10,7 +10,7 @@ const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
   description:
-    "Value Decentralization through reproducible, multi-objective competition and Pareto frontiers.",
+    "An Ethereum-native reward protocol for multi-objective problems, with deterministic frontier evaluation and verifiable settlement.",
   title: "Value Decentralization | Frontier Protocol",
 };
 
@@ -24,7 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
             <small>Powered by Frontier Protocol</small>
           </Link>
           <nav aria-label="Primary navigation">
-            <Link href="/#evm-demo">EVM demo</Link>
+            <Link href="/#evm-demo">Live proof</Link>
             <Link href="/#how-it-works">How it works</Link>
             <Link href="/arenas">Arenas</Link>
             <Link href="/architecture">Architecture</Link>
