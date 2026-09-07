@@ -11,6 +11,13 @@ const optionalAddress = z.preprocess(
     .regex(/^0x[0-9a-fA-F]{40}$/)
     .optional(),
 );
+const optionalHash = z.preprocess(
+  blankToUndefined,
+  z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{64}$/)
+    .optional(),
+);
 
 export const environmentSchema = z.object({
   API_PORT: z.coerce.number().int().positive().default(3001),
@@ -36,8 +43,21 @@ export const environmentSchema = z.object({
   LEDGER_RING_KEY: optionalString,
   LEDGER_SIGNING_MODE: z.preprocess(blankToUndefined, z.enum(["development", "dmk"]).optional()),
   NEXT_PUBLIC_CHAIN_ID: z.coerce.number().int().default(11155111).pipe(z.literal(11155111)),
+  NEXT_PUBLIC_ALLOCATION_TX_HASH: optionalHash,
+  NEXT_PUBLIC_DEMO_TOKEN_ADDRESS: optionalAddress,
   NEXT_PUBLIC_DEPLOYMENT_URL: optionalUrl,
   NEXT_PUBLIC_PRIVY_APP_ID: optionalString,
+  NEXT_PUBLIC_RESULT_ROOT: optionalHash,
+  NEXT_PUBLIC_REWARD_AMOUNT: optionalString,
+  NEXT_PUBLIC_REWARD_BALANCE_AFTER: optionalString,
+  NEXT_PUBLIC_REWARD_BALANCE_BEFORE: optionalString,
+  NEXT_PUBLIC_REWARD_POOL_ADDRESS: optionalAddress,
+  NEXT_PUBLIC_REWARD_RECIPIENT: optionalAddress,
+  NEXT_PUBLIC_SETTLEMENT_BLOCK_NUMBER: z.preprocess(
+    blankToUndefined,
+    z.string().regex(/^\d+$/).optional(),
+  ),
+  NEXT_PUBLIC_SETTLEMENT_TX_HASH: optionalHash,
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   RUNNER_PORT: z.coerce.number().int().positive().default(3002),
   RUNNER_PUBLIC_URL: optionalUrl,

@@ -1,12 +1,22 @@
 # Frontier Protocol
 
-Frontier Protocol rewards solutions that improve one or more independently measured values without hiding tradeoffs in a single score. The MVP has three live practice arenas: Emergency Supply Allocation, Ethereum Calldata Compression, and the three-axis Microgrid Dispatch sample.
+Frontier Protocol is an open competition protocol for problems with more than one valid definition of “better.” Sponsors publish a problem, independent metrics, constraints, and a reward pool. Human builders and AI agents submit solutions. The shared evaluator rejects invalid entries, preserves every non-dominated tradeoff on a Pareto frontier, and allocates rewards by exclusive contribution instead of a hidden weighted score.
+
+**Judge quickstart:** open the [public demo](https://web-rho-seven-d6te7t3f0y.vercel.app), change one Emergency Supply allocation, and press **Evaluate allocation**. The API recalculates nine single-failure cases and returns cost, worst-case delivery, Before/After frontier contribution, and a deterministic result hash. Then run the Agent A/B/C replay to see two different winners and one dominated entry measured by the same evaluator.
+
+```text
+Sponsor commitment → Builder / AI solution → Deterministic evaluator
+                                              ↓
+                         Pareto contribution → Ethereum reward allocation
+```
+
+The MVP has three working practice arenas: Emergency Supply Allocation is the golden path; Ethereum Calldata Compression proves an Ethereum-native use case; Microgrid Dispatch proves that the same protocol supports three independent axes.
 
 ## Repository status
 
 The Emergency Supply evaluator recalculates user-entered allocations across single-failure cases. The Calldata evaluator prices encoded bytes under EIP-2028 and executes compiled Solidity decoder bytecode in a local Cancun EVM. Microgrid Dispatch measures cost, worst-case delivered energy, and carbon at the same time. Every evaluator keeps contexts separate, compares independent axes on a Pareto frontier, and returns deterministic evidence hashes.
 
-The practice arena does not require hardware, a wallet, or signing credentials. It returns the explicit state `measured`, but does not claim that tournament settlement occurred. World ID registration, final-day hidden evaluation, and Sepolia reward distribution remain deployment work. The earlier EVM order-book benchmark remains available as a technical sample.
+The practice arena does not require hardware, a wallet, or signing credentials. It returns the explicit state `measured`, but does not claim that tournament settlement occurred. A Sepolia demonstration has completed token funding, immutable allocation commitment, `RewardPaid`, and a 10,000 FDT balance increase; World ID registration, durable participant storage, and final-day hidden evaluation remain tournament work. The earlier EVM order-book benchmark remains available as a technical sample.
 
 Public demo: <https://web-rho-seven-d6te7t3f0y.vercel.app>
 
@@ -41,6 +51,7 @@ Copy `.env.example` to `.env.local` only when optional live integration values a
 | `pnpm test`                                                   | Run Vitest and Foundry unit/fuzz tests            |
 | `pnpm benchmark:orderbook`                                    | Generate the measured order-book frontier fixture |
 | `pnpm --filter @frontier/calldata-compression compile:codecs` | Compile reference Solidity decoders               |
+| `pnpm deploy:reward-demo`                                     | Deploy and exercise the Sepolia demo reward path  |
 | `pnpm demo:seed`                                              | Validate/rebuild idempotent local demo state      |
 | `pnpm demo:check`                                             | Report local and external demo readiness          |
 | `pnpm security:scan`                                          | Scan tracked source for likely committed secrets  |
@@ -86,6 +97,7 @@ GET  /v1/health
 GET  /v1/arenas
 GET  /v1/emergency-supply
 POST /v1/emergency-supply/evaluations
+GET  /v1/emergency-supply/replay
 GET  /v1/calldata-compression
 POST /v1/calldata-compression/evaluations
 GET  /v1/microgrid-dispatch
@@ -98,9 +110,23 @@ PUT  /v2/sandbox/final-entry
 GET  /openapi.yaml
 ```
 
-The `/v2/sandbox` state is process-local and resets on restart or serverless cold start. It is a working UX and evaluator integration, not a live tournament database. Private source is rejected until encrypted durable storage exists. Sepolia deployment, World ID verification, hidden-final evaluation, and transaction evidence remain external activation work.
+The `/v2/sandbox` state is process-local and resets on restart or serverless cold start. It is a working UX and evaluator integration, not a live tournament database. Private source is rejected until encrypted durable storage exists. The Sepolia reward-path demo is live and independently inspectable; World ID verification, hidden-final evaluation, and production tournament storage remain external activation work.
 
 Production base URL: `https://web-rho-seven-d6te7t3f0y.vercel.app`
+
+## Ethereum proof boundary
+
+`FrontierRewardPool.sol` and `FrontierDemoToken.sol` implement the complete Sepolia settlement path: fund a fixed pool, commit one result root and allocation per challenge, distribute rewards, and retain an individual claim fallback. Unit tests cover double-commit, over-allocation, duplicate-recipient, distribution, and double-claim protection.
+
+The UI reads only configured public evidence from `NEXT_PUBLIC_REWARD_POOL_ADDRESS`, `NEXT_PUBLIC_DEMO_TOKEN_ADDRESS`, allocation/payout transaction hashes, result root, recipient, block, and balance fields. If the required values are absent or malformed, it displays **Not deployed** and does not claim funding or payment. The browser-wallet proof can sign the challenge manifest without requesting a token approval or transaction.
+
+Public Sepolia evidence: [deployment record](Docs/deployments/sepolia-reward-demo.json), [allocation commitment](https://sepolia.etherscan.io/tx/0x96fd7a9d1f4a3bbd2fa7a9ea28d250a16e8eedbaff05b51a4f33e581c3839f2c), and [RewardPaid transaction](https://sepolia.etherscan.io/tx/0xd976a968aefeb66d7e60fba7a9cf64c8711195fc3652aeccc20c7448069ad708).
+
+## AI use and hackathon scope
+
+The product thesis, choice of arenas, independent metrics, fairness model, reward philosophy, and UX priorities were directed by the human project owner. Codex and Claude Code were used as implementation partners for code generation, refactoring, tests, documentation, and UI review. Generated work was checked through deterministic fixtures, TypeScript, Vitest, contract tests where Foundry is available, production builds, and browser verification.
+
+This repository started during the hackathon on 2026-09-05. Commit `88f8e7e` is the initial repository marker; the monorepo and product implementation begin at `a63a948`. There is no pre-existing production application represented as hackathon work. The commit history intentionally keeps planning, evaluators, contracts, integrations, UX, and finalist-readiness changes in reviewable stages.
 
 - [Architecture and trust boundaries](Docs/architecture.md)
 - [Emergency Supply evaluator and API](Docs/emergency-supply.md)

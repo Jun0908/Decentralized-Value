@@ -1,0 +1,23 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "deployedAt": "2026-09-07",
+  "purpose": "Frontier Protocol reward-path demonstration; not a completed tournament",
+  "challengeId": "0x28d319da3e4a8f9842d5c813f244143229483468c15a7edd143110467c09423a",
+  "resultRoot": "0xfe1b4b1d2b657c6f3a9e80f9b518826697fe8bc0eb82d0fc540792ccef0706dd",
+  "rewardPoolAddress": "0x6866fd8ffeb8ffd4c29e554c4af6668fad80c5ae",
+  "demoTokenAddress": "0xb6f042a7a3000efda8bd0b402864b3a05e1592e1",
+  "recipient": "0x5A6A8964B044fdf18920ac4af64c18e88792261D",
+  "rewardAmountWei": "10000000000000000000000",
+  "rewardAmount": "10000 FDT",
+  "balanceBefore": "0 FDT",
+  "balanceAfter": "10000 FDT",
+  "transactions": {
+    "tokenDeployment": "0x6549ed86749601c4418baddc806c73259549e160525db52a449a94a6737a13fb",
+    "rewardPoolDeployment": "0xe8e798e8e51982b180339eb7859cd88d2a2d98d095f3030782d252f537601d48",
+    "poolFunding": "0xc11e2d48b378bd0dd39fe37dc869b7dcbb7bb45862dd08d9436b67ba55028aeb",
+    "allocationCommitment": "0x96fd7a9d1f4a3bbd2fa7a9ea28d250a16e8eedbaff05b51a4f33e581c3839f2c",
+    "rewardPayout": "0xd976a968aefeb66d7e60fba7a9cf64c8711195fc3652aeccc20c7448069ad708"
+  },
+  "payoutBlockNumber": 11652735
+}

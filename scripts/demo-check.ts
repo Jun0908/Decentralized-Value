@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createPublicClient, getAddress, http } from "viem";
 import { sepolia } from "viem/chains";
@@ -7,6 +7,7 @@ import "dotenv/config";
 
 type Check = { name: string; ok: boolean; recovery: string };
 const root = resolve(import.meta.dirname, "..");
+const rewardEvidencePath = resolve(root, "Docs/deployments/sepolia-reward-demo.json");
 const commandAvailable = (command: string) => {
   try {
     execFileSync(command, ["--version"], { stdio: "ignore" });
@@ -59,6 +60,11 @@ const checks: Check[] = [
     ok: present("NEXT_PUBLIC_DEPLOYMENT_URL"),
     recovery: "deploy apps/web and set NEXT_PUBLIC_DEPLOYMENT_URL",
   },
+  {
+    name: "Sepolia reward demo evidence",
+    ok: existsSync(rewardEvidencePath),
+    recovery: "run pnpm deploy:reward-demo and record the public receipts",
+  },
 ];
 
 if (process.env.SEPOLIA_RPC_URL) {
@@ -101,6 +107,25 @@ if (process.env.SEPOLIA_RPC_URL) {
         key: "frontier.runners",
       });
       checks.find((check) => check.name === "ENSv2 parent")!.ok = Boolean(manifest);
+    }
+    if (existsSync(rewardEvidencePath)) {
+      const evidence = JSON.parse(readFileSync(rewardEvidencePath, "utf8")) as {
+        rewardPoolAddress: `0x${string}`;
+        demoTokenAddress: `0x${string}`;
+        transactions: { rewardPayout: `0x${string}` };
+      };
+      const [poolCode, tokenCode, payout] = await Promise.all([
+        client.getCode({ address: getAddress(evidence.rewardPoolAddress) }),
+        client.getCode({ address: getAddress(evidence.demoTokenAddress) }),
+        client.getTransactionReceipt({ hash: evidence.transactions.rewardPayout }),
+      ]);
+      checks.find((check) => check.name === "Sepolia reward demo evidence")!.ok = Boolean(
+        poolCode &&
+        poolCode !== "0x" &&
+        tokenCode &&
+        tokenCode !== "0x" &&
+        payout.status === "success",
+      );
     }
   } catch {
     checks.find((check) => check.name === "Sepolia RPC")!.ok = false;
