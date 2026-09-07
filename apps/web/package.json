@@ -12,6 +12,7 @@
     "@frontier/api": "workspace:*",
     "@frontier/calldata-compression": "workspace:*",
     "@frontier/emergency-supply": "workspace:*",
+    "@frontier/microgrid-dispatch": "workspace:*",
     "@frontier/shared": "workspace:*",
     "@frontier/ens-adapter": "workspace:*",
     "@privy-io/react-auth": "3.40.0",

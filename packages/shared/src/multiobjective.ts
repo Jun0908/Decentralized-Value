@@ -115,27 +115,48 @@ export function computeHypervolume2d(
   metrics: readonly OutcomeMetric[],
 ): number {
   if (metrics.length !== 2) throw new Error("2D hypervolume requires exactly two metrics");
-  const frontier = computeOutcomeFrontier(points, metrics);
-  const normalized = frontier
-    .map((point) => ({
-      x: normalizeOutcomeValue(point.values[metrics[0]!.key]!, metrics[0]!),
-      y: normalizeOutcomeValue(point.values[metrics[1]!.key]!, metrics[1]!),
-    }))
-    .filter((point) => point.x > 0 && point.y > 0)
-    .sort((left, right) => left.x - right.x || right.y - left.y);
+  return computeHypervolume(points, metrics);
+}
 
-  let previousX = 0;
-  let area = 0n;
-  for (const point of normalized) {
-    if (point.x <= previousX) continue;
-    let bestY = 0;
-    for (const candidate of normalized) {
-      if (candidate.x >= point.x && candidate.y > bestY) bestY = candidate.y;
+/**
+ * Deterministic exact hypervolume for small n-dimensional frontiers. It walks
+ * the coordinate cells induced by frontier points, so it is intended for
+ * settlement-sized frontiers rather than unbounded analytics datasets.
+ */
+export function computeHypervolume(
+  points: readonly OutcomePoint[],
+  metrics: readonly OutcomeMetric[],
+): number {
+  if (metrics.length > 6) throw new Error("Hypervolume supports at most six metrics");
+  const frontier = computeOutcomeFrontier(points, metrics);
+  const normalized = frontier.map((point) =>
+    metrics.map((metric) => normalizeOutcomeValue(point.values[metric.key]!, metric)),
+  );
+  const coordinates = metrics.map((_, axis) =>
+    [...new Set([0, ...normalized.map((point) => point[axis]!)])].sort(
+      (left, right) => left - right,
+    ),
+  );
+  let volume = 0n;
+
+  function visit(axis: number, upper: number[], cellVolume: bigint) {
+    if (axis === metrics.length) {
+      const covered = normalized.some((point) =>
+        point.every((coordinate, index) => coordinate >= upper[index]!),
+      );
+      if (covered) volume += cellVolume;
+      return;
     }
-    area += BigInt(point.x - previousX) * BigInt(bestY);
-    previousX = point.x;
+    const values = coordinates[axis]!;
+    for (let index = 1; index < values.length; index += 1) {
+      const lower = values[index - 1]!;
+      const nextUpper = values[index]!;
+      visit(axis + 1, [...upper, nextUpper], cellVolume * BigInt(nextUpper - lower));
+    }
   }
-  return Number(area / BigInt(NORMALIZED_SCALE));
+
+  visit(0, [], 1n);
+  return Number(volume / BigInt(NORMALIZED_SCALE) ** BigInt(metrics.length - 1));
 }
 
 export function computeContributionEvidence(
@@ -143,10 +164,10 @@ export function computeContributionEvidence(
   candidate: OutcomePoint,
   metrics: readonly OutcomeMetric[],
 ): ContributionEvidence {
-  const before = computeHypervolume2d(baselinePoints, metrics);
+  const before = computeHypervolume(baselinePoints, metrics);
   const complete = [...baselinePoints, candidate];
-  const after = computeHypervolume2d(complete, metrics);
-  const withoutCandidate = computeHypervolume2d(
+  const after = computeHypervolume(complete, metrics);
+  const withoutCandidate = computeHypervolume(
     complete.filter((point) => point.id !== candidate.id),
     metrics,
   );

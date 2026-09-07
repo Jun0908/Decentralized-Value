@@ -45,7 +45,10 @@ export function ContributionPanel({ contribution }: { contribution: Contribution
             <i style={{ width: `${beforeWidth}%` }} />
             <b
               aria-label={`${percent(contribution.frontierExpansionPpm)} newly expanded area`}
-              style={{ left: `${beforeWidth}%`, width: `${Math.max(0, afterWidth - beforeWidth)}%` }}
+              style={{
+                left: `${beforeWidth}%`,
+                width: `${Math.max(0, afterWidth - beforeWidth)}%`,
+              }}
             />
           </div>
           <strong>{percent(contribution.hypervolumeAfterPpm)}</strong>

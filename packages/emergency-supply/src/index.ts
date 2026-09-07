@@ -33,6 +33,19 @@ export type SupplyStrategy = {
   allocation: SupplyAllocation;
 };
 
+export type SupplyContextId = "public-normal-operations" | "public-port-constrained";
+
+type SupplyScenarioData = {
+  arenaId: string;
+  name: string;
+  dataVersion: string;
+  currency: string;
+  targetKits: number;
+  vendors: readonly SupplyVendor[];
+  failures: readonly FailureScenario[];
+  strategies: readonly SupplyStrategy[];
+};
+
 export type FailureOutcome = {
   scenarioId: string;
   scenarioName: string;
@@ -52,6 +65,7 @@ export type SupplyEvaluation = {
   schemaVersion: "1";
   arenaId: string;
   dataVersion: string;
+  contextId: SupplyContextId;
   contextHash: Hex;
   manifestHash: Hex;
   resultHash: Hex;
@@ -233,6 +247,56 @@ export const emergencySupplyScenario = {
   ] satisfies readonly SupplyStrategy[],
 } as const;
 
+const portConstrainedScenario = {
+  ...emergencySupplyScenario,
+  dataVersion: "supply-network-2026-09-port-constrained-v1",
+  vendors: emergencySupplyScenario.vendors.map((vendor) =>
+    vendor.id === "harbor-aid"
+      ? { ...vendor, unitCost: 44, capacity: 350 }
+      : vendor.id === "northstar"
+        ? { ...vendor, unitCost: 49, capacity: 450 }
+        : vendor,
+  ),
+  strategies: [
+    {
+      id: "port-cheapest",
+      name: "Port capacity first",
+      description: "Uses all constrained seaport capacity, then fills from rail.",
+      allocation: {
+        "harbor-aid": 350,
+        northstar: 450,
+        "inland-works": 200,
+        "local-grid": 0,
+        airbridge: 0,
+      },
+    },
+    {
+      id: "port-balanced",
+      name: "Port-constrained balance",
+      description: "Splits the order evenly while seaport suppliers have less capacity.",
+      allocation: {
+        "harbor-aid": 200,
+        northstar: 200,
+        "inland-works": 200,
+        "local-grid": 200,
+        airbridge: 200,
+      },
+    },
+    {
+      id: "route-diverse",
+      name: "Route diverse",
+      description: "Spreads the order evenly over four independent delivery routes.",
+      allocation: {
+        "harbor-aid": 250,
+        northstar: 0,
+        "inland-works": 250,
+        "local-grid": 250,
+        airbridge: 250,
+      },
+    },
+  ],
+} as const satisfies SupplyScenarioData;
+
 function canonicalJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
   if (value !== null && typeof value === "object") {
@@ -244,15 +308,43 @@ function canonicalJson(value: unknown): string {
   return JSON.stringify(value);
 }
 
-const contextDocument = {
-  arenaId: emergencySupplyScenario.arenaId,
-  dataVersion: emergencySupplyScenario.dataVersion,
-  targetKits: emergencySupplyScenario.targetKits,
-  vendors: emergencySupplyScenario.vendors,
-  failures: emergencySupplyScenario.failures,
-};
+function hashScenario(scenario: SupplyScenarioData) {
+  return keccak256(
+    stringToHex(
+      canonicalJson({
+        arenaId: scenario.arenaId,
+        dataVersion: scenario.dataVersion,
+        targetKits: scenario.targetKits,
+        vendors: scenario.vendors,
+        failures: scenario.failures,
+      }),
+    ),
+  );
+}
 
-export const emergencySupplyContextHash = keccak256(stringToHex(canonicalJson(contextDocument)));
+export const emergencySupplyContextHash = hashScenario(emergencySupplyScenario);
+const portConstrainedContextHash = hashScenario(portConstrainedScenario);
+
+export const emergencySupplyContexts = [
+  {
+    id: "public-normal-operations",
+    name: "Normal operations",
+    description:
+      "Published supplier prices and capacities under every single supplier or route failure.",
+    evidenceLevel: 0,
+    scenario: emergencySupplyScenario,
+    contextHash: emergencySupplyContextHash,
+  },
+  {
+    id: "public-port-constrained",
+    name: "Port-constrained operations",
+    description:
+      "Higher seaport prices and lower seaport capacity, with the same exhaustive failure rules.",
+    evidenceLevel: 0,
+    scenario: portConstrainedScenario,
+    contextHash: portConstrainedContextHash,
+  },
+] as const;
 
 export const emergencySupplyManifest = parseChallengeManifest({
   schemaVersion: "2",
@@ -288,6 +380,24 @@ export const emergencySupplyManifest = parseChallengeManifest({
           }),
         ),
       ),
+      metricsHash: keccak256(stringToHex(canonicalJson(emergencySupplyMetrics))),
+      evidenceLevel: 0,
+    },
+    {
+      id: "public-port-constrained",
+      version: portConstrainedScenario.dataVersion,
+      name: "Port-constrained operations",
+      description: "Higher seaport prices and lower seaport capacity under the same failure model.",
+      datasetHash: portConstrainedContextHash,
+      constraintHash: keccak256(
+        stringToHex(
+          canonicalJson({
+            targetKits: portConstrainedScenario.targetKits,
+            rules: ["integer", "non-negative", "capacity", "known-vendor"],
+          }),
+        ),
+      ),
+      metricsHash: keccak256(stringToHex(canonicalJson(emergencySupplyMetrics))),
       evidenceLevel: 0,
     },
   ],
@@ -306,19 +416,22 @@ export const emergencySupplyManifest = parseChallengeManifest({
 
 export const emergencySupplyManifestHash = hashChallengeManifest(emergencySupplyManifest);
 
-function normalizeAllocation(input: SupplyAllocation): {
+function normalizeAllocation(
+  input: SupplyAllocation,
+  scenario: SupplyScenarioData,
+): {
   allocation: SupplyAllocation;
   failures: string[];
 } {
   const failures: string[] = [];
-  const knownIds = new Set(emergencySupplyScenario.vendors.map((vendor) => vendor.id));
+  const knownIds = new Set(scenario.vendors.map((vendor) => vendor.id));
   const allocation: SupplyAllocation = {};
 
   for (const suppliedId of Object.keys(input)) {
     if (!knownIds.has(suppliedId)) failures.push(`Unknown vendor: ${suppliedId}`);
   }
 
-  for (const vendor of emergencySupplyScenario.vendors) {
+  for (const vendor of scenario.vendors) {
     const amount = input[vendor.id];
     if (amount === undefined) {
       failures.push(`Missing allocation for ${vendor.name}`);
@@ -337,24 +450,24 @@ function normalizeAllocation(input: SupplyAllocation): {
   }
 
   const total = Object.values(allocation).reduce((sum, amount) => sum + amount, 0);
-  if (total !== emergencySupplyScenario.targetKits) {
-    failures.push(`Allocate exactly ${emergencySupplyScenario.targetKits} kits; received ${total}`);
+  if (total !== scenario.targetKits) {
+    failures.push(`Allocate exactly ${scenario.targetKits} kits; received ${total}`);
   }
   return { allocation, failures };
 }
 
-function measure(allocation: SupplyAllocation) {
+function measure(allocation: SupplyAllocation, scenario: SupplyScenarioData) {
   const totalAllocatedKits = Object.values(allocation).reduce((sum, amount) => sum + amount, 0);
-  const totalProcurementCost = emergencySupplyScenario.vendors.reduce(
+  const totalProcurementCost = scenario.vendors.reduce(
     (sum, vendor) => sum + (allocation[vendor.id] ?? 0) * vendor.unitCost,
     0,
   );
-  const failureOutcomes = emergencySupplyScenario.failures.map((scenario): FailureOutcome => {
-    const affectedVendorIds = emergencySupplyScenario.vendors
+  const failureOutcomes = scenario.failures.map((failure): FailureOutcome => {
+    const affectedVendorIds = scenario.vendors
       .filter(
         (vendor) =>
-          (scenario.disabledVendorIds as readonly string[]).includes(vendor.id) ||
-          (scenario.disabledRouteIds as readonly string[]).includes(vendor.routeId),
+          failure.disabledVendorIds.includes(vendor.id) ||
+          failure.disabledRouteIds.includes(vendor.routeId),
       )
       .map((vendor) => vendor.id);
     const lostKits = affectedVendorIds.reduce(
@@ -362,8 +475,8 @@ function measure(allocation: SupplyAllocation) {
       0,
     );
     return {
-      scenarioId: scenario.id,
-      scenarioName: scenario.name,
+      scenarioId: failure.id,
+      scenarioName: failure.name,
       deliveredKits: totalAllocatedKits - lostKits,
       lostKits,
       affectedVendorIds,
@@ -377,8 +490,8 @@ function measure(allocation: SupplyAllocation) {
   };
 }
 
-function strategyPoint(strategy: SupplyStrategy): SupplyPoint {
-  const result = measure(strategy.allocation);
+function strategyPoint(strategy: SupplyStrategy, scenario: SupplyScenarioData): SupplyPoint {
+  const result = measure(strategy.allocation, scenario);
   return {
     id: strategy.id,
     name: strategy.name,
@@ -387,7 +500,15 @@ function strategyPoint(strategy: SupplyStrategy): SupplyPoint {
   };
 }
 
-export const emergencySupplyBaselinePoints = emergencySupplyScenario.strategies.map(strategyPoint);
+export const emergencySupplyBaselinePoints = emergencySupplyScenario.strategies.map((strategy) =>
+  strategyPoint(strategy, emergencySupplyScenario),
+);
+
+function supplyContext(contextId: string) {
+  const context = emergencySupplyContexts.find(({ id }) => id === contextId);
+  if (!context) throw new Error(`Unknown emergency supply context: ${contextId}`);
+  return context;
+}
 
 function outcomePoint(point: SupplyPoint, baseline: boolean): OutcomePoint {
   return {
@@ -412,9 +533,16 @@ export function dominatesSupply(left: SupplyPoint, right: SupplyPoint): boolean 
   return noWorse && strictlyBetter;
 }
 
-export function evaluateSupplyAllocation(input: SupplyAllocation): SupplyEvaluation {
-  const normalized = normalizeAllocation(input);
-  const metrics = measure(normalized.allocation);
+export function evaluateSupplyAllocation(
+  input: SupplyAllocation,
+  contextId: SupplyContextId = "public-normal-operations",
+): SupplyEvaluation {
+  const context = supplyContext(contextId);
+  const baselinePoints = context.scenario.strategies.map((strategy) =>
+    strategyPoint(strategy, context.scenario),
+  );
+  const normalized = normalizeAllocation(input, context.scenario);
+  const metrics = measure(normalized.allocation, context.scenario);
   const candidate: SupplyPoint = {
     id: "candidate",
     name: "Your allocation",
@@ -423,21 +551,22 @@ export function evaluateSupplyAllocation(input: SupplyAllocation): SupplyEvaluat
   };
   const correctness = normalized.failures.length === 0;
   const dominatedBy = correctness
-    ? emergencySupplyBaselinePoints.filter((point) => dominatesSupply(point, candidate))
+    ? baselinePoints.filter((point) => dominatesSupply(point, candidate))
     : [];
   const improvesOver = correctness
-    ? emergencySupplyBaselinePoints.filter((point) => dominatesSupply(candidate, point))
+    ? baselinePoints.filter((point) => dominatesSupply(candidate, point))
     : [];
   const contribution = computeContributionEvidence(
-    emergencySupplyBaselinePoints.map((point) => outcomePoint(point, true)),
+    baselinePoints.map((point) => outcomePoint(point, true)),
     { ...outcomePoint(candidate, false), correctness },
     emergencySupplyMetrics,
   );
   const resultWithoutHash = {
     schemaVersion: "1" as const,
     arenaId: emergencySupplyScenario.arenaId,
-    dataVersion: emergencySupplyScenario.dataVersion,
-    contextHash: emergencySupplyContextHash,
+    dataVersion: context.scenario.dataVersion,
+    contextId,
+    contextHash: context.contextHash,
     manifestHash: emergencySupplyManifestHash,
     allocation: normalized.allocation,
     ...metrics,
@@ -456,21 +585,40 @@ export function evaluateSupplyAllocation(input: SupplyAllocation): SupplyEvaluat
   };
 }
 
-export function publicEmergencySupplyScenario() {
+export function publicEmergencySupplyScenario(
+  contextId: SupplyContextId = "public-normal-operations",
+) {
+  const context = supplyContext(contextId);
+  const baselinePoints = context.scenario.strategies.map((strategy) =>
+    strategyPoint(strategy, context.scenario),
+  );
   return {
-    arenaId: emergencySupplyScenario.arenaId,
-    name: emergencySupplyScenario.name,
-    dataVersion: emergencySupplyScenario.dataVersion,
-    currency: emergencySupplyScenario.currency,
-    targetKits: emergencySupplyScenario.targetKits,
-    contextHash: emergencySupplyContextHash,
+    arenaId: context.scenario.arenaId,
+    name: context.scenario.name,
+    dataVersion: context.scenario.dataVersion,
+    currency: context.scenario.currency,
+    targetKits: context.scenario.targetKits,
+    contextId,
+    contextName: context.name,
+    contextDescription: context.description,
+    contextHash: context.contextHash,
+    evidenceLevel: context.evidenceLevel,
     manifest: emergencySupplyManifest,
     manifestHash: emergencySupplyManifestHash,
     axes: emergencySupplyMetrics,
-    vendors: emergencySupplyScenario.vendors,
-    failures: emergencySupplyScenario.failures.map(({ id, name }) => ({ id, name })),
-    strategies: emergencySupplyScenario.strategies,
-    baselinePoints: emergencySupplyBaselinePoints,
+    vendors: context.scenario.vendors,
+    failures: context.scenario.failures.map(({ id, name }) => ({ id, name })),
+    strategies: context.scenario.strategies,
+    baselinePoints,
+    contexts: emergencySupplyContexts.map(
+      ({ id, name, description, contextHash, evidenceLevel }) => ({
+        id,
+        name,
+        description,
+        contextHash,
+        evidenceLevel,
+      }),
+    ),
     settlement: {
       state: "not-configured",
       network: "sepolia",

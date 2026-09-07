@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getEvidenceLevelDefinition } from "@frontier/shared";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { challengeIds, getChallengeManifest } from "@/lib/challenges";
@@ -21,14 +22,6 @@ export async function generateMetadata({
     : { title: "Challenge not found | Value Decentralization" };
 }
 
-const evidenceNames = [
-  "Synthetic simulation",
-  "Historical replay",
-  "Controlled micro-pilot",
-  "Independent replication",
-  "Operational deployment",
-] as const;
-
 export default async function ChallengePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const challenge = await getChallengeManifest(id);
@@ -37,6 +30,11 @@ export default async function ChallengePage({ params }: { params: Promise<{ id: 
   const context = manifest.contexts.find(
     ({ id: contextId }) => contextId === manifest.activeContextId,
   )!;
+  const evidence = getEvidenceLevelDefinition(context.evidenceLevel);
+  const nextEvidence =
+    context.evidenceLevel < 4
+      ? getEvidenceLevelDefinition((context.evidenceLevel + 1) as 1 | 2 | 3 | 4)
+      : null;
 
   return (
     <main className="page-shell challenge-page">
@@ -68,8 +66,13 @@ export default async function ChallengePage({ params }: { params: Promise<{ id: 
           <h2>{context.name}</h2>
           <p>{context.description}</p>
           <span className="evidence-level">
-            Evidence L{context.evidenceLevel} · {evidenceNames[context.evidenceLevel]}
+            Evidence L{context.evidenceLevel} · {evidence.name}
           </span>
+          {nextEvidence ? (
+            <small>
+              To reach L{nextEvidence.level}: {nextEvidence.requiredEvidence.join(" · ")}
+            </small>
+          ) : null}
         </article>
         <article>
           <p className="eyebrow">Reward</p>
@@ -148,6 +151,10 @@ export default async function ChallengePage({ params }: { params: Promise<{ id: 
             <dt>Constraint hash</dt>
             <dd>{context.constraintHash}</dd>
           </div>
+          <div>
+            <dt>Metric settings hash</dt>
+            <dd>{context.metricsHash}</dd>
+          </div>
         </dl>
       </section>
       <section className="challenge-sponsor-cta">
@@ -157,6 +164,9 @@ export default async function ChallengePage({ params }: { params: Promise<{ id: 
         </div>
         <Link className="secondary-action" href="/sponsor">
           Open draft console
+        </Link>
+        <Link className="primary-action" href={`/participate/${manifest.id}`}>
+          Try submission sandbox
         </Link>
       </section>
     </main>

@@ -11,6 +11,17 @@ type PublicScenario = {
   currency: string;
   targetKits: number;
   contextHash: string;
+  contextId: "public-normal-operations" | "public-port-constrained";
+  contextName: string;
+  contextDescription: string;
+  evidenceLevel: 0;
+  contexts: readonly {
+    id: "public-normal-operations" | "public-port-constrained";
+    name: string;
+    description: string;
+    contextHash: string;
+    evidenceLevel: 0;
+  }[];
   vendors: readonly {
     id: string;
     name: string;
@@ -115,11 +126,31 @@ function SupplyFrontierChart({
 }
 
 export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario }) {
+  const [activeScenario, setActiveScenario] = useState(scenario);
   const [allocation, setAllocation] = useState<SupplyAllocation>(initialAllocation);
   const [evaluation, setEvaluation] = useState<MeasuredEvaluation | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const total = Object.values(allocation).reduce((sum, amount) => sum + amount, 0);
+
+  async function selectContext(contextId: PublicScenario["contextId"]) {
+    setPending(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `/v1/emergency-supply?contextId=${encodeURIComponent(contextId)}`,
+      );
+      if (!response.ok) throw new Error("Context could not be loaded");
+      const nextScenario = (await response.json()) as PublicScenario;
+      setActiveScenario(nextScenario);
+      setAllocation({ ...nextScenario.strategies[1]!.allocation });
+      setEvaluation(null);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Context could not be loaded");
+    } finally {
+      setPending(false);
+    }
+  }
 
   function applyStrategy(strategy: PublicScenario["strategies"][number]) {
     setAllocation({ ...strategy.allocation });
@@ -144,7 +175,7 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
       const response = await fetch("/v1/emergency-supply/evaluations", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ allocations: allocation }),
+        body: JSON.stringify({ allocations: allocation, contextId: activeScenario.contextId }),
       });
       const payload = (await response.json()) as MeasuredEvaluation & {
         error?: { message?: string };
@@ -170,7 +201,7 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
         <div>
           <p className="eyebrow">The mission</p>
           <h2 id="mission-heading">
-            Allocate exactly {scenario.targetKits.toLocaleString()} kits.
+            Allocate exactly {activeScenario.targetKits.toLocaleString()} kits.
           </h2>
           <p>
             Every supplier and every delivery route can fail once. Spend less, but keep as many kits
@@ -180,21 +211,45 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
         <dl>
           <div>
             <dt>Public vendors</dt>
-            <dd>{scenario.vendors.length}</dd>
+            <dd>{activeScenario.vendors.length}</dd>
           </div>
           <div>
             <dt>Failures tested</dt>
-            <dd>{scenario.failures.length}</dd>
+            <dd>{activeScenario.failures.length}</dd>
           </div>
           <div>
             <dt>Data version</dt>
-            <dd>{scenario.dataVersion}</dd>
+            <dd>{activeScenario.dataVersion}</dd>
           </div>
         </dl>
       </section>
 
+      <section className="context-selector" aria-labelledby="supply-context-heading">
+        <div>
+          <p className="eyebrow">Evaluation context</p>
+          <h2 id="supply-context-heading">Same Artifact, different operating conditions.</h2>
+          <p>{activeScenario.contextDescription}</p>
+        </div>
+        <label>
+          Compare within context
+          <select
+            disabled={pending}
+            onChange={(event) =>
+              void selectContext(event.target.value as PublicScenario["contextId"])
+            }
+            value={activeScenario.contextId}
+          >
+            {activeScenario.contexts.map((context) => (
+              <option key={context.id} value={context.id}>
+                {context.name} · Evidence L{context.evidenceLevel}
+              </option>
+            ))}
+          </select>
+        </label>
+      </section>
+
       <section className="strategy-strip" aria-label="Example strategies">
-        {scenario.strategies.map((strategy) => (
+        {activeScenario.strategies.map((strategy) => (
           <button
             className="strategy-button"
             key={strategy.id}
@@ -216,20 +271,20 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
             </div>
             <div
               className={
-                total === scenario.targetKits
+                total === activeScenario.targetKits
                   ? "allocation-total valid"
                   : "allocation-total invalid"
               }
             >
               <span>Allocated</span>
               <strong>
-                {total.toLocaleString()} / {scenario.targetKits.toLocaleString()}
+                {total.toLocaleString()} / {activeScenario.targetKits.toLocaleString()}
               </strong>
             </div>
           </div>
 
           <div className="vendor-grid">
-            {scenario.vendors.map((vendor) => {
+            {activeScenario.vendors.map((vendor) => {
               const amount = allocation[vendor.id] ?? 0;
               return (
                 <label className="vendor-card" key={vendor.id}>
@@ -238,7 +293,7 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
                     <small>{vendor.routeName}</small>
                   </span>
                   <span className="vendor-price">
-                    {formatMoney(vendor.unitCost, scenario.currency)} <small>/ kit</small>
+                    {formatMoney(vendor.unitCost, activeScenario.currency)} <small>/ kit</small>
                   </span>
                   <input
                     aria-label={`${vendor.name} kit allocation`}
@@ -269,12 +324,12 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
           <p className="eyebrow">Hard constraints</p>
           <h3>Every valid plan follows the same rules.</h3>
           <ul>
-            <li>Allocate exactly {scenario.targetKits.toLocaleString()} whole kits.</li>
+            <li>Allocate exactly {activeScenario.targetKits.toLocaleString()} whole kits.</li>
             <li>Do not exceed a supplier&apos;s capacity.</li>
             <li>Use only the published suppliers and routes.</li>
-            <li>Pass all {scenario.failures.length} single-failure cases.</li>
+            <li>Pass all {activeScenario.failures.length} single-failure cases.</li>
           </ul>
-          <p className="hash">context {scenario.contextHash}</p>
+          <p className="hash">context {activeScenario.contextHash}</p>
         </aside>
       </section>
 
@@ -329,13 +384,17 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
             <div className="supply-metrics">
               <article>
                 <span>Total procurement cost</span>
-                <strong>{formatMoney(evaluation.totalProcurementCost, scenario.currency)}</strong>
+                <strong>
+                  {formatMoney(evaluation.totalProcurementCost, activeScenario.currency)}
+                </strong>
                 <small>Lower is better</small>
               </article>
               <article>
                 <span>Worst-case delivery</span>
                 <strong>{evaluation.worstCaseDeliveredKits.toLocaleString()}</strong>
-                <small>Higher is better · of {scenario.targetKits.toLocaleString()} kits</small>
+                <small>
+                  Higher is better · of {activeScenario.targetKits.toLocaleString()} kits
+                </small>
               </article>
               <article>
                 <span>Correctness</span>
@@ -347,7 +406,10 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
             <ContributionPanel contribution={evaluation.contribution} />
 
             <div className="supply-evidence-grid">
-              <SupplyFrontierChart baselines={scenario.baselinePoints} evaluation={evaluation} />
+              <SupplyFrontierChart
+                baselines={activeScenario.baselinePoints}
+                evaluation={evaluation}
+              />
               <div className="failure-table">
                 <div className="section-title">
                   <div>

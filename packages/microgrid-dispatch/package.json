@@ -1,6 +1,6 @@
 {
-  "name": "@frontier/sdk",
-  "version": "0.2.0",
+  "name": "@frontier/microgrid-dispatch",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@frontier/shared": "workspace:*"
+    "@frontier/shared": "workspace:*",
+    "viem": "2.56.3"
   },
   "devDependencies": {
     "vitest": "5.0.0"

@@ -159,21 +159,21 @@ Sponsor画面を先に飾るのではなく、評価器とUIの両方が読む�
 
 ### 3.1 Context
 
-- [ ] Contextを `id`、`version`、説明、dataset hash、constraint hash、metric設定で管理する
-- [ ] 各Arenaへ最低2つの実データContextを用意する
+- [x] Contextを `id`、`version`、説明、dataset hash、constraint hash、metric設定で管理する
+- [x] 各Arenaへ最低2つの実データContextを用意する
   - Supply例: 通常輸送 / 港湾障害が多い条件
   - Calldata例: address重複が多いbatch / 重複が少ないbatch
-- [ ] Context Selectorを追加する
-- [ ] Frontier、Contribution、result hashをContextごとに完全分離する
-- [ ] 異なるContextの結果を同じFrontierで比較できないAPI検証を追加する
+- [x] Context Selectorを追加する
+- [x] Frontier、Contribution、result hashをContextごとに完全分離する
+- [x] 異なるContextの結果を同じFrontierで比較できないAPI検証を追加する
 
 ### 3.2 Evidence Level
 
-- [ ] Evidence Level 0〜4のschema、名称、必要Evidenceを定義する
-- [ ] 現在の2つのArenaをLevel 0として明示する
-- [ ] 同一Context・同一Evidence Level内だけでFrontier比較する
+- [x] Evidence Level 0〜4のschema、名称、必要Evidenceを定義する
+- [x] 現在の2つのArenaをLevel 0として明示する
+- [x] 同一Context・同一Evidence Level内だけでFrontier比較する
 - [ ] Level badgeをArena、Challenge、Result、Artifactに表示する
-- [ ] Levelが上がるために不足しているEvidenceを表示する
+- [x] Levelが上がるために不足しているEvidenceを表示する
 - [ ] 実証されていないLevelをユーザー操作だけで選択できないようにする
 
 完了条件:
@@ -186,30 +186,30 @@ Sponsor画面を先に飾るのではなく、評価器とUIの両方が読む�
 
 ### 4.1 型とAdapter
 
-- [ ] `slug` と `kind` の固定unionを廃止し、Manifest由来のstable IDへ移行する
-- [ ] `metrics` の2要素タプルを可変長Outcome Vectorへ変更する
+- [x] `slug` と `kind` の固定unionを廃止し、Manifest由来のstable IDへ移行する
+- [x] `metrics` の2要素タプルを可変長Outcome Vectorへ変更する
 - [ ] `EvaluatorAdapter` interfaceを定義する
   - input schema
   - public context loader
   - evaluator
   - evidence renderer
   - optional custom workbench
-- [ ] Arena固有のif分岐をAdapter Registryへ置き換える
-- [ ] 未知のAdapterは安全に `Unsupported evaluator` と表示する
+- [x] Arena固有のif分岐をAdapter Registryへ置き換える
+- [x] 未知のAdapterは安全に `Unsupported evaluator` と表示する
 
 ### 4.2 n軸UI
 
-- [ ] 2軸の場合は現在の散布図を維持する
-- [ ] 3軸以上では任意の2軸を選べるselectorとOutcome tableを表示する
-- [ ] 選択中でない軸もPareto判定には含める
-- [ ] 軸の組み合わせを変えてもFrontier判定自体が変わらないことをテストする
+- [x] 2軸の場合は現在の散布図を維持する
+- [x] 3軸以上では任意の2軸を選べるselectorとOutcome tableを表示する
+- [x] 選択中でない軸もPareto判定には含める
+- [x] 軸の組み合わせを変えてもFrontier判定自体が変わらないことをテストする
 
 ### 4.3 Builder SDK
 
-- [ ] `packages/sdk` にManifest、Submission、Evaluation Evidenceの型付きclientを実装する
-- [ ] Challenge取得、提出準備、評価取得、hash検証をSDKから実行できるようにする
+- [x] `packages/sdk` にManifest、Submission、Evaluation Evidenceの型付きclientを実装する
+- [x] Challenge取得、提出準備、評価取得、hash検証をSDKから実行できるようにする
 - [ ] 第三者Adapter用の最小templateと検証commandを用意する
-- [ ] 3つ目の小さなサンプルArenaをSDKとAdapterだけで追加し、拡張性を実証する
+- [x] 3つ目の小さなサンプルArenaをSDKとAdapterだけで追加し、拡張性を実証する
 
 完了条件:
 
@@ -221,12 +221,12 @@ Sponsor画面を先に飾るのではなく、評価器とUIの両方が読む�
 
 Plan 2のCompetition層を、上記ManifestとContributionモデルへ接続する。
 
-- [ ] Wallet接続とParticipant registration
+- [x] Wallet接続とParticipant registration（Sandboxでは未署名のwallet-only）
 - [ ] World ID / Allowlist / Wallet-onlyをChallenge単位で選べるIdentity Policy
-- [ ] 同一Challengeへの重複Participant登録防止
+- [x] 同一Challengeへの重複Participant登録防止
 - [ ] Inline、Upload、GitHubのSource Adapter
-- [ ] Public、Delayed Public、PrivateのSource Policy
-- [ ] 複数Submission Revisionと1つのFinal Entry
+- [x] Public、Delayed Public、PrivateのSource Policy（Privateは暗号化Storage実装まで拒否）
+- [x] 複数Submission Revisionと1つのFinal Entry
 - [ ] 締切後のFinal Entry freeze
 - [ ] 提出履歴、評価履歴、残り回数、Final Entry選択UI
 - [ ] 既存Dispute APIをManifest v2のChallengeへ接続する
@@ -257,9 +257,9 @@ Plan 2のCompetition層を、上記ManifestとContributionモデルへ接続す�
 - 最終Reward合計がPoolを超えない
 - 実際のSepolia transactionが無ければ「送金済み」と表示しない
 
-## 4. 次の実装PRで行う具体的な範囲
+## 4. 実装済みマイルストーンと残作業
 
-次の1本はPhase 0とPhase 1に限定する。Sponsor ConsoleやWorld IDへ先に進まない。
+Phase 0〜1は完了し、Phase 2〜5のローカルで検証可能な縦切りも実装した。
 
 1. `OutcomeMetric`、正規化範囲、reference pointのschema
 2. 汎用Pareto判定、2D Hypervolume、Frontier Contribution
@@ -271,7 +271,9 @@ Plan 2のCompetition層を、上記ManifestとContributionモデルへ接続す�
 8. Arena拡張性について過剰な説明を修正
 9. Unit、API、決定論、typecheck、build、browser flow test
 
-このPRの終了時点では、プロダクトをまだ `Funded Frontier Market` と呼ばない。呼べるのは、Phase 2のManifest、実資金Pool、Phase 6のSettlementが接続された後とする。
+追加実装として、2つのContextを持つSupply / Calldata、3軸Microgrid Arena、Adapter Registry、型付きSDK、提出Sandbox、決定論的Reward Allocation、Demo ERC-20とReward Poolコントラクトまで作成した。
+
+ただし、プロダクトをまだ `Funded Frontier Market` とは呼ばない。World ID、Durable Storage、Hidden Final Workload、複数Runner Attestation、Sepoliaへの実デプロイ、送金transaction表示は外部設定または本番基盤を必要とし、未完了のチェックとして残す。Sandboxも「署名済み」「永続化済み」「一人一参加」とは表示しない。
 
 ## 5. Reward計算について先に固定するルール
 
@@ -316,6 +318,6 @@ reward = distributablePool
 - [ ] Final FrontierとReward配分が提出順に依存しない
 - [ ] Reward Tokenが対象Walletへ実際に送金される
 - [ ] 送金transaction、Event、残高変化を公開画面から検証できる
-- [ ] 2つの既存Arenaが同じManifest / Adapter / Contribution基盤で動く
-- [ ] 第三者が共通UIを変更せず3つ目のArenaを追加できる
+- [x] 2つの既存Arenaが同じManifest / Adapter / Contribution基盤で動く
+- [x] 第三者が共通UIを変更せず3つ目のArenaを追加できる
 - [ ] UI上のすべての状態表示が実際のEvidenceと一致する

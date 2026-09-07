@@ -73,4 +73,19 @@ describe("Emergency Supply Allocation evaluator", () => {
     expect(result.contribution.frontierExpansionPpm).toBeGreaterThan(0);
     expect(result.contribution.exclusiveContributionPpm).toBeGreaterThan(0);
   });
+
+  it("separates measurements and hashes by context", () => {
+    const allocation = {
+      "harbor-aid": 200,
+      northstar: 200,
+      "inland-works": 200,
+      "local-grid": 200,
+      airbridge: 200,
+    };
+    const normal = evaluateSupplyAllocation(allocation, "public-normal-operations");
+    const constrained = evaluateSupplyAllocation(allocation, "public-port-constrained");
+    expect(constrained.contextHash).not.toBe(normal.contextHash);
+    expect(constrained.resultHash).not.toBe(normal.resultHash);
+    expect(constrained.totalProcurementCost).toBeGreaterThan(normal.totalProcurementCost);
+  });
 });

@@ -18,6 +18,7 @@ export const contextManifestSchema = z.object({
   description: z.string().min(1),
   datasetHash: bytes32Schema,
   constraintHash: bytes32Schema,
+  metricsHash: bytes32Schema,
   evidenceLevel: evidenceLevelSchema,
 });
 
@@ -94,6 +95,44 @@ export const challengeManifestV2Schema = z
 export type EvidenceLevel = z.infer<typeof evidenceLevelSchema>;
 export type ContextManifest = z.infer<typeof contextManifestSchema>;
 export type ChallengeManifestV2 = z.infer<typeof challengeManifestV2Schema>;
+
+export type EvidenceLevelDefinition = {
+  level: EvidenceLevel;
+  name: string;
+  requiredEvidence: readonly string[];
+};
+
+export const evidenceLevels: readonly EvidenceLevelDefinition[] = [
+  {
+    level: 0,
+    name: "Synthetic simulation",
+    requiredEvidence: ["Deterministic public fixture", "Evaluator version", "Result hash"],
+  },
+  {
+    level: 1,
+    name: "Recorded observation",
+    requiredEvidence: ["Timestamped source dataset", "Dataset provenance", "Result hash"],
+  },
+  {
+    level: 2,
+    name: "Independent reproduction",
+    requiredEvidence: ["Two independent runner attestations", "Matching outcome vector"],
+  },
+  {
+    level: 3,
+    name: "Controlled deployment",
+    requiredEvidence: ["Controlled environment record", "Signed runner evidence", "Audit trail"],
+  },
+  {
+    level: 4,
+    name: "Production observation",
+    requiredEvidence: ["Production telemetry", "Independent verification", "Dispute window closed"],
+  },
+] as const;
+
+export function getEvidenceLevelDefinition(level: EvidenceLevel): EvidenceLevelDefinition {
+  return evidenceLevels[level]!;
+}
 
 export function canonicalProtocolJson(value: unknown): string {
   if (typeof value === "bigint") return JSON.stringify(value.toString(10));

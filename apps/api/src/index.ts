@@ -12,24 +12,62 @@ import {
   evaluateSupplyAllocation,
   publicEmergencySupplyScenario,
 } from "@frontier/emergency-supply";
+import { evaluateMicrogridDispatch, publicMicrogridScenario } from "@frontier/microgrid-dispatch";
 import type { EnsRunnerDirectory } from "@frontier/ens-adapter";
 import { z } from "zod";
 import { keccak256, stringToHex, type Hex } from "viem";
 import { FrontierStore, type EvaluationJob } from "./store";
+import { CompetitionSandboxStore } from "./competition-store";
 
 const evaluationSchema = z.object({ artifactId: bytes32Schema });
 const supplyEvaluationSchema = z
   .object({
     allocations: z.record(z.string(), z.number().int().nonnegative().max(1_000_000)),
+    contextId: z
+      .enum(["public-normal-operations", "public-port-constrained"])
+      .default("public-normal-operations"),
   })
   .strict();
 const calldataEvaluationSchema = z
-  .object({ codecId: z.enum(["abi", "packed", "dictionary"]) })
+  .object({
+    codecId: z.enum(["abi", "packed", "dictionary"]),
+    contextId: z.enum(["public-transfer-mix", "public-low-reuse"]).default("public-transfer-mix"),
+  })
   .strict();
 const disputeSchema = z.object({
   artifactId: bytes32Schema,
   reason: z.string().min(10).max(2_000),
 });
+const microgridEvaluationSchema = z
+  .object({
+    allocations: z.record(z.string(), z.number().int().nonnegative().max(1_000_000)),
+  })
+  .strict();
+const sandboxRegistrationSchema = z
+  .object({
+    challengeId: z.enum([
+      "emergency-supply-v1",
+      "calldata-compression-v1",
+      "microgrid-dispatch-v1",
+    ]),
+    wallet: z.string(),
+  })
+  .strict();
+const sandboxSubmissionSchema = z
+  .object({
+    participantId: bytes32Schema,
+    challengeId: z.enum([
+      "emergency-supply-v1",
+      "calldata-compression-v1",
+      "microgrid-dispatch-v1",
+    ]),
+    source: z.unknown(),
+    artifactInput: z.unknown(),
+  })
+  .strict();
+const sandboxFinalEntrySchema = z
+  .object({ participantId: bytes32Schema, submissionId: bytes32Schema })
+  .strict();
 
 export interface EvaluationDispatcher {
   dispatch(job: EvaluationJob): Promise<void>;
@@ -73,6 +111,7 @@ async function body(request: Request): Promise<unknown> {
 
 export class FrontierApi {
   private readonly limiter = new SlidingWindowLimiter();
+  readonly competition = new CompetitionSandboxStore();
   constructor(
     readonly store: FrontierStore,
     private readonly dispatcher?: EvaluationDispatcher,
@@ -86,9 +125,12 @@ export class FrontierApi {
     if (!this.limiter.accept(client)) return error(429, "RATE_LIMITED", "Too many requests");
 
     try {
-      if (request.method === "GET") return await this.get(path);
+      if (request.method === "GET") return await this.get(path, url);
       if (request.method === "POST") return await this.post(path, request);
-      return error(405, "METHOD_NOT_ALLOWED", "Method not allowed", { allowed: ["GET", "POST"] });
+      if (request.method === "PUT") return await this.put(path, request);
+      return error(405, "METHOD_NOT_ALLOWED", "Method not allowed", {
+        allowed: ["GET", "POST", "PUT"],
+      });
     } catch (cause) {
       if (cause instanceof z.ZodError)
         return error(400, "VALIDATION_ERROR", "Request validation failed", cause.issues);
@@ -96,7 +138,7 @@ export class FrontierApi {
     }
   }
 
-  private async get(path: string): Promise<Response> {
+  private async get(path: string, url: URL): Promise<Response> {
     const { store } = this;
     if (path === "/v1/health")
       return json({ status: "ok", benchmarkMeasuredAt: store.benchmark.measuredAt });
@@ -105,11 +147,34 @@ export class FrontierApi {
         arenas: [
           publicEmergencySupplyScenario(),
           await publicCalldataCompressionScenario(),
+          publicMicrogridScenario(),
           this.challenge(),
         ],
       });
-    if (path === "/v1/emergency-supply") return json(publicEmergencySupplyScenario());
-    if (path === "/v1/calldata-compression") return json(await publicCalldataCompressionScenario());
+    if (path === "/v1/emergency-supply") {
+      const contextId = z
+        .enum(["public-normal-operations", "public-port-constrained"])
+        .default("public-normal-operations")
+        .parse(url.searchParams.get("contextId") ?? undefined);
+      return json(publicEmergencySupplyScenario(contextId));
+    }
+    if (path === "/v1/calldata-compression") {
+      const contextId = z
+        .enum(["public-transfer-mix", "public-low-reuse"])
+        .default("public-transfer-mix")
+        .parse(url.searchParams.get("contextId") ?? undefined);
+      return json(await publicCalldataCompressionScenario(contextId));
+    }
+    if (path === "/v1/microgrid-dispatch") return json(publicMicrogridScenario());
+    const sandboxSubmissionsMatch = path.match(
+      /^\/v2\/sandbox\/participants\/(0x[0-9a-f]{64})\/submissions$/,
+    );
+    if (sandboxSubmissionsMatch) {
+      return json({
+        storage: "ephemeral-memory",
+        submissions: this.competition.forParticipant(sandboxSubmissionsMatch[1]!),
+      });
+    }
     if (path === "/v1/challenges" || path === `/v1/challenges/${store.challengeId}`)
       return json(this.challenge());
     if (path === `/v1/arenas/${store.challengeId}`) return json(this.challenge());
@@ -174,11 +239,71 @@ export class FrontierApi {
     const { store } = this;
     if (path === "/v1/emergency-supply/evaluations") {
       const parsed = supplyEvaluationSchema.parse(await body(request));
-      return json({ state: "measured", ...evaluateSupplyAllocation(parsed.allocations) }, 200);
+      return json(
+        {
+          state: "measured",
+          ...evaluateSupplyAllocation(parsed.allocations, parsed.contextId),
+        },
+        200,
+      );
     }
     if (path === "/v1/calldata-compression/evaluations") {
       const parsed = calldataEvaluationSchema.parse(await body(request));
-      return json({ state: "measured", ...(await evaluateCalldataCodec(parsed.codecId)) }, 200);
+      return json(
+        {
+          state: "measured",
+          ...(await evaluateCalldataCodec(parsed.codecId, parsed.contextId)),
+        },
+        200,
+      );
+    }
+    if (path === "/v1/microgrid-dispatch/evaluations") {
+      const parsed = microgridEvaluationSchema.parse(await body(request));
+      return json({ state: "measured", ...evaluateMicrogridDispatch(parsed.allocations) }, 200);
+    }
+    if (
+      path === "/v2/participants/world-id/context" ||
+      path === "/v2/participants/world-id/verify"
+    ) {
+      return error(
+        503,
+        "WORLD_ID_UNCONFIGURED",
+        "World ID is not configured; the sandbox exposes wallet-only identity without claiming uniqueness",
+      );
+    }
+    if (path === "/v2/sandbox/participants/register") {
+      const parsed = sandboxRegistrationSchema.parse(await body(request));
+      return json(
+        {
+          mode: "sandbox",
+          uniqueness: "wallet-only-not-personhood",
+          storage: "ephemeral-memory",
+          participant: this.competition.register(parsed.challengeId, parsed.wallet),
+        },
+        201,
+      );
+    }
+    if (path === "/v2/sandbox/submissions") {
+      const parsed = sandboxSubmissionSchema.parse(await body(request));
+      let evaluation: Record<string, unknown> & { resultHash: string; correctness: boolean };
+      if (parsed.challengeId === "emergency-supply-v1") {
+        const input = supplyEvaluationSchema.parse(parsed.artifactInput);
+        evaluation = evaluateSupplyAllocation(input.allocations, input.contextId);
+      } else if (parsed.challengeId === "calldata-compression-v1") {
+        const input = calldataEvaluationSchema.parse(parsed.artifactInput);
+        evaluation = await evaluateCalldataCodec(input.codecId, input.contextId);
+      } else {
+        const input = microgridEvaluationSchema.parse(parsed.artifactInput);
+        evaluation = evaluateMicrogridDispatch(input.allocations);
+      }
+      return json(
+        {
+          mode: "sandbox",
+          storage: "ephemeral-memory",
+          submission: this.competition.addSubmission({ ...parsed, evaluation }),
+        },
+        201,
+      );
     }
     if (path === "/v1/artifacts") {
       const parsed = artifactSchema.parse(await body(request));
@@ -227,6 +352,18 @@ export class FrontierApi {
       };
       store.disputes.push(dispute);
       return json(dispute, 201);
+    }
+    return error(404, "NOT_FOUND", "Route not found");
+  }
+
+  private async put(path: string, request: Request): Promise<Response> {
+    if (path === "/v2/sandbox/final-entry") {
+      const parsed = sandboxFinalEntrySchema.parse(await body(request));
+      return json({
+        mode: "sandbox",
+        frozen: false,
+        finalEntry: this.competition.selectFinal(parsed.participantId, parsed.submissionId),
+      });
     }
     return error(404, "NOT_FOUND", "Route not found");
   }

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   computeContributionEvidence,
   computeHypervolume2d,
+  computeHypervolume,
   computeOutcomeFrontier,
   dominatesOutcome,
   normalizeOutcomeValue,
@@ -60,6 +61,28 @@ describe("multi-objective evaluation", () => {
     // normalized rectangles: (0.8, 0.6) and (0.6, 0.9)
     // union = 0.8*0.6 + 0.6*0.9 - 0.6*0.6 = 0.66
     expect(computeHypervolume2d([point("a", 20, 60), point("b", 40, 90)], metrics)).toBe(660_000);
+  });
+
+  it("computes n-dimensional hypervolume without changing Pareto semantics", () => {
+    const threeMetrics = [
+      ...metrics,
+      {
+        key: "carbon",
+        name: "Carbon",
+        direction: "MINIMIZE",
+        unit: "kg",
+        lowerBound: 0,
+        upperBound: 100,
+      },
+    ] as const satisfies readonly OutcomeMetric[];
+    const candidate: OutcomePoint = {
+      id: "3d",
+      name: "3D",
+      correctness: true,
+      baseline: false,
+      values: { cost: 50, resilience: 50, carbon: 50 },
+    };
+    expect(computeHypervolume([candidate], threeMetrics)).toBe(125_000);
   });
 
   it("is input-order independent and gives no contribution to dominated points", () => {

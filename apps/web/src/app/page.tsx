@@ -148,7 +148,7 @@ export default function HomePage() {
       <section className="platform-status">
         <div>
           <p className="eyebrow">Platform status</p>
-          <h2>Two practice arenas today. More frontiers next.</h2>
+          <h2>Three practice arenas today. More frontiers next.</h2>
         </div>
         <p>
           Live practice measurement is available now. Participant identity, source-code isolation,

@@ -24,7 +24,7 @@ export default function ArenasPage() {
         ))}
       </section>
       <aside className="catalog-expansion-note">
-        <span>02 arenas now</span>
+        <span>{String(arenaRegistry.length).padStart(2, "0")} arenas now</span>
         <div>
           <h2>Designed for the next problem, too.</h2>
           <p>

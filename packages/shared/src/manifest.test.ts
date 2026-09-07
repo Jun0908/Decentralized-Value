@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { hashChallengeManifest, parseChallengeManifest } from "./manifest";
+import {
+  evidenceLevels,
+  getEvidenceLevelDefinition,
+  hashChallengeManifest,
+  parseChallengeManifest,
+} from "./manifest";
 
 const hash = `0x${"11".repeat(32)}` as const;
 const base = {
@@ -38,6 +43,7 @@ const base = {
       description: "Public fixture",
       datasetHash: hash,
       constraintHash: hash,
+      metricsHash: hash,
       evidenceLevel: 0,
     },
   ],
@@ -55,6 +61,12 @@ const base = {
 } as const;
 
 describe("ChallengeManifestV2", () => {
+  it("defines immutable requirements for all five evidence levels", () => {
+    expect(evidenceLevels.map(({ level }) => level)).toEqual([0, 1, 2, 3, 4]);
+    expect(getEvidenceLevelDefinition(0).name).toBe("Synthetic simulation");
+    expect(getEvidenceLevelDefinition(4).requiredEvidence).toContain("Dispute window closed");
+  });
+
   it("hashes canonical content independent of object key order", () => {
     const parsed = parseChallengeManifest(base);
     expect(hashChallengeManifest(parsed)).toMatch(/^0x[0-9a-f]{64}$/);

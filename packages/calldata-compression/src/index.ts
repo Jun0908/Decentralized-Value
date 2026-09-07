@@ -34,6 +34,7 @@ export type CalldataBatch = {
 };
 
 export type CodecId = "abi" | "packed" | "dictionary";
+export type CalldataContextId = "public-transfer-mix" | "public-low-reuse";
 
 export type CodecPoint = {
   id: CodecId;
@@ -59,6 +60,7 @@ export type CodecEvaluation = {
   schemaVersion: "1";
   arenaId: string;
   workloadVersion: string;
+  contextId: CalldataContextId;
   contextHash: Hex;
   manifestHash: Hex;
   resultHash: Hex;
@@ -199,19 +201,52 @@ function canonicalJson(value: unknown): string {
   return JSON.stringify(value);
 }
 
-const contextDocument = {
-  arenaId: calldataCompressionScenario.arenaId,
-  workloadVersion: calldataCompressionScenario.workloadVersion,
-  evmRevision: calldataCompressionScenario.evmRevision,
-  calldataRule: calldataCompressionScenario.calldataRule,
-  compiler: codecCompiler,
-  codecs: calldataCompressionScenario.codecs,
-  batches: calldataCompressionScenario.batches,
-};
+function hashCalldataContext(workloadVersion: string, batches: readonly CalldataBatch[]) {
+  return keccak256(
+    stringToHex(
+      canonicalJson({
+        arenaId: calldataCompressionScenario.arenaId,
+        workloadVersion,
+        evmRevision: calldataCompressionScenario.evmRevision,
+        calldataRule: calldataCompressionScenario.calldataRule,
+        compiler: codecCompiler,
+        codecs: calldataCompressionScenario.codecs,
+        batches,
+      }),
+    ),
+  );
+}
 
-export const calldataCompressionContextHash = keccak256(
-  stringToHex(canonicalJson(contextDocument)),
+const lowReuseBatches = calldataCompressionScenario.batches.filter(
+  ({ id }) => id !== "repeated-recipients",
 );
+const lowReuseWorkloadVersion = "transfer-batches-2026-09-low-reuse-v1";
+export const calldataCompressionContextHash = hashCalldataContext(
+  calldataCompressionScenario.workloadVersion,
+  calldataCompressionScenario.batches,
+);
+const lowReuseContextHash = hashCalldataContext(lowReuseWorkloadVersion, lowReuseBatches);
+
+export const calldataCompressionContexts = [
+  {
+    id: "public-transfer-mix",
+    name: "Mixed recipient reuse",
+    description: "Repeated recipients, mixed recipients, and integer boundary values.",
+    workloadVersion: calldataCompressionScenario.workloadVersion,
+    batches: calldataCompressionScenario.batches,
+    contextHash: calldataCompressionContextHash,
+    evidenceLevel: 0,
+  },
+  {
+    id: "public-low-reuse",
+    name: "Low recipient reuse",
+    description: "Only mixed-recipient and boundary batches, reducing dictionary reuse.",
+    workloadVersion: lowReuseWorkloadVersion,
+    batches: lowReuseBatches,
+    contextHash: lowReuseContextHash,
+    evidenceLevel: 0,
+  },
+] as const;
 
 export const calldataCompressionManifest = parseChallengeManifest({
   schemaVersion: "2",
@@ -248,6 +283,25 @@ export const calldataCompressionManifest = parseChallengeManifest({
           }),
         ),
       ),
+      metricsHash: keccak256(stringToHex(canonicalJson(calldataCompressionMetrics))),
+      evidenceLevel: 0,
+    },
+    {
+      id: "public-low-reuse",
+      version: lowReuseWorkloadVersion,
+      name: "Low recipient reuse",
+      description: "Mixed-recipient and boundary batches without the repeated-recipient batch.",
+      datasetHash: lowReuseContextHash,
+      constraintHash: keccak256(
+        stringToHex(
+          canonicalJson({
+            digest: "reference-state-digest",
+            malformedInput: "must-revert",
+            evmRevision: calldataCompressionScenario.evmRevision,
+          }),
+        ),
+      ),
+      metricsHash: keccak256(stringToHex(canonicalJson(calldataCompressionMetrics))),
       evidenceLevel: 0,
     },
   ],
@@ -395,13 +449,13 @@ function dominatesCodec(left: CodecPoint, right: CodecPoint): boolean {
   return noWorse && strictlyBetter;
 }
 
-async function measureCodec(codecId: CodecId) {
+async function measureCodec(codecId: CodecId, batches: readonly CalldataBatch[]) {
   const codec = calldataCompressionScenario.codecs.find((item) => item.id === codecId);
   if (!codec) throw new Error(`Unknown codec: ${codecId}`);
   const batchEvidence: BatchEvidence[] = [];
   const failures: string[] = [];
 
-  for (const batch of calldataCompressionScenario.batches) {
+  for (const batch of batches) {
     const encoded = encoders[codecId](batch);
     const byteMetrics = measureCalldataGas(encoded);
     const execution = await execute(runtimeByCodec[codecId], encoded);
@@ -432,10 +486,13 @@ async function measureCodec(codecId: CodecId) {
   };
 }
 
-export async function measureCodecPoints(): Promise<CodecPoint[]> {
+export async function measureCodecPoints(
+  contextId: CalldataContextId = "public-transfer-mix",
+): Promise<CodecPoint[]> {
+  const context = calldataContext(contextId);
   return Promise.all(
     calldataCompressionScenario.codecs.map(async (codec) => {
-      const measurement = await measureCodec(codec.id);
+      const measurement = await measureCodec(codec.id, context.batches);
       return {
         id: codec.id,
         name: codec.name,
@@ -446,10 +503,20 @@ export async function measureCodecPoints(): Promise<CodecPoint[]> {
   );
 }
 
-export async function evaluateCalldataCodec(codecId: CodecId): Promise<CodecEvaluation> {
+function calldataContext(contextId: string) {
+  const context = calldataCompressionContexts.find(({ id }) => id === contextId);
+  if (!context) throw new Error(`Unknown calldata context: ${contextId}`);
+  return context;
+}
+
+export async function evaluateCalldataCodec(
+  codecId: CodecId,
+  contextId: CalldataContextId = "public-transfer-mix",
+): Promise<CodecEvaluation> {
+  const context = calldataContext(contextId);
   const [measurement, baselinePoints] = await Promise.all([
-    measureCodec(codecId),
-    measureCodecPoints(),
+    measureCodec(codecId, context.batches),
+    measureCodecPoints(contextId),
   ]);
   const candidate = baselinePoints.find((point) => point.id === codecId);
   if (!candidate) throw new Error(`Unknown codec: ${codecId}`);
@@ -469,8 +536,9 @@ export async function evaluateCalldataCodec(codecId: CodecId): Promise<CodecEval
   const resultWithoutHash = {
     schemaVersion: "1" as const,
     arenaId: calldataCompressionScenario.arenaId,
-    workloadVersion: calldataCompressionScenario.workloadVersion,
-    contextHash: calldataCompressionContextHash,
+    workloadVersion: context.workloadVersion,
+    contextId,
+    contextHash: context.contextHash,
     manifestHash: calldataCompressionManifestHash,
     codecId,
     codecName: measurement.codec.name,
@@ -493,25 +561,41 @@ export async function evaluateCalldataCodec(codecId: CodecId): Promise<CodecEval
   };
 }
 
-export async function publicCalldataCompressionScenario() {
+export async function publicCalldataCompressionScenario(
+  contextId: CalldataContextId = "public-transfer-mix",
+) {
+  const context = calldataContext(contextId);
   return {
     arenaId: calldataCompressionScenario.arenaId,
     name: calldataCompressionScenario.name,
-    workloadVersion: calldataCompressionScenario.workloadVersion,
-    contextHash: calldataCompressionContextHash,
+    workloadVersion: context.workloadVersion,
+    contextId,
+    contextName: context.name,
+    contextDescription: context.description,
+    contextHash: context.contextHash,
+    evidenceLevel: context.evidenceLevel,
     manifest: calldataCompressionManifest,
     manifestHash: calldataCompressionManifestHash,
     axes: calldataCompressionMetrics,
     evmRevision: calldataCompressionScenario.evmRevision,
     compiler: codecCompiler,
     calldataRule: calldataCompressionScenario.calldataRule,
-    batches: calldataCompressionScenario.batches.map((batch) => ({
+    batches: context.batches.map((batch) => ({
       id: batch.id,
       name: batch.name,
       actionCount: batch.actions.length,
     })),
     codecs: calldataCompressionScenario.codecs,
-    baselinePoints: await measureCodecPoints(),
+    baselinePoints: await measureCodecPoints(contextId),
+    contexts: calldataCompressionContexts.map(
+      ({ id, name, description, contextHash, evidenceLevel }) => ({
+        id,
+        name,
+        description,
+        contextHash,
+        evidenceLevel,
+      }),
+    ),
     settlement: { state: "not-configured", network: "sepolia", rewardToken: null },
   } as const;
 }

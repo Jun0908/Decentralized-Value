@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArenaPageShell } from "@/components/arena-page-shell";
-import { CalldataCompressionDemo } from "@/components/calldata-compression-demo";
-import { SupplyAllocationDemo } from "@/components/supply-allocation-demo";
+import { getArenaAdapter } from "@/lib/arena-adapters";
 import { arenaRegistry, getArena } from "@/lib/arenas";
 
 export const dynamicParams = false;
@@ -27,19 +26,17 @@ export default async function ArenaPage({ params }: { params: Promise<{ slug: st
   const arena = getArena(slug);
   if (!arena) notFound();
 
-  if (arena.kind === "supply") {
-    const { publicEmergencySupplyScenario } = await import("@frontier/emergency-supply");
+  const adapter = getArenaAdapter(arena.kind);
+  if (!adapter) {
     return (
       <ArenaPageShell arena={arena}>
-        <SupplyAllocationDemo scenario={publicEmergencySupplyScenario()} />
+        <section className="unsupported-adapter">
+          <p className="eyebrow">Unsupported evaluator</p>
+          <h2>This Arena&apos;s evaluator adapter is not installed.</h2>
+          <p>The catalog remains safe, but no result will be fabricated.</p>
+        </section>
       </ArenaPageShell>
     );
   }
-
-  const { publicCalldataCompressionScenario } = await import("@frontier/calldata-compression");
-  return (
-    <ArenaPageShell arena={arena}>
-      <CalldataCompressionDemo scenario={await publicCalldataCompressionScenario()} />
-    </ArenaPageShell>
-  );
+  return <ArenaPageShell arena={arena}>{await adapter.renderWorkbench()}</ArenaPageShell>;
 }

@@ -73,6 +73,29 @@ export const arenaRegistry = [
     reward: "No practice reward",
     actionLabel: "Measure a codec",
   },
+  {
+    slug: "microgrid-dispatch",
+    challengeId: "microgrid-dispatch-v1",
+    kind: "microgrid",
+    name: "Community Microgrid Dispatch",
+    category: "Energy resilience",
+    status: "Practice",
+    funding: { state: "none" },
+    headline: "Keep power available without hiding cost or carbon.",
+    summary:
+      "Dispatch 100 MWh across four sources and compare cost, single-source outage coverage, and lifecycle carbon.",
+    audience: "Energy planners, climate builders, and optimization engineers",
+    evidenceLevel: 0,
+    metrics: [
+      { name: "Energy cost", direction: "Minimize", unit: "USD" },
+      { name: "Worst-case energy", direction: "Maximize", unit: "MWh" },
+      { name: "Lifecycle carbon", direction: "Minimize", unit: "kgCO₂e" },
+    ],
+    participation: "Open practice",
+    deadline: "No deadline",
+    reward: "No practice reward",
+    actionLabel: "Build a dispatch",
+  },
 ] as const satisfies readonly ArenaDefinition[];
 
 export function getArena(slug: string): ArenaDefinition | undefined {

@@ -91,6 +91,16 @@ describe("Frontier API contracts", () => {
     expect((await response.json()).error.code).toBe("VALIDATION_ERROR");
   });
 
+  it("loads and evaluates emergency supply contexts independently", async () => {
+    const api = createApi(benchmark);
+    const scenario = await (
+      await api.fetch(request("/v1/emergency-supply?contextId=public-port-constrained"))
+    ).json();
+    expect(scenario.contextId).toBe("public-port-constrained");
+    expect(scenario.contexts).toHaveLength(2);
+    expect(scenario.evidenceLevel).toBe(0);
+  });
+
   it("measures calldata bytes and real EVM decoder gas", async () => {
     const api = createApi(benchmark);
     const scenarioResponse = await api.fetch(request("/v1/calldata-compression"));
@@ -130,6 +140,109 @@ describe("Frontier API contracts", () => {
     );
     expect(response.status).toBe(400);
     expect((await response.json()).error.code).toBe("VALIDATION_ERROR");
+  });
+
+  it("loads calldata contexts independently", async () => {
+    const api = createApi(benchmark);
+    const scenario = await (
+      await api.fetch(request("/v1/calldata-compression?contextId=public-low-reuse"))
+    ).json();
+    expect(scenario.contextId).toBe("public-low-reuse");
+    expect(scenario.contexts).toHaveLength(2);
+    expect(scenario.batches).toHaveLength(2);
+  }, 30_000);
+
+  it("evaluates a three-axis microgrid dispatch through the common API", async () => {
+    const api = createApi(benchmark);
+    const scenario = await (await api.fetch(request("/v1/microgrid-dispatch"))).json();
+    const response = await api.fetch(
+      request("/v1/microgrid-dispatch/evaluations", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          allocations: { solar: 25, wind: 25, grid: 25, battery: 25 },
+        }),
+      }),
+    );
+    const result = await response.json();
+    expect(scenario.axes).toHaveLength(3);
+    expect(result.correctness).toBe(true);
+    expect(result.worstCaseEnergy).toBe(75);
+    expect(result.contribution.hypervolumeAfterPpm).toBeGreaterThan(0);
+  });
+
+  it("supports repeatable sandbox submissions and one selected final entry", async () => {
+    const api = createApi(benchmark);
+    const registration = await (
+      await api.fetch(
+        request("/v2/sandbox/participants/register", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            challengeId: "emergency-supply-v1",
+            wallet: "0x1111111111111111111111111111111111111111",
+          }),
+        }),
+      )
+    ).json();
+    const participantId = registration.participant.participantId;
+    expect(registration.uniqueness).toBe("wallet-only-not-personhood");
+
+    const submissionResponse = await api.fetch(
+      request("/v2/sandbox/submissions", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          participantId,
+          challengeId: "emergency-supply-v1",
+          source: {
+            method: "INLINE",
+            visibility: "PUBLIC",
+            filename: "allocation.ts",
+            content: "export default { harborAid: 300 };\r\n",
+          },
+          artifactInput: {
+            allocations: {
+              "harbor-aid": 300,
+              northstar: 150,
+              "inland-works": 300,
+              "local-grid": 150,
+              airbridge: 100,
+            },
+          },
+        }),
+      }),
+    );
+    const submission = (await submissionResponse.json()).submission;
+    expect(submissionResponse.status).toBe(201);
+    expect(submission.revision).toBe(1);
+    expect(submission.correctness).toBe(true);
+
+    const finalResponse = await api.fetch(
+      request("/v2/sandbox/final-entry", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ participantId, submissionId: submission.submissionId }),
+      }),
+    );
+    const final = await finalResponse.json();
+    expect(final.frozen).toBe(false);
+    expect(final.finalEntry.submissionId).toBe(submission.submissionId);
+
+    const history = await (
+      await api.fetch(request(`/v2/sandbox/participants/${participantId}/submissions`))
+    ).json();
+    expect(history.storage).toBe("ephemeral-memory");
+    expect(history.submissions).toHaveLength(1);
+  });
+
+  it("fails closed when World ID is not configured", async () => {
+    const api = createApi(benchmark);
+    const worldId = await api.fetch(
+      request("/v2/participants/world-id/context", { method: "POST" }),
+    );
+    expect(worldId.status).toBe(503);
+    expect((await worldId.json()).error.code).toBe("WORLD_ID_UNCONFIGURED");
   });
 
   it("completes the zero-configuration demo without claiming live evidence", async () => {

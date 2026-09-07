@@ -1,16 +1,16 @@
 # Frontier Protocol
 
-Frontier Protocol rewards solutions that improve one or more independently measured values without hiding tradeoffs in a single score. The MVP has two live practice arenas: Emergency Supply Allocation and Ethereum Calldata Compression.
+Frontier Protocol rewards solutions that improve one or more independently measured values without hiding tradeoffs in a single score. The MVP has three live practice arenas: Emergency Supply Allocation, Ethereum Calldata Compression, and the three-axis Microgrid Dispatch sample.
 
 ## Repository status
 
-The Emergency Supply evaluator recalculates user-entered allocations across nine single-failure cases. The Calldata evaluator prices encoded bytes under EIP-2028 and executes compiled Solidity decoder bytecode in a local Cancun EVM. Both compare independent axes on a Pareto frontier and return deterministic evidence hashes.
+The Emergency Supply evaluator recalculates user-entered allocations across single-failure cases. The Calldata evaluator prices encoded bytes under EIP-2028 and executes compiled Solidity decoder bytecode in a local Cancun EVM. Microgrid Dispatch measures cost, worst-case delivered energy, and carbon at the same time. Every evaluator keeps contexts separate, compares independent axes on a Pareto frontier, and returns deterministic evidence hashes.
 
 The practice arena does not require hardware, a wallet, or signing credentials. It returns the explicit state `measured`, but does not claim that tournament settlement occurred. World ID registration, final-day hidden evaluation, and Sepolia reward distribution remain deployment work. The earlier EVM order-book benchmark remains available as a technical sample.
 
 Public demo: <https://web-rho-seven-d6te7t3f0y.vercel.app>
 
-The concept-first homepage links to the data-driven catalog at `/arenas`. Canonical arena routes are `/arenas/emergency-supply` and `/arenas/calldata-compression`; previous demo URLs redirect safely. No wallet, test token, ENS name, or hardware is required for either practice flow.
+The concept-first homepage links to the data-driven catalog at `/arenas`. Canonical arena routes are `/arenas/emergency-supply`, `/arenas/calldata-compression`, and `/arenas/microgrid-dispatch`; previous demo URLs redirect safely. Measurement requires no wallet, test token, ENS name, or hardware. The optional submission sandbox uses a wallet address as an ephemeral participant identifier and clearly states that it is neither signed nor durable.
 
 ## Requirements
 
@@ -55,6 +55,7 @@ apps/api                 Frontier HTTP API
 apps/runner              Reproducible benchmark runner
 packages/emergency-supply Versioned scenario and deterministic evaluator
 packages/calldata-compression Versioned batches, Solidity codecs, and EVM evaluator
+packages/microgrid-dispatch Deterministic three-axis extensibility example
 packages/contracts       Foundry contracts and deployment scripts
 packages/sdk             Typed Frontier client
 packages/shared          Shared validation and protocol types
@@ -87,9 +88,17 @@ GET  /v1/emergency-supply
 POST /v1/emergency-supply/evaluations
 GET  /v1/calldata-compression
 POST /v1/calldata-compression/evaluations
+GET  /v1/microgrid-dispatch
+POST /v1/microgrid-dispatch/evaluations
 POST /v1/evaluations
+POST /v2/sandbox/participants/register
+POST /v2/sandbox/submissions
+GET  /v2/sandbox/participants/{participantId}/submissions
+PUT  /v2/sandbox/final-entry
 GET  /openapi.yaml
 ```
+
+The `/v2/sandbox` state is process-local and resets on restart or serverless cold start. It is a working UX and evaluator integration, not a live tournament database. Private source is rejected until encrypted durable storage exists. Sepolia deployment, World ID verification, hidden-final evaluation, and transaction evidence remain external activation work.
 
 Production base URL: `https://web-rho-seven-d6te7t3f0y.vercel.app`
 

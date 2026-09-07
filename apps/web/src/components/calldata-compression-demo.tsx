@@ -9,6 +9,17 @@ type PublicCalldataScenario = {
   name: string;
   workloadVersion: string;
   contextHash: string;
+  contextId: "public-transfer-mix" | "public-low-reuse";
+  contextName: string;
+  contextDescription: string;
+  evidenceLevel: 0;
+  contexts: readonly {
+    id: "public-transfer-mix" | "public-low-reuse";
+    name: string;
+    description: string;
+    contextHash: string;
+    evidenceLevel: 0;
+  }[];
   evmRevision: string;
   compiler: { solc: string; evmVersion: string; optimizerRuns: number };
   calldataRule: string;
@@ -76,11 +87,29 @@ function CompressionChart({
 }
 
 export function CalldataCompressionDemo({ scenario }: { scenario: PublicCalldataScenario }) {
+  const [activeScenario, setActiveScenario] = useState(scenario);
   const [codecId, setCodecId] = useState<CodecId>("packed");
   const [evaluation, setEvaluation] = useState<MeasuredCodecEvaluation | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const selectedCodec = scenario.codecs.find((codec) => codec.id === codecId)!;
+  const selectedCodec = activeScenario.codecs.find((codec) => codec.id === codecId)!;
+
+  async function selectContext(contextId: PublicCalldataScenario["contextId"]) {
+    setPending(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `/v1/calldata-compression?contextId=${encodeURIComponent(contextId)}`,
+      );
+      if (!response.ok) throw new Error("Context could not be loaded");
+      setActiveScenario((await response.json()) as PublicCalldataScenario);
+      setEvaluation(null);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Context could not be loaded");
+    } finally {
+      setPending(false);
+    }
+  }
 
   function selectCodec(nextCodec: CodecId) {
     setCodecId(nextCodec);
@@ -95,7 +124,7 @@ export function CalldataCompressionDemo({ scenario }: { scenario: PublicCalldata
       const response = await fetch("/v1/calldata-compression/evaluations", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ codecId }),
+        body: JSON.stringify({ codecId, contextId: activeScenario.contextId }),
       });
       const payload = (await response.json()) as MeasuredCodecEvaluation & {
         error?: { message?: string };
@@ -116,28 +145,54 @@ export function CalldataCompressionDemo({ scenario }: { scenario: PublicCalldata
           <p className="eyebrow">The mission</p>
           <h2 id="codec-mission-heading">Send fewer bytes. Spend less gas decoding them.</h2>
           <p>
-            Every codec receives the same 20 transfer actions. Its Solidity decoder must reproduce
-            the same state digest and reject malformed input before either gas axis counts.
+            Every codec receives the same{" "}
+            {activeScenario.batches.reduce((sum, batch) => sum + batch.actionCount, 0)} transfer
+            actions in this context. Its Solidity decoder must reproduce the same state digest and
+            reject malformed input before either gas axis counts.
           </p>
         </div>
         <dl>
           <div>
             <dt>Public batches</dt>
-            <dd>{scenario.batches.length}</dd>
+            <dd>{activeScenario.batches.length}</dd>
           </div>
           <div>
             <dt>Total actions</dt>
-            <dd>{scenario.batches.reduce((sum, batch) => sum + batch.actionCount, 0)}</dd>
+            <dd>{activeScenario.batches.reduce((sum, batch) => sum + batch.actionCount, 0)}</dd>
           </div>
           <div>
             <dt>EVM revision</dt>
-            <dd>{scenario.evmRevision}</dd>
+            <dd>{activeScenario.evmRevision}</dd>
           </div>
         </dl>
       </section>
 
+      <section className="context-selector" aria-labelledby="calldata-context-heading">
+        <div>
+          <p className="eyebrow">Evaluation context</p>
+          <h2 id="calldata-context-heading">Recipient reuse changes which codec is valuable.</h2>
+          <p>{activeScenario.contextDescription}</p>
+        </div>
+        <label>
+          Compare within context
+          <select
+            disabled={pending}
+            onChange={(event) =>
+              void selectContext(event.target.value as PublicCalldataScenario["contextId"])
+            }
+            value={activeScenario.contextId}
+          >
+            {activeScenario.contexts.map((context) => (
+              <option key={context.id} value={context.id}>
+                {context.name} · Evidence L{context.evidenceLevel}
+              </option>
+            ))}
+          </select>
+        </label>
+      </section>
+
       <section className="codec-picker" aria-label="Compression codecs">
-        {scenario.codecs.map((codec) => (
+        {activeScenario.codecs.map((codec) => (
           <button
             aria-pressed={codec.id === codecId}
             className={codec.id === codecId ? "codec-option selected" : "codec-option"}
@@ -157,8 +212,8 @@ export function CalldataCompressionDemo({ scenario }: { scenario: PublicCalldata
           <p className="eyebrow">Real measurement</p>
           <h2 id="codec-runner-heading">Run {selectedCodec.decoderContract} in a Cancun EVM.</h2>
           <p>
-            The API encodes every public batch, prices each byte under {scenario.calldataRule}, and
-            executes checked-in Solidity runtime bytecode in EthereumJS EVM.
+            The API encodes every public batch, prices each byte under {activeScenario.calldataRule}
+            , and executes checked-in Solidity runtime bytecode in EthereumJS EVM.
           </p>
         </div>
         <button className="primary-action" disabled={pending} onClick={evaluate} type="button">
@@ -216,7 +271,10 @@ export function CalldataCompressionDemo({ scenario }: { scenario: PublicCalldata
           <ContributionPanel contribution={evaluation.contribution} />
 
           <div className="codec-evidence-grid">
-            <CompressionChart points={scenario.baselinePoints} selected={evaluation.codecId} />
+            <CompressionChart
+              points={activeScenario.baselinePoints}
+              selected={evaluation.codecId}
+            />
             <div className="failure-card">
               <p className="eyebrow">Batch evidence</p>
               <h3>Same workload, byte by byte</h3>

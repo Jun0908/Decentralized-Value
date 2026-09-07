@@ -43,4 +43,13 @@ describe("calldata compression evaluator", () => {
     const results = await Promise.all(points.map((point) => evaluateCalldataCodec(point.id)));
     expect(results.filter((result) => result.pareto.frontier).length).toBeGreaterThanOrEqual(2);
   }, 30_000);
+
+  it("separates low-reuse measurements from the mixed public context", async () => {
+    const mixed = await evaluateCalldataCodec("dictionary", "public-transfer-mix");
+    const lowReuse = await evaluateCalldataCodec("dictionary", "public-low-reuse");
+    expect(lowReuse.contextHash).not.toBe(mixed.contextHash);
+    expect(lowReuse.resultHash).not.toBe(mixed.resultHash);
+    expect(lowReuse.calldataGas).toBeLessThan(mixed.calldataGas);
+    expect(lowReuse.batchEvidence).toHaveLength(2);
+  }, 30_000);
 });
