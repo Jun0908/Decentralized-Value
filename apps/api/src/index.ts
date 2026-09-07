@@ -4,12 +4,21 @@ import {
   bytes32Schema,
   stringifyProtocolJson,
 } from "@frontier/shared";
+import {
+  evaluateSupplyAllocation,
+  publicEmergencySupplyScenario,
+} from "@frontier/emergency-supply";
 import type { EnsRunnerDirectory } from "@frontier/ens-adapter";
 import { z } from "zod";
 import { keccak256, stringToHex, type Hex } from "viem";
 import { FrontierStore, type EvaluationJob } from "./store";
 
 const evaluationSchema = z.object({ artifactId: bytes32Schema });
+const supplyEvaluationSchema = z
+  .object({
+    allocations: z.record(z.string(), z.number().int().nonnegative().max(1_000_000)),
+  })
+  .strict();
 const disputeSchema = z.object({
   artifactId: bytes32Schema,
   reason: z.string().min(10).max(2_000),
@@ -84,7 +93,9 @@ export class FrontierApi {
     const { store } = this;
     if (path === "/v1/health")
       return json({ status: "ok", benchmarkMeasuredAt: store.benchmark.measuredAt });
-    if (path === "/v1/arenas") return json({ arenas: [this.challenge()] });
+    if (path === "/v1/arenas")
+      return json({ arenas: [publicEmergencySupplyScenario(), this.challenge()] });
+    if (path === "/v1/emergency-supply") return json(publicEmergencySupplyScenario());
     if (path === "/v1/challenges" || path === `/v1/challenges/${store.challengeId}`)
       return json(this.challenge());
     if (path === `/v1/arenas/${store.challengeId}`) return json(this.challenge());
@@ -147,6 +158,10 @@ export class FrontierApi {
 
   private async post(path: string, request: Request): Promise<Response> {
     const { store } = this;
+    if (path === "/v1/emergency-supply/evaluations") {
+      const parsed = supplyEvaluationSchema.parse(await body(request));
+      return json({ state: "measured", ...evaluateSupplyAllocation(parsed.allocations) }, 200);
+    }
     if (path === "/v1/artifacts") {
       const parsed = artifactSchema.parse(await body(request));
       if (parsed.challengeId !== store.challengeId)

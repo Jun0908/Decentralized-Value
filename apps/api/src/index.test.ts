@@ -42,6 +42,52 @@ describe("Frontier API contracts", () => {
     expect((await api.fetch(request(`/v1/evaluations/${firstJob.jobId}`))).status).toBe(200);
   });
 
+  it("evaluates a user-provided emergency allocation from public data", async () => {
+    const api = createApi(benchmark);
+    const scenarioResponse = await api.fetch(request("/v1/emergency-supply"));
+    const scenario = await scenarioResponse.json();
+    const response = await api.fetch(
+      request("/v1/emergency-supply/evaluations", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          allocations: {
+            "harbor-aid": 300,
+            northstar: 150,
+            "inland-works": 300,
+            "local-grid": 150,
+            airbridge: 100,
+          },
+        }),
+      }),
+    );
+    const evaluation = await response.json();
+
+    expect(scenario.name).toBe("Emergency Supply Allocation Frontier");
+    expect(scenario.vendors).toHaveLength(5);
+    expect(response.status).toBe(200);
+    expect(evaluation.state).toBe("measured");
+    expect(evaluation.correctness).toBe(true);
+    expect(evaluation.totalProcurementCost).toBe(49_950);
+    expect(evaluation.worstCaseDeliveredKits).toBe(550);
+    expect(evaluation.failureOutcomes).toHaveLength(9);
+    expect(evaluation.resultHash).toMatch(/^0x[0-9a-f]{64}$/);
+  });
+
+  it("rejects malformed emergency allocation payloads", async () => {
+    const api = createApi(benchmark);
+    const response = await api.fetch(
+      request("/v1/emergency-supply/evaluations", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ allocations: { "harbor-aid": -1 } }),
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    expect((await response.json()).error.code).toBe("VALIDATION_ERROR");
+  });
+
   it("completes the zero-configuration demo without claiming live evidence", async () => {
     const api = createDemoApi(benchmark);
     const artifact = [...api.store.artifacts.values()][0]!;

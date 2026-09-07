@@ -9,6 +9,28 @@ paths:
     get: { operationId: getHealth, responses: { "200": { description: Healthy } } }
   /v1/arenas:
     get: { operationId: listArenas, responses: { "200": { description: Arena list } } }
+  /v1/emergency-supply:
+    get:
+      operationId: getEmergencySupplyScenario
+      description: Returns the versioned suppliers, capacities, routes, failure cases, and baseline frontier.
+      responses: { "200": { description: Public emergency-supply scenario } }
+  /v1/emergency-supply/evaluations:
+    post:
+      operationId: evaluateEmergencySupplyAllocation
+      description: Deterministically calculates cost, enumerates every single failure, and compares a user allocation with the baseline Pareto frontier.
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json: { schema: { $ref: "#/components/schemas/SupplyEvaluationInput" } },
+            },
+        }
+      responses:
+        {
+          "200": { description: Measured allocation with failure evidence and result hash },
+          "400": { $ref: "#/components/responses/BadRequest" },
+        }
   /v1/arenas/{id}:
     get:
       operationId: getArena
@@ -127,6 +149,21 @@ components:
       type: object
       required: [artifactId]
       properties: { artifactId: { $ref: "#/components/schemas/Bytes32" } }
+      additionalProperties: false
+    SupplyEvaluationInput:
+      type: object
+      required: [allocations]
+      properties:
+        allocations:
+          type: object
+          required: [harbor-aid, northstar, inland-works, local-grid, airbridge]
+          properties:
+            harbor-aid: { type: integer, minimum: 0 }
+            northstar: { type: integer, minimum: 0 }
+            inland-works: { type: integer, minimum: 0 }
+            local-grid: { type: integer, minimum: 0 }
+            airbridge: { type: integer, minimum: 0 }
+          additionalProperties: false
       additionalProperties: false
     DisputeInput:
       type: object

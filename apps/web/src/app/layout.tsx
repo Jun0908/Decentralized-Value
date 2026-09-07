@@ -22,14 +22,14 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
             FRONTIER/
           </Link>
           <nav aria-label="Primary navigation">
-            <Link href="/demo">Run demo</Link>
-            <Link href="/arena">Results</Link>
+            <Link href="/emergency-supply">Live arena</Link>
+            <Link href="/arena">Technical sample</Link>
             <Link href="/#how-it-works">How it works</Link>
           </nav>
         </header>
         {children}
         <footer className="site-footer">
-          <p>Frontier Protocol · A public, reproducible benchmark demo.</p>
+          <p>Frontier Protocol · Public, reproducible multi-objective evaluation.</p>
           <div>
             <a href="https://github.com/Jun0908/Decentralized-Value">GitHub</a>
             <Link href="/openapi.yaml">API spec</Link>

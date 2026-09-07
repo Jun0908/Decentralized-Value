@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@frontier/emergency-supply": "workspace:*",
     "@frontier/ens-adapter": "workspace:*",
     "@frontier/shared": "workspace:*",
     "viem": "2.56.3",

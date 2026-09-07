@@ -1,47 +1,47 @@
 import Link from "next/link";
-import { FrontierChart } from "@/components/frontier-chart";
 import { arena, shortHash } from "@/lib/data";
 
 export default function HomePage() {
   return (
     <main className="page-shell">
       <section className="hero">
-        <p className="eyebrow">A better way to choose what deserves support</p>
+        <p className="eyebrow">Live arena · Emergency supply allocation</p>
         <h1>
-          Stop choosing one winner. <span>Find every solution that moves the frontier.</span>
+          Spend less. <span>Keep aid moving when one link fails.</span>
         </h1>
         <p className="lede">
-          Compare solutions across cost and performance without crushing their tradeoffs into one
-          score. Run a sample evaluation in under a minute—no wallet or setup required.
+          Allocate 1,000 emergency kits across five suppliers. The API calculates the real cost,
+          breaks every supplier and route one at a time, and shows whether your plan expands the
+          Pareto frontier.
         </p>
         <div className="actions">
-          <Link className="primary-action" href="/demo">
-            Run the demo
+          <Link className="primary-action" href="/emergency-supply">
+            Build an allocation
           </Link>
           <Link className="secondary-action" href={`/arena/${arena.id}`}>
-            See current results
+            View the EVM sample
           </Link>
         </div>
       </section>
 
       <section className="outcome-section" aria-labelledby="outcome-heading">
-        <p className="eyebrow">The useful answer</p>
-        <h2 id="outcome-heading">Three different strengths. Three solutions worth keeping.</h2>
+        <p className="eyebrow">A decision anyone can inspect</p>
+        <h2 id="outcome-heading">Your numbers go in. Every failure gets tested.</h2>
         <div className="outcome-grid">
           <article>
-            <p className="outcome-label">Lowest cost</p>
-            <h3>PackedBook</h3>
-            <p>Uses the least gas per order while still passing every correctness check.</p>
+            <p className="outcome-label">01 · Allocate</p>
+            <h3>Choose suppliers</h3>
+            <p>Set the exact kit count for each supplier within its published capacity.</p>
           </article>
           <article>
-            <p className="outcome-label">Best balance</p>
-            <h3>FrontierBook</h3>
-            <p>Trades a little more gas for four times the parallel capacity.</p>
+            <p className="outcome-label">02 · Break links</p>
+            <h3>Test nine failures</h3>
+            <p>Supplier outages and shared route closures are enumerated, not guessed.</p>
           </article>
           <article>
-            <p className="outcome-label">Highest capacity</p>
-            <h3>ShardedBook</h3>
-            <p>Costs more to execute, but handles the most work in parallel.</p>
+            <p className="outcome-label">03 · Compare</p>
+            <h3>Keep tradeoffs</h3>
+            <p>Low-cost and high-resilience plans can both remain on the frontier.</p>
           </article>
         </div>
       </section>
@@ -49,61 +49,73 @@ export default function HomePage() {
       <section className="section-grid" id="how-it-works">
         <div>
           <p className="eyebrow">How it works</p>
-          <h2>Pass the rules. Then earn a place on the frontier.</h2>
+          <h2>Correct first. Competitive second.</h2>
           <p className="section-copy">
-            This sample compares four Solidity orderbooks. Incorrect entries are rejected first.
-            Every remaining entry is kept if no other solution beats it on both cost and capacity.
+            A plan must allocate exactly 1,000 whole kits without exceeding supply limits. Valid
+            plans are measured on total procurement cost and the number delivered in their worst
+            single failure. No weighted score hides the tradeoff.
           </p>
           <dl className="stats">
             <div>
-              <dt>Solutions</dt>
-              <dd>{arena.artifacts.length}</dd>
+              <dt>Suppliers</dt>
+              <dd>5</dd>
             </div>
             <div>
-              <dt>Worth keeping</dt>
-              <dd>{arena.artifacts.filter((item) => item.frontier).length}</dd>
+              <dt>Failure cases</dt>
+              <dd>9</dd>
             </div>
             <div>
-              <dt>Runs each</dt>
-              <dd>{arena.repetitions}</dd>
+              <dt>Hidden weights</dt>
+              <dd>0</dd>
             </div>
           </dl>
         </div>
-        <div>
-          <FrontierChart />
+        <aside className="constraint-card">
+          <p className="eyebrow">Two independent axes</p>
+          <h2>There may be more than one answer worth keeping.</h2>
+          <dl>
+            <div>
+              <dt>Total procurement cost</dt>
+              <dd>Minimize · USD</dd>
+            </div>
+            <div>
+              <dt>Worst-case delivered</dt>
+              <dd>Maximize · kits</dd>
+            </div>
+          </dl>
           <p className="chart-summary">
-            The green points are not tied. Each leads on a different tradeoff, so all three remain
-            visible instead of being forced into a single ranking.
+            A cheaper plan may be fragile. A resilient plan may cost more. Frontier preserves both
+            until another plan beats one on both axes.
           </p>
-        </div>
+        </aside>
       </section>
 
       <section className="principles">
         <article>
           <span>01</span>
-          <h3>Choose</h3>
-          <p>Select a sample solution to evaluate.</p>
+          <h3>Enter numbers</h3>
+          <p>Allocate the real target across the published suppliers.</p>
         </article>
         <article>
           <span>02</span>
-          <h3>Evaluate</h3>
-          <p>Check correctness, cost, and capacity together.</p>
+          <h3>Run the API</h3>
+          <p>Recalculate cost and enumerate every single failure.</p>
         </article>
         <article>
           <span>03</span>
-          <h3>Understand</h3>
-          <p>See exactly why it joins the frontier or gets rejected.</p>
+          <h3>Inspect evidence</h3>
+          <p>See the worst case, every scenario, and the deterministic result hash.</p>
         </article>
       </section>
 
       <section className="final-cta">
-        <p className="eyebrow">Try it yourself</p>
-        <h2>Which solution moves the frontier?</h2>
+        <p className="eyebrow">The live vertical slice</p>
+        <h2>What would you optimize?</h2>
         <div className="actions">
-          <Link className="primary-action" href="/demo">
-            Evaluate a sample
+          <Link className="primary-action" href="/emergency-supply">
+            Open the supply arena
           </Link>
-          <span className="proof">context {shortHash(arena.contextHash)}</span>
+          <span className="proof">EVM sample context {shortHash(arena.contextHash)}</span>
         </div>
       </section>
     </main>

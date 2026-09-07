@@ -47,6 +47,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@frontier/emergency-supply':
+        specifier: workspace:*
+        version: link:../../packages/emergency-supply
       '@frontier/ens-adapter':
         specifier: workspace:*
         version: link:../../packages/ens-adapter
@@ -83,6 +86,9 @@ importers:
       '@frontier/api':
         specifier: workspace:*
         version: link:../api
+      '@frontier/emergency-supply':
+        specifier: workspace:*
+        version: link:../../packages/emergency-supply
       '@frontier/ens-adapter':
         specifier: workspace:*
         version: link:../../packages/ens-adapter
@@ -123,6 +129,16 @@ importers:
       '@openzeppelin/contracts':
         specifier: 5.4.0
         version: 5.4.0
+
+  packages/emergency-supply:
+    dependencies:
+      viem:
+        specifier: 2.56.3
+        version: 2.56.3(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4)
+    devDependencies:
+      vitest:
+        specifier: 5.0.0
+        version: 5.0.0(@types/node@22.20.1)(vite@8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(tsx@4.23.13))
 
   packages/ens-adapter:
     dependencies:
