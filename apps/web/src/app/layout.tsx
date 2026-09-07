@@ -22,7 +22,8 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
             FRONTIER/
           </Link>
           <nav aria-label="Primary navigation">
-            <Link href="/emergency-supply">Live arena</Link>
+            <Link href="/emergency-supply">Supply arena</Link>
+            <Link href="/calldata-compression">Calldata arena</Link>
             <Link href="/arena">Technical sample</Link>
             <Link href="/#how-it-works">How it works</Link>
           </nav>

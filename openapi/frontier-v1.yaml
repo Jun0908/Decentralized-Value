@@ -31,6 +31,29 @@ paths:
           "200": { description: Measured allocation with failure evidence and result hash },
           "400": { $ref: "#/components/responses/BadRequest" },
         }
+  /v1/calldata-compression:
+    get:
+      operationId: getCalldataCompressionScenario
+      description: Returns the fixed batches, compiler and Cancun EVM rules, reference codecs, and measured baseline points.
+      responses: { "200": { description: Public calldata-compression scenario } }
+  /v1/calldata-compression/evaluations:
+    post:
+      operationId: evaluateCalldataCodec
+      description: Encodes every public batch, applies exact EIP-2028 byte pricing, executes Solidity runtime bytecode in a Cancun EVM, and compares both gas axes.
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                { schema: { $ref: "#/components/schemas/CalldataEvaluationInput" } },
+            },
+        }
+      responses:
+        {
+          "200": { description: Measured codec with per-batch EVM evidence and result hash },
+          "400": { $ref: "#/components/responses/BadRequest" },
+        }
   /v1/arenas/{id}:
     get:
       operationId: getArena
@@ -164,6 +187,12 @@ components:
             local-grid: { type: integer, minimum: 0 }
             airbridge: { type: integer, minimum: 0 }
           additionalProperties: false
+      additionalProperties: false
+    CalldataEvaluationInput:
+      type: object
+      required: [codecId]
+      properties:
+        codecId: { type: string, enum: [abi, packed, dictionary] }
       additionalProperties: false
     DisputeInput:
       type: object

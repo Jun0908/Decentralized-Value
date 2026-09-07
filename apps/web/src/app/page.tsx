@@ -21,6 +21,28 @@ export default function HomePage() {
           <Link className="secondary-action" href={`/arena/${arena.id}`}>
             View the EVM sample
           </Link>
+          <Link className="secondary-action" href="/calldata-compression">
+            Compress calldata
+          </Link>
+        </div>
+      </section>
+
+      <section className="arena-choice" aria-labelledby="arena-choice-heading">
+        <p className="eyebrow">Two live practice arenas</p>
+        <h2 id="arena-choice-heading">Human impact and Ethereum infrastructure.</h2>
+        <div className="outcome-grid">
+          <article>
+            <p className="outcome-label">Arena 01 · Supply</p>
+            <h3>Emergency allocation</h3>
+            <p>Minimize procurement cost while maximizing delivery after any one failure.</p>
+            <Link href="/emergency-supply">Open supply arena →</Link>
+          </article>
+          <article>
+            <p className="outcome-label">Arena 02 · Ethereum</p>
+            <h3>Calldata compression</h3>
+            <p>Minimize encoded-byte gas and real Solidity decoder execution gas.</p>
+            <Link href="/calldata-compression">Open calldata arena →</Link>
+          </article>
         </div>
       </section>
 

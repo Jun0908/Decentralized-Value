@@ -20,6 +20,20 @@ Emergency Supply Allocation now has a working practice vertical slice:
 
 The checked items are real and runnable without a wallet. The unchecked items must not be represented as completed in the demo; they are the next tournament-layer implementation.
 
+Ethereum Calldata Compression now also has a working practice vertical slice:
+
+- [x] Versioned public transfer batches including repeated addresses and boundary values
+- [x] Standard ABI, fixed-width packed, and address-dictionary encoders
+- [x] Checked-in Solidity decoders compiled with pinned solc, optimizer, and Cancun settings
+- [x] Correctness comparison using a shared decoded state digest
+- [x] Malformed encoding rejection check
+- [x] Exact EIP-2028 zero/non-zero byte calldata gas
+- [x] Actual `executionGasUsed` from Solidity runtime bytecode executed in EthereumJS EVM
+- [x] Two-axis Pareto comparison, per-batch evidence, context hash, and result hash
+- [x] HTTP scenario/evaluation endpoints and interactive frontend
+- [ ] Arbitrary participant encoder/decoder source submission and isolated compilation
+- [ ] Hidden final batches, World ID final entry, and Sepolia reward settlement
+
 最終更新: 2026-09-07  
 対象: 公平な参加機会、1人1最終Artifact、2軸実測、最終日Settlementを共有する2つのCompetition Arena
 

@@ -88,6 +88,45 @@ describe("Frontier API contracts", () => {
     expect((await response.json()).error.code).toBe("VALIDATION_ERROR");
   });
 
+  it("measures calldata bytes and real EVM decoder gas", async () => {
+    const api = createApi(benchmark);
+    const scenarioResponse = await api.fetch(request("/v1/calldata-compression"));
+    const scenario = await scenarioResponse.json();
+    const response = await api.fetch(
+      request("/v1/calldata-compression/evaluations", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ codecId: "dictionary" }),
+      }),
+    );
+    const evaluation = await response.json();
+
+    expect(scenario.name).toBe("Ethereum Calldata Compression Frontier");
+    expect(scenario.evmRevision).toBe("cancun");
+    expect(scenario.baselinePoints).toHaveLength(3);
+    expect(response.status).toBe(200);
+    expect(evaluation.state).toBe("measured");
+    expect(evaluation.correctness).toBe(true);
+    expect(evaluation.malformedInputRejected).toBe(true);
+    expect(evaluation.batchEvidence).toHaveLength(3);
+    expect(evaluation.calldataGas).toBeGreaterThan(0);
+    expect(evaluation.decodeExecutionGas).toBeGreaterThan(0);
+    expect(evaluation.resultHash).toMatch(/^0x[0-9a-f]{64}$/);
+  }, 30_000);
+
+  it("rejects unknown calldata codecs", async () => {
+    const api = createApi(benchmark);
+    const response = await api.fetch(
+      request("/v1/calldata-compression/evaluations", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ codecId: "magic" }),
+      }),
+    );
+    expect(response.status).toBe(400);
+    expect((await response.json()).error.code).toBe("VALIDATION_ERROR");
+  });
+
   it("completes the zero-configuration demo without claiming live evidence", async () => {
     const api = createDemoApi(benchmark);
     const artifact = [...api.store.artifacts.values()][0]!;

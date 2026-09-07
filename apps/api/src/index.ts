@@ -5,6 +5,10 @@ import {
   stringifyProtocolJson,
 } from "@frontier/shared";
 import {
+  evaluateCalldataCodec,
+  publicCalldataCompressionScenario,
+} from "@frontier/calldata-compression";
+import {
   evaluateSupplyAllocation,
   publicEmergencySupplyScenario,
 } from "@frontier/emergency-supply";
@@ -18,6 +22,9 @@ const supplyEvaluationSchema = z
   .object({
     allocations: z.record(z.string(), z.number().int().nonnegative().max(1_000_000)),
   })
+  .strict();
+const calldataEvaluationSchema = z
+  .object({ codecId: z.enum(["abi", "packed", "dictionary"]) })
   .strict();
 const disputeSchema = z.object({
   artifactId: bytes32Schema,
@@ -94,8 +101,15 @@ export class FrontierApi {
     if (path === "/v1/health")
       return json({ status: "ok", benchmarkMeasuredAt: store.benchmark.measuredAt });
     if (path === "/v1/arenas")
-      return json({ arenas: [publicEmergencySupplyScenario(), this.challenge()] });
+      return json({
+        arenas: [
+          publicEmergencySupplyScenario(),
+          await publicCalldataCompressionScenario(),
+          this.challenge(),
+        ],
+      });
     if (path === "/v1/emergency-supply") return json(publicEmergencySupplyScenario());
+    if (path === "/v1/calldata-compression") return json(await publicCalldataCompressionScenario());
     if (path === "/v1/challenges" || path === `/v1/challenges/${store.challengeId}`)
       return json(this.challenge());
     if (path === `/v1/arenas/${store.challengeId}`) return json(this.challenge());
@@ -161,6 +175,10 @@ export class FrontierApi {
     if (path === "/v1/emergency-supply/evaluations") {
       const parsed = supplyEvaluationSchema.parse(await body(request));
       return json({ state: "measured", ...evaluateSupplyAllocation(parsed.allocations) }, 200);
+    }
+    if (path === "/v1/calldata-compression/evaluations") {
+      const parsed = calldataEvaluationSchema.parse(await body(request));
+      return json({ state: "measured", ...(await evaluateCalldataCodec(parsed.codecId)) }, 200);
     }
     if (path === "/v1/artifacts") {
       const parsed = artifactSchema.parse(await body(request));

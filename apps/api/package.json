@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@frontier/calldata-compression": "workspace:*",
     "@frontier/emergency-supply": "workspace:*",
     "@frontier/ens-adapter": "workspace:*",
     "@frontier/shared": "workspace:*",
