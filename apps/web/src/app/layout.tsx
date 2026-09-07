@@ -23,9 +23,10 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
             VALUE<span>/</span>DECENTRALIZED
           </Link>
           <nav aria-label="Primary navigation">
-            <Link href="/arenas">Arenas</Link>
+            <Link href="/#live-demo">Live demo</Link>
             <Link href="/#how-it-works">How it works</Link>
-            <Link href="/#about">About</Link>
+            <Link href="/arenas">Arenas</Link>
+            <Link href="/architecture">Architecture</Link>
           </nav>
         </header>
         {children}
@@ -33,8 +34,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           <p>Value Decentralization, powered by Frontier Protocol.</p>
           <div>
             <Link href="/arenas">Arenas</Link>
-            <Link href="/#about">About</Link>
-            <Link href="/glossary">Glossary</Link>
+            <Link href="/architecture">Architecture</Link>
             <a href="https://github.com/Jun0908/Decentralized-Value">GitHub</a>
           </div>
         </footer>

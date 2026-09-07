@@ -1,7 +1,13 @@
 "use client";
 
-import type { SupplyAllocation, SupplyEvaluation, SupplyPoint } from "@frontier/emergency-supply";
-import { useState } from "react";
+import {
+  emergencySupplyDemoAllocation,
+  type SupplyAllocation,
+  type SupplyEvaluation,
+  type SupplyPoint,
+} from "@frontier/emergency-supply";
+import { useEffect, useRef, useState } from "react";
+import { AgentCompetitionReplay } from "@/components/agent-competition-replay";
 import { ContributionPanel } from "@/components/contribution-panel";
 
 type PublicScenario = {
@@ -46,14 +52,6 @@ type PublicScenario = {
 };
 
 type MeasuredEvaluation = SupplyEvaluation & { state: "measured" };
-
-const initialAllocation: SupplyAllocation = {
-  "harbor-aid": 300,
-  northstar: 150,
-  "inland-works": 300,
-  "local-grid": 150,
-  airbridge: 100,
-};
 
 function formatMoney(amount: number, currency: string) {
   return new Intl.NumberFormat("en-US", {
@@ -127,11 +125,24 @@ function SupplyFrontierChart({
 
 export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario }) {
   const [activeScenario, setActiveScenario] = useState(scenario);
-  const [allocation, setAllocation] = useState<SupplyAllocation>(initialAllocation);
+  const [allocation, setAllocation] = useState<SupplyAllocation>({
+    ...emergencySupplyDemoAllocation,
+  });
   const [evaluation, setEvaluation] = useState<MeasuredEvaluation | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const resultRef = useRef<HTMLElement>(null);
   const total = Object.values(allocation).reduce((sum, amount) => sum + amount, 0);
+
+  useEffect(() => {
+    if (!evaluation && !error) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    resultRef.current?.scrollIntoView({
+      behavior: reducedMotion ? "auto" : "smooth",
+      block: "start",
+    });
+  }, [evaluation, error]);
 
   async function selectContext(contextId: PublicScenario["contextId"]) {
     setPending(true);
@@ -145,6 +156,7 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
       setActiveScenario(nextScenario);
       setAllocation({ ...nextScenario.strategies[1]!.allocation });
       setEvaluation(null);
+      setCopied(false);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Context could not be loaded");
     } finally {
@@ -156,6 +168,7 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
     setAllocation({ ...strategy.allocation });
     setEvaluation(null);
     setError(null);
+    setCopied(false);
   }
 
   function updateAllocation(vendorId: string, value: string) {
@@ -166,6 +179,21 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
     }));
     setEvaluation(null);
     setError(null);
+    setCopied(false);
+  }
+
+  async function copyReproductionRequest() {
+    const payload = JSON.stringify({
+      allocations: allocation,
+      contextId: activeScenario.contextId,
+    });
+    const curl = `curl -X POST "${window.location.origin}/v1/emergency-supply/evaluations" -H "content-type: application/json" --data '${payload}'`;
+    try {
+      await navigator.clipboard.writeText(curl);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
   }
 
   async function evaluate() {
@@ -196,7 +224,7 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
     : [];
 
   return (
-    <div className="supply-workbench">
+    <div className="supply-workbench" id="workbench">
       <section className="supply-brief" aria-labelledby="mission-heading">
         <div>
           <p className="eyebrow">The mission</p>
@@ -224,30 +252,6 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
         </dl>
       </section>
 
-      <section className="context-selector" aria-labelledby="supply-context-heading">
-        <div>
-          <p className="eyebrow">Evaluation context</p>
-          <h2 id="supply-context-heading">Same Artifact, different operating conditions.</h2>
-          <p>{activeScenario.contextDescription}</p>
-        </div>
-        <label>
-          Compare within context
-          <select
-            disabled={pending}
-            onChange={(event) =>
-              void selectContext(event.target.value as PublicScenario["contextId"])
-            }
-            value={activeScenario.contextId}
-          >
-            {activeScenario.contexts.map((context) => (
-              <option key={context.id} value={context.id}>
-                {context.name} · Evidence L{context.evidenceLevel}
-              </option>
-            ))}
-          </select>
-        </label>
-      </section>
-
       <section className="strategy-strip" aria-label="Example strategies">
         {activeScenario.strategies.map((strategy) => (
           <button
@@ -262,7 +266,7 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
         ))}
       </section>
 
-      <section className="supply-builder" aria-labelledby="allocation-heading">
+      <section className="supply-builder golden-builder" aria-labelledby="allocation-heading">
         <div className="allocation-panel">
           <div className="builder-heading">
             <div>
@@ -314,26 +318,60 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
 
           <div className="demo-action-row">
             <button disabled={pending} onClick={evaluate} type="button">
-              {pending ? "Testing every failure…" : "Evaluate this allocation"}
+              {pending ? "Testing every failure…" : "Evaluate allocation"}
             </button>
-            <span>The API recalculates all metrics from your numbers.</span>
+            <span>
+              One click recalculates 9 failures, 2 axes, contribution, and the result hash.
+            </span>
           </div>
         </div>
-
-        <aside className="supply-rules">
-          <p className="eyebrow">Hard constraints</p>
-          <h3>Every valid plan follows the same rules.</h3>
-          <ul>
-            <li>Allocate exactly {activeScenario.targetKits.toLocaleString()} whole kits.</li>
-            <li>Do not exceed a supplier&apos;s capacity.</li>
-            <li>Use only the published suppliers and routes.</li>
-            <li>Pass all {activeScenario.failures.length} single-failure cases.</li>
-          </ul>
-          <p className="hash">context {activeScenario.contextHash}</p>
-        </aside>
       </section>
 
-      <section className={`supply-result ${evaluation ? "revealed" : ""}`} aria-live="polite">
+      <details className="supply-details">
+        <summary>Evaluation context and hard constraints</summary>
+        <div className="supply-details-grid">
+          <section className="context-selector" aria-labelledby="supply-context-heading">
+            <div>
+              <p className="eyebrow">Evaluation context</p>
+              <h2 id="supply-context-heading">Same allocation, different operating conditions.</h2>
+              <p>{activeScenario.contextDescription}</p>
+            </div>
+            <label>
+              Compare within context
+              <select
+                disabled={pending}
+                onChange={(event) =>
+                  void selectContext(event.target.value as PublicScenario["contextId"])
+                }
+                value={activeScenario.contextId}
+              >
+                {activeScenario.contexts.map((context) => (
+                  <option key={context.id} value={context.id}>
+                    {context.name} · Evidence L{context.evidenceLevel}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </section>
+          <aside className="supply-rules">
+            <p className="eyebrow">Hard constraints</p>
+            <h3>Every valid plan follows the same rules.</h3>
+            <ul>
+              <li>Allocate exactly {activeScenario.targetKits.toLocaleString()} whole kits.</li>
+              <li>Do not exceed a supplier&apos;s capacity.</li>
+              <li>Use only the published suppliers and routes.</li>
+              <li>Pass all {activeScenario.failures.length} single-failure cases.</li>
+            </ul>
+            <p className="hash">context {activeScenario.contextHash}</p>
+          </aside>
+        </div>
+      </details>
+
+      <section
+        className={`supply-result ${evaluation ? "revealed" : ""}`}
+        ref={resultRef}
+        aria-live="polite"
+      >
         {error ? (
           <div>
             <p className="eyebrow status-bad">Evaluation unavailable</p>
@@ -354,6 +392,12 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
                 <li key={failure}>{failure}</li>
               ))}
             </ul>
+            <p className="zero-reward">
+              Practice reward preview: <strong>0 credits</strong>
+            </p>
+            <button onClick={() => void copyReproductionRequest()} type="button">
+              {copied ? "Reproduction curl copied" : "Reproduce this result"}
+            </button>
           </div>
         ) : (
           <>
@@ -440,12 +484,23 @@ export function SupplyAllocationDemo({ scenario }: { scenario: PublicScenario })
               </p>
             ) : null}
             <div className="evidence-footer">
-              <span>Result hash</span>
-              <code>{evaluation.resultHash}</code>
+              <div>
+                <span>Context hash</span>
+                <code>{evaluation.contextHash}</code>
+              </div>
+              <div>
+                <span>Result hash</span>
+                <code>{evaluation.resultHash}</code>
+              </div>
+              <button onClick={() => void copyReproductionRequest()} type="button">
+                {copied ? "Reproduction curl copied" : "Reproduce this result"}
+              </button>
             </div>
           </>
         )}
       </section>
+
+      <AgentCompetitionReplay />
 
       <section className="notice">
         <span className="signal" />

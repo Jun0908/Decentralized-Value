@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { SettlementEvidence } from "@/components/settlement-evidence";
 import type { ArenaDefinition } from "@/lib/arenas";
 
 export function ArenaPageShell({
@@ -42,6 +43,11 @@ export function ArenaPageShell({
             </dl>
           </aside>
         </div>
+      </header>
+      {children}
+      {arena.kind === "supply" ? <SettlementEvidence /> : null}
+      <details className="protocol-details">
+        <summary>Challenge lifecycle and immutable terms</summary>
         <ol className="arena-steps" aria-label="Challenge lifecycle">
           <li>
             <span>01</span>
@@ -82,8 +88,7 @@ export function ArenaPageShell({
         <Link className="challenge-terms-link" href={`/challenges/${arena.challengeId}`}>
           View immutable challenge terms →
         </Link>
-      </header>
-      {children}
+      </details>
     </main>
   );
 }
