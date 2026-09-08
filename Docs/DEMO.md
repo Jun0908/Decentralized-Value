@@ -74,7 +74,7 @@ State clearly that this is a completed Sepolia demonstration payout, not a compl
 | Compiled Solidity runs in a Cancun EVM | The measurement itself happens onchain |
 | The Sepolia demonstration reward was paid | A live production tournament has settled |
 | Practice credits show contribution allocation | Practice credits are tokens |
-| A wallet can sign the manifest | The signature is a tournament entry or payout approval |
+| A wallet can connect through Privy | The connection is a tournament entry or payout approval |
 
 ## Recovery
 

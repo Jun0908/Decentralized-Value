@@ -1,6 +1,6 @@
 # Current implementation status
 
-- **Last verified:** 2026-09-07
+- **Last verified:** 2026-09-08
 - **Public application:** <https://web-rho-seven-d6te7t3f0y.vercel.app>
 
 This is the only current status document. Historical checklists and numbered plans under `archive/` must not override it.
@@ -26,7 +26,7 @@ Sepolia evidence: [deployment record](deployments/sepolia-reward-demo.json), [al
 
 | Capability | Honest boundary |
 | --- | --- |
-| Wallet interaction | A browser wallet can sign a challenge manifest; this is proof of intent, not a tournament entry or token payout |
+| Wallet interaction | A browser wallet can connect through Privy without a raw-message signature; this session is not a tournament entry or token payout |
 | Bazantic | A gateway and MCP tool surface were activated externally; Marketplace verification was pending and service/Recipe identifiers are not committed as repository evidence |
 | ENSv2 | Adapter and fail-closed boundary exist, but no current parent name, delegated permission, or live runtime evidence is configured |
 | Privy | Optional wallet UX requires an external App ID and is not required for measurement |

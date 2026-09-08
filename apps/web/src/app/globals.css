@@ -45,7 +45,7 @@ a:focus-visible {
   top: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   align-items: center;
   width: min(100% - 2rem, 78rem);
   margin: auto;
@@ -109,6 +109,13 @@ nav a:hover {
   align-items: center;
   gap: 0.7rem;
   font: 0.7rem var(--font-mono);
+}
+.wallet-status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--lime);
+  box-shadow: 0 0 0.8rem rgb(199 255 69 / 45%);
 }
 .text-button {
   padding: 0;

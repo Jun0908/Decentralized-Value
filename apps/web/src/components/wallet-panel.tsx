@@ -1,20 +1,25 @@
 "use client";
 
-import { PrivyProvider, usePrivy, useWallets } from "@privy-io/react-auth";
-import type { ReactNode } from "react";
+import { PrivyProvider, useConnectWallet, useWallets } from "@privy-io/react-auth";
+import { createContext, useContext, type ReactNode } from "react";
+import { sepolia } from "viem/chains";
+
+const WalletConfiguredContext = createContext(false);
+
+export function useWalletConfigured() {
+  return useContext(WalletConfiguredContext);
+}
 
 function ConnectedWallet() {
-  const { ready, authenticated, login, logout, user } = usePrivy();
   const { wallets, ready: walletsReady } = useWallets();
-  if (!ready || !walletsReady) return <span className="wallet muted">Wallet loading…</span>;
-  if (!authenticated) return <button onClick={login}>Connect wallet</button>;
-  const address = wallets[0]?.address ?? user?.wallet?.address;
+  const { connectWallet } = useConnectWallet();
+  if (!walletsReady) return <span className="wallet muted">Wallet loading…</span>;
+  const address = wallets[0]?.address;
+  if (!address) return <button onClick={() => connectWallet()}>Connect wallet</button>;
   return (
     <span className="wallet">
-      <span>{address ? `${address.slice(0, 6)}…${address.slice(-4)}` : "Wallet connected"}</span>
-      <button className="text-button" onClick={logout}>
-        Disconnect
-      </button>
+      <span className="wallet-status-dot" aria-hidden="true" />
+      <span>{`${address.slice(0, 6)}…${address.slice(-4)}`}</span>
     </span>
   );
 }
@@ -26,13 +31,26 @@ export function WalletProvider({
   children: ReactNode;
   appId: string | undefined;
 }) {
-  if (!appId) return <>{children}</>;
+  if (!appId) {
+    return (
+      <WalletConfiguredContext.Provider value={false}>{children}</WalletConfiguredContext.Provider>
+    );
+  }
   return (
     <PrivyProvider
       appId={appId}
-      config={{ embeddedWallets: { ethereum: { createOnLogin: "users-without-wallets" } } }}
+      config={{
+        appearance: {
+          accentColor: "#c7ff45",
+          showWalletLoginFirst: true,
+          theme: "dark",
+        },
+        defaultChain: sepolia,
+        loginMethods: ["wallet"],
+        supportedChains: [sepolia],
+      }}
     >
-      {children}
+      <WalletConfiguredContext.Provider value={true}>{children}</WalletConfiguredContext.Provider>
     </PrivyProvider>
   );
 }

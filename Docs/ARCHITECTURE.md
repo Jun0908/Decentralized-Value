@@ -101,7 +101,7 @@ openapi/frontier-v1.yaml      public API source of truth
 
 - Deterministic evaluator behavior is covered by unit and API tests.
 - The `/v2/sandbox` store is process-local memory and resets on restart or serverless cold start.
-- Wallet manifest signing proves intent only; it does not create a final onchain entry.
+- Privy can establish a browser-wallet session without a raw-message signature; the session does not create a final onchain entry.
 - World ID uniqueness, arbitrary source isolation, and hidden final evaluation are not configured.
 - Sepolia reward funding, allocation commitment, payout, and balance evidence are complete for the demonstration path.
 - ENS and Bazantic are optional integration boundaries, not prerequisites for the public demo.
