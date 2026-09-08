@@ -2450,12 +2450,15 @@ a.table-row:hover {
   color: var(--muted);
   font-size: 0.78rem;
 }
-.home-live-demo,
+.home-arenas,
 .more-frontiers,
 .trust-evidence,
 .settlement-evidence {
   padding: 5rem 0;
   border-bottom: 1px solid var(--line);
+}
+.home-arenas .arena-catalog {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .home-live-heading {
   display: grid;
@@ -3317,6 +3320,7 @@ a.table-row:hover {
     font-size: 0.7rem;
   }
   .arena-catalog-flow,
+  .home-arenas .arena-catalog,
   .catalog-page > .arena-catalog {
     grid-template-columns: 1fr;
   }

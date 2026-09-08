@@ -48,67 +48,21 @@ export default function HomePage() {
         </ol>
       </section>
 
-      <section className="home-live-demo" id="live-demo" aria-labelledby="live-demo-heading">
-        <header className="home-live-heading competition-home-heading">
-          <div>
-            <p className="eyebrow">Social application · Emergency Supply</p>
-            <h2 id="live-demo-heading">Can you lower cost without making aid fragile?</h2>
-          </div>
-          <div>
-            <p>
-              Sign in, download the challenge data, submit revisions, compare the live frontier, and
-              select one Final Entry for a contribution-based demo reward.
-            </p>
-            <Link className="primary-action" href="/arenas/emergency-supply">
-              Enter the live challenge
-            </Link>
-          </div>
-        </header>
-        <ol className="home-competition-loop">
-          <li>
-            <span>01</span>
-            <strong>Join</strong>
-            <small>Google, email, or wallet</small>
-          </li>
-          <li>
-            <span>02</span>
-            <strong>Build</strong>
-            <small>Starter Kit + submission.json</small>
-          </li>
-          <li>
-            <span>03</span>
-            <strong>Submit</strong>
-            <small>Real 9-failure evaluation</small>
-          </li>
-          <li>
-            <span>04</span>
-            <strong>Compete</strong>
-            <small>Frontier + contribution</small>
-          </li>
-          <li>
-            <span>05</span>
-            <strong>Reward</strong>
-            <small>Final Entry → Sepolia</small>
-          </li>
-        </ol>
-      </section>
-
-      <SettlementEvidence />
-
-      <section className="more-frontiers" aria-labelledby="more-frontiers-heading">
+      <section className="home-arenas" id="arenas" aria-labelledby="home-arenas-heading">
         <header className="section-heading-row">
           <div>
-            <p className="eyebrow">More frontiers</p>
-            <h2 id="more-frontiers-heading">The evaluator pattern expands beyond logistics.</h2>
+            <p className="eyebrow">03 arenas</p>
+            <h2 id="home-arenas-heading">Choose the value you want to improve.</h2>
           </div>
-          <Link href="/arenas">View all arenas →</Link>
         </header>
         <div className="arena-catalog compact">
-          {arenaRegistry.slice(1).map((arena, index) => (
-            <ArenaCard arena={arena} index={index + 1} key={arena.slug} />
+          {arenaRegistry.map((arena, index) => (
+            <ArenaCard arena={arena} index={index} key={arena.slug} />
           ))}
         </div>
       </section>
+
+      <SettlementEvidence />
 
       <section className="trust-evidence" id="about" aria-labelledby="trust-heading">
         <div>
