@@ -20,7 +20,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 
   return (
-    <html className={`${sans.variable} ${mono.variable}`} lang="en" translate="no">
+    <html className={`${sans.variable} ${mono.variable}`} lang="en">
       <body>
         <WalletProvider appId={privyAppId}>
           <header className="site-header">
