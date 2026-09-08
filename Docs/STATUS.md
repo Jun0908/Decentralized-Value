@@ -66,6 +66,7 @@ Never infer one state from another.
 
 ### Next
 
+- Implement the authenticated Emergency Supply competition described in [`plans/Plan5.md`](plans/Plan5.md): Privy account, durable submissions, frontier leaderboard, final entry, and a user-addressed Sepolia demo reward.
 - Store the final Bazantic identifiers and experiment evidence if that sponsor submission remains in scope.
 - Add durable storage and a real participant uniqueness mechanism before describing an arena as `Open`.
 - Isolate arbitrary participant source execution before accepting code as a tournament submission.
