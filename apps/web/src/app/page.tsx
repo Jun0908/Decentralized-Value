@@ -1,17 +1,14 @@
-import { publicEmergencySupplyScenario } from "@frontier/emergency-supply";
 import { evaluateCalldataCodec } from "@frontier/calldata-compression";
 import Link from "next/link";
 import { ArenaCard } from "@/components/arena-card";
 import { HomeProtocolHero } from "@/components/home-protocol-hero";
 import { SettlementEvidence } from "@/components/settlement-evidence";
-import { SupplyAllocationDemo } from "@/components/supply-allocation-demo";
 import { arenaRegistry } from "@/lib/arenas";
 
 const github = "https://github.com/Jun0908/Decentralized-Value";
 
 export default async function HomePage() {
   const evmResult = await evaluateCalldataCodec("packed");
-  const scenario = publicEmergencySupplyScenario();
   const deploymentCommit = process.env.VERCEL_GIT_COMMIT_SHA;
   const commit = deploymentCommit?.slice(0, 7) ?? "local build";
   const commitHref = deploymentCommit
@@ -28,7 +25,7 @@ export default async function HomePage() {
             <dd>Real Solidity execution</dd>
           </div>
           <div>
-            <dt>68 tests</dt>
+            <dt>71 tests</dt>
             <dd>Automated checks passed</dd>
           </div>
           <div>
@@ -68,17 +65,48 @@ export default async function HomePage() {
       </section>
 
       <section className="home-live-demo" id="live-demo" aria-labelledby="live-demo-heading">
-        <header className="home-live-heading">
+        <header className="home-live-heading competition-home-heading">
           <div>
             <p className="eyebrow">Social application · Emergency Supply</p>
             <h2 id="live-demo-heading">Can you lower cost without making aid fragile?</h2>
           </div>
-          <p>
-            Change five supplier allocations. The API recalculates all nine single-failure cases,
-            the Pareto result, contribution, and result hash from your input.
-          </p>
+          <div>
+            <p>
+              Sign in, download the challenge data, submit revisions, compare the live frontier, and
+              select one Final Entry for a contribution-based demo reward.
+            </p>
+            <Link className="primary-action" href="/arenas/emergency-supply">
+              Enter the live challenge
+            </Link>
+          </div>
         </header>
-        <SupplyAllocationDemo scenario={scenario} />
+        <ol className="home-competition-loop">
+          <li>
+            <span>01</span>
+            <strong>Join</strong>
+            <small>Google, email, or wallet</small>
+          </li>
+          <li>
+            <span>02</span>
+            <strong>Build</strong>
+            <small>Starter Kit + submission.json</small>
+          </li>
+          <li>
+            <span>03</span>
+            <strong>Submit</strong>
+            <small>Real 9-failure evaluation</small>
+          </li>
+          <li>
+            <span>04</span>
+            <strong>Compete</strong>
+            <small>Frontier + contribution</small>
+          </li>
+          <li>
+            <span>05</span>
+            <strong>Reward</strong>
+            <small>Final Entry → Sepolia</small>
+          </li>
+        </ol>
       </section>
 
       <SettlementEvidence />
@@ -126,7 +154,7 @@ export default async function HomePage() {
           </a>
           <a href={commitHref}>
             <span>Build evidence</span>
-            <strong>68 TypeScript tests · CI commit {commit} →</strong>
+            <strong>71 TypeScript tests · CI commit {commit} →</strong>
           </a>
         </div>
       </section>
@@ -134,12 +162,13 @@ export default async function HomePage() {
       <section className="platform-status">
         <div>
           <p className="eyebrow">Honest product status</p>
-          <h2>Practice measurement is live. Tournament settlement is not.</h2>
+          <h2>Emergency Supply now has a complete demo-competition flow.</h2>
         </div>
         <p>
-          Three working evaluators and reward contracts exist today. A funded Sepolia pool, durable
-          participant storage, World ID uniqueness, and final-day workloads still require external
-          activation.
+          Three evaluators and reward contracts exist today. Plan 5 adds authenticated revisions, a
+          frontier leaderboard, and Final Entry selection. Production persistence and a
+          participant-addressed Sepolia payout remain fail-closed until their external credentials
+          are active.
         </p>
         <Link className="primary-action" href="/architecture">
           Inspect boundaries

@@ -62,6 +62,20 @@ export const environmentSchema = z.object({
   RUNNER_PORT: z.coerce.number().int().positive().default(3002),
   RUNNER_PUBLIC_URL: optionalUrl,
   PARETO_SETTLEMENT_ADDRESS: optionalAddress,
+  PLAN5_DEMO_TOKEN_ADDRESS: optionalAddress,
+  PLAN5_MAX_REWARD_CREDITS: z.preprocess(blankToUndefined, z.string().regex(/^\d+$/).optional()),
+  PLAN5_RELAYER_PRIVATE_KEY: z.preprocess(
+    blankToUndefined,
+    z
+      .string()
+      .regex(/^0x[0-9a-fA-F]{64}$/)
+      .optional(),
+  ),
+  PLAN5_REWARD_POOL_ADDRESS: optionalAddress,
+  PLAN5_SETTLEMENT_ENABLED: z.preprocess(blankToUndefined, z.enum(["true", "false"]).optional()),
+  PRIVY_VERIFICATION_KEY: optionalString,
+  KV_REST_API_URL: optionalUrl,
+  KV_REST_API_TOKEN: optionalString,
   SEPOLIA_RPC_URL: optionalUrl,
 });
 

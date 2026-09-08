@@ -1,0 +1,19 @@
+{
+  "chainId": 11155111,
+  "deployer": "0x5A6A8964B044fdf18920ac4af64c18e88792261D",
+  "relayer": "0xca04952fDbf959A826943Da6d13a603Dba2Ed2cf",
+  "demoTokenAddress": "0x57ffcce9342c69ab07a1f405fe5f70f919e0351b",
+  "rewardPoolAddress": "0x120160ec7d3a6bc649f8f060f3a82cbdb059c962",
+  "poolFunding": "100000000000000000000000",
+  "relayerFunding": "20000000000000000",
+  "transactions": {
+    "tokenDeployment": "0x3ebc4079d74e5cb76dbc703c4b979f74758cca0e5763085b35027ca1ecebc660",
+    "poolDeployment": "0x58c9bd74cf401554c4d77c41f01d8ac7768f61f602a816de438289a91c8bf06f",
+    "poolFunding": "0x19bac851b294f8ae633d3590ddd0d3f7bf08c2f9032071a5dd0760e7dbd790fc",
+    "relayerFunding": "0xd1a67f99790b6509810c9b90a846603c39e28663bbf3136516c92402b3867c73"
+  },
+  "limits": {
+    "runtimeMintAuthority": false,
+    "maximumRewardCreditsPerParticipant": "10000"
+  }
+}

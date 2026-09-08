@@ -44,6 +44,79 @@ paths:
           "200":
             { description: Deterministic Agent A/B/C replay, frontier, rewards, and replay hash },
         }
+  /v1/challenges/emergency-supply:
+    get:
+      operationId: getEmergencySupplyCompetition
+      description: Returns the Plan 5 demo round, availability flags, public rules, and counts.
+      responses: { "200": { description: Emergency Supply competition lobby } }
+  /v1/challenges/emergency-supply/starter-kit:
+    get:
+      operationId: downloadEmergencySupplyStarterKit
+      description: Downloads the challenge manifest, vendors, failure scenarios, sample submission, and instructions as a ZIP archive.
+      responses:
+        "200":
+          {
+            description: Emergency Supply starter ZIP,
+            content: { application/zip: { schema: { type: string, format: binary } } },
+          }
+  /v1/challenges/emergency-supply/leaderboard:
+    get:
+      operationId: getEmergencySupplyLeaderboard
+      description: Recalculates the common frontier, dominated reasons, contribution, and reward preview from seed agents and latest participant revisions.
+      responses: { "200": { description: Live frontier leaderboard } }
+  /v1/challenges/emergency-supply/join:
+    post:
+      operationId: joinEmergencySupplyCompetition
+      security: [{ PrivyAccessToken: [] }]
+      responses:
+        {
+          "201": { description: Authenticated participant created or restored },
+          "401": { description: Privy token missing or invalid },
+          "503": { description: Server authentication or durable storage unavailable },
+        }
+  /v1/challenges/emergency-supply/submissions:
+    post:
+      operationId: submitEmergencySupplyRevision
+      security: [{ PrivyAccessToken: [] }]
+      parameters: [{ name: Idempotency-Key, in: header, required: true, schema: { type: string } }]
+      requestBody:
+        {
+          required: true,
+          content:
+            { application/json: { schema: { $ref: "#/components/schemas/Plan5SubmissionInput" } } },
+        }
+      responses:
+        {
+          "201": { description: Persisted and evaluated revision },
+          "400": { $ref: "#/components/responses/BadRequest" },
+          "401": { description: Privy token missing or invalid },
+        }
+  /v1/challenges/emergency-supply/submissions/mine:
+    get:
+      operationId: getMyEmergencySupplySubmissions
+      security: [{ PrivyAccessToken: [] }]
+      responses: { "200": { description: Participant, revisions, and selected Final Entry } }
+  /v1/challenges/emergency-supply/final-entry:
+    put:
+      operationId: selectEmergencySupplyFinalEntry
+      security: [{ PrivyAccessToken: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object } } } }
+      responses: { "200": { description: Current Final Entry saved } }
+  /v1/challenges/emergency-supply/demo-settlement:
+    post:
+      operationId: settleEmergencySupplyDemoReward
+      security: [{ PrivyAccessToken: [] }]
+      responses:
+        {
+          "201": { description: Sepolia RewardPaid receipt persisted },
+          "409": { description: No valid rewarding Final Entry },
+          "503": { description: Capped Sepolia relayer unavailable },
+        }
+  /v1/challenges/emergency-supply/reward/mine:
+    get:
+      operationId: getMyEmergencySupplyReward
+      security: [{ PrivyAccessToken: [] }]
+      responses: { "200": { description: Current reward and transaction state } }
   /v1/calldata-compression:
     get:
       operationId: getCalldataCompressionScenario
@@ -240,6 +313,11 @@ paths:
           "503": { description: ENS unavailable or unconfigured },
         }
 components:
+  securitySchemes:
+    PrivyAccessToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   parameters:
     Id: { name: id, in: path, required: true, schema: { $ref: "#/components/schemas/Bytes32" } }
   schemas:
@@ -264,6 +342,17 @@ components:
             local-grid: { type: integer, minimum: 0 }
             airbridge: { type: integer, minimum: 0 }
           additionalProperties: false
+      additionalProperties: false
+    Plan5SubmissionInput:
+      type: object
+      required: [allocations, sourceMethod]
+      properties:
+        allocations:
+          type: object
+          additionalProperties: { type: integer, minimum: 0 }
+        sourceMethod: { type: string, enum: [VISUAL, JSON, UPLOAD] }
+        repositoryUrl: { type: [string, "null"], format: uri }
+        sourceCommit: { type: [string, "null"], pattern: "^[0-9a-f]{40}$" }
       additionalProperties: false
     CalldataEvaluationInput:
       type: object

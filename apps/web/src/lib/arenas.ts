@@ -1,9 +1,9 @@
 type ArenaLifecycle =
   | {
-      status: "Practice";
-      participation: "Open practice";
+      status: "Practice" | "Demo competition";
+      participation: "Open practice" | "Open demo round";
       deadline: "No deadline";
-      reward: "No practice reward";
+      reward: "No practice reward" | "10,000 FDT demo credits";
       funding: { state: "none" };
     }
   | {
@@ -35,7 +35,7 @@ export const arenaRegistry = [
     kind: "supply",
     name: "Emergency Supply Allocation",
     category: "Humanitarian logistics",
-    status: "Practice",
+    status: "Demo competition",
     funding: { state: "none" },
     headline: "Spend less. Keep aid moving when one link fails.",
     summary:
@@ -46,10 +46,10 @@ export const arenaRegistry = [
       { name: "Procurement cost", direction: "Minimize", unit: "USD" },
       { name: "Worst-case delivery", direction: "Maximize", unit: "kits" },
     ],
-    participation: "Open practice",
+    participation: "Open demo round",
     deadline: "No deadline",
-    reward: "No practice reward",
-    actionLabel: "Build an allocation",
+    reward: "10,000 FDT demo credits",
+    actionLabel: "Enter competition",
   },
   {
     slug: "calldata-compression",

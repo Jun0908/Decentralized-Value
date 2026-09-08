@@ -1,7 +1,7 @@
 # Frontier Protocol Plan 5 — Emergency Supply Competition
 
 更新日: 2026-09-08  
-状態: 実装前  
+状態: アプリ実装済み・Production外部設定待ち
 対象: Privy認証、Emergency Supplyの参加・提出・評価・報酬
 
 ## 1. Plan 5のゴール
@@ -457,57 +457,57 @@ Sepolia Demo Tokenに金銭的価値がないことは短く明示する。
 
 ### Milestone 1 — Account
 
-- [ ] PrivyにGoogle・Email・Walletを表示
-- [ ] Email / Google UserへEmbedded Walletを作成
-- [ ] 検出Walletと認証済みUserを区別
-- [ ] HeaderへUserとWalletを表示
-- [ ] LogoutとSession復元
-- [ ] BackendでPrivy Tokenを検証
+- [ ] PrivyにGoogle・Email・Walletを表示（Email・Walletは有効、GoogleはPrivy Dashboard側の有効化待ち）
+- [x] Email / Google UserへEmbedded Walletを作成
+- [x] 検出Walletと認証済みUserを区別
+- [x] HeaderへUserとWalletを表示
+- [x] LogoutとSession復元
+- [x] BackendでPrivy Tokenを検証
 
 ### Milestone 2 — Join and Persist
 
-- [ ] Emergency SupplyをOpen Competitionとして表示
-- [ ] UserがChallengeへJoin
+- [x] Emergency SupplyをOpen Competitionとして表示
+- [x] UserがChallengeへJoin
 - [ ] ParticipantをDurable Storeへ保存
-- [ ] 再読込後に参加状態を復元
-- [ ] Reward Recipient Walletを固定
+- [x] 再読込後に参加状態を復元するAPI/UI
+- [x] Reward Recipient Walletを固定
 
 ### Milestone 3 — Build and Submit
 
-- [ ] Starter KitをDownload可能にする
-- [ ] Visual / JSON / Uploadを共通Schemaへ変換
-- [ ] Submission IDとRevisionを発行
-- [ ] Evaluationを実行して保存
-- [ ] Invalid Submissionの理由を表示
-- [ ] Revision履歴を表示
+- [x] Starter KitをDownload可能にする
+- [x] Visual / JSON / Uploadを共通Schemaへ変換
+- [x] Submission IDとRevisionを発行
+- [x] Evaluationを実行して保存
+- [x] Invalid Submissionの理由を表示
+- [x] Revision履歴を表示
 
 ### Milestone 4 — Frontier Competition
 
-- [ ] Seed AgentとUser Submissionを同じEvaluatorで測定
-- [ ] Frontier Leaderboardを表示
-- [ ] Dominated理由を表示
-- [ ] ContributionとReward Previewを表示
-- [ ] New RevisionによるFrontier変化を表示
-- [ ] Final Entryを選択・保存
+- [x] Seed AgentとUser Submissionを同じEvaluatorで測定
+- [x] Frontier Leaderboardを表示
+- [x] Dominated理由を表示
+- [x] ContributionとReward Previewを表示
+- [x] New RevisionによるFrontier変化を表示
+- [x] Final Entryを選択・保存
 
 ### Milestone 5 — Live Reward
 
-- [ ] Plan 5用Sepolia Reward Poolを準備
-- [ ] Final Result RootとAllocationを生成
-- [ ] User WalletへDemo Tokenを支払う
-- [ ] Transaction Confirmationを待つ
-- [ ] RewardPaid Eventと残高増加を表示
-- [ ] 二重Settlementを拒否
-- [ ] Etherscanから第三者が確認できる
+- [x] Plan 5用Sepolia Reward Poolを準備
+- [x] Final Result RootとAllocationを生成するAdapter
+- [x] User WalletへDemo Tokenを支払うAdapter
+- [x] Transaction Confirmationを待つ
+- [x] RewardPaid Transactionと残高増加を表示
+- [x] 二重Settlementを拒否
+- [x] Etherscanから第三者が確認できるリンク
 
 ### Milestone 6 — Judge Demo
 
-- [ ] 初回訪問から支払いまで一つの導線で完了
-- [ ] Default Submissionで3分以内に完走
-- [ ] Dominated Submissionも説明可能
-- [ ] DesktopとMobileで操作可能
-- [ ] Console errorが0件
-- [ ] NetworkまたはRPC失敗時に正しいRecoveryを表示
+- [x] 初回訪問から支払いまで一つの導線を実装
+- [x] Default Submissionで3分以内に完走できるUI
+- [x] Dominated Submissionも説明可能
+- [x] DesktopとMobile向けResponsive UIを実装
+- [x] Local DesktopでConsole errorが0件
+- [x] NetworkまたはRPC失敗時に正しいRecoveryを表示
 
 ## 11. Test
 

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { SettlementEvidence } from "@/components/settlement-evidence";
 import type { ArenaDefinition } from "@/lib/arenas";
 
 export function ArenaPageShell({
@@ -23,7 +22,7 @@ export function ArenaPageShell({
             <div className="arena-labels">
               <span className="arena-status">{arena.status}</span>
               <span className="evidence-level">
-                Evidence L{arena.evidenceLevel} · Synthetic simulation
+                Evidence L{arena.evidenceLevel} · Deterministic public evaluator
               </span>
             </div>
             <h1>{arena.headline}</h1>
@@ -45,7 +44,6 @@ export function ArenaPageShell({
         </div>
       </header>
       {children}
-      {arena.kind === "supply" ? <SettlementEvidence /> : null}
       <details className="protocol-details">
         <summary>Challenge lifecycle and immutable terms</summary>
         <ol className="arena-steps" aria-label="Challenge lifecycle">

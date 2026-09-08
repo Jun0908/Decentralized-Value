@@ -19,6 +19,7 @@ This is the only current status document. Historical checklists and numbered pla
 | Reward contracts | `FrontierRewardPool` and `FrontierDemoToken` implement commitment, distribution, and claim fallback with Foundry coverage |
 | Sepolia reward-path demo | Token funding, allocation commitment, `RewardPaid`, and a 10,000 FDT recipient balance increase are recorded publicly |
 | Submission sandbox | Revision history and one selected final entry work with ephemeral process-local state |
+| Emergency Supply Plan 5 application | Competition lobby, rules, downloadable five-file Starter Kit, Visual/JSON/upload submission workspace, real evaluation, revision history, frontier leaderboard, Final Entry, and reward status are implemented with API coverage |
 
 Sepolia evidence: [deployment record](deployments/sepolia-reward-demo.json), [allocation commitment](https://sepolia.etherscan.io/tx/0x96fd7a9d1f4a3bbd2fa7a9ea28d250a16e8eedbaff05b51a4f33e581c3839f2c), and [RewardPaid](https://sepolia.etherscan.io/tx/0xd976a968aefeb66d7e60fba7a9cf64c8711195fc3652aeccc20c7448069ad708).
 
@@ -26,7 +27,9 @@ Sepolia evidence: [deployment record](deployments/sepolia-reward-demo.json), [al
 
 | Capability | Honest boundary |
 | --- | --- |
-| Wallet interaction | A browser wallet can connect through Privy without a raw-message signature; this session is not a tournament entry or token payout |
+| Privy account | The client offers Google, email, or wallet login, distinguishes `authenticated` from wallet discovery, creates an embedded wallet for users without one, and provides logout/link-wallet controls. Protected APIs verify access and identity tokens. The Production verification key is configured; Google OAuth remains disabled in the Privy project while email and wallet login are enabled. |
+| Plan 5 durable storage | A Redis adapter persists participants, submissions, evaluations, Final Entry, and reward records. Vercel Upstash installation is waiting for the project owner to accept the provider terms, so production writes fail closed. |
+| Plan 5 participant reward | A dedicated Sepolia reward pool is funded with a finite 100,000 FDT demo balance. Its limited relayer has no token mint authority. The orchestrator commits one participant allocation, waits for `RewardPaid`, and stores the receipt; Production contract and relayer variables are configured. |
 | Bazantic | A gateway and MCP tool surface were activated externally; Marketplace verification was pending and service/Recipe identifiers are not committed as repository evidence |
 | ENSv2 | Adapter and fail-closed boundary exist, but no current parent name, delegated permission, or live runtime evidence is configured |
 | Privy | Optional wallet UX requires an external App ID and is not required for measurement |
@@ -35,7 +38,7 @@ Sepolia evidence: [deployment record](deployments/sepolia-reward-demo.json), [al
 
 ## Not implemented as a production tournament
 
-- Durable participant and submission storage
+- Active production participant and submission storage (adapter implemented; Upstash connection pending)
 - World ID or another deployed uniqueness check
 - Arbitrary untrusted source compilation and isolated execution
 - Hidden final datasets or workloads
@@ -60,13 +63,12 @@ Never infer one state from another.
 
 ### Now
 
-- Keep the public product story, repository README, and live implementation aligned.
-- Record the short Judge demo using only reproducible and publicly verifiable claims.
-- Preserve the working Calldata proof as the Top-page technical anchor and Emergency Supply as the editable social example.
+- Accept the free Upstash integration terms so the already implemented durable adapter receives Production credentials.
+- Deploy and rehearse the Emergency Supply path from login through reload, Final Entry, and a fresh recipient transaction.
 
 ### Next
 
-- Implement the authenticated Emergency Supply competition described in [`plans/Plan5.md`](plans/Plan5.md): Privy account, durable submissions, frontier leaderboard, final entry, and a user-addressed Sepolia demo reward.
+- Add a real participant uniqueness policy before changing the demo round into a production tournament.
 - Store the final Bazantic identifiers and experiment evidence if that sponsor submission remains in scope.
 - Add durable storage and a real participant uniqueness mechanism before describing an arena as `Open`.
 - Isolate arbitrary participant source execution before accepting code as a tournament submission.

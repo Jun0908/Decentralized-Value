@@ -47,6 +47,7 @@ a:focus-visible {
   display: grid;
   grid-template-columns: 1fr auto auto;
   align-items: center;
+  column-gap: 1.25rem;
   width: min(100% - 2rem, 78rem);
   margin: auto;
   padding: 1.1rem 0;
@@ -109,6 +110,7 @@ nav a:hover {
   align-items: center;
   gap: 0.7rem;
   font: 0.7rem var(--font-mono);
+  white-space: nowrap;
 }
 .wallet-status-dot {
   width: 0.5rem;
@@ -116,6 +118,41 @@ nav a:hover {
   border-radius: 999px;
   background: var(--lime);
   box-shadow: 0 0 0.8rem rgb(199 255 69 / 45%);
+}
+.wallet > span:last-child {
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.account-menu {
+  position: relative;
+  justify-self: end;
+}
+.account-menu > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.account-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.account-menu > div {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  display: grid;
+  min-width: 15rem;
+  gap: 0.8rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  background: #0d1013;
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 45%);
+  font: 0.68rem var(--font-mono);
+}
+.account-menu > div > span {
+  color: #f4f1e8;
+}
+.account-menu .text-button {
+  justify-self: start;
 }
 .text-button {
   padding: 0;
@@ -2370,6 +2407,43 @@ a.table-row:hover {
 .home-live-heading > p {
   color: var(--muted);
 }
+.competition-home-heading > div:last-child {
+  display: grid;
+  justify-items: start;
+  gap: 1rem;
+}
+.competition-home-heading > div:last-child p {
+  margin: 0;
+  color: #d8dadd;
+}
+.home-competition-loop {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  list-style: none;
+}
+.home-competition-loop li {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1.2rem;
+  border-right: 1px solid var(--line);
+  background: #0d1013;
+}
+.home-competition-loop li:last-child {
+  border-right: 0;
+}
+.home-competition-loop span {
+  color: var(--lime);
+  font: 0.62rem var(--font-mono);
+}
+.home-competition-loop strong {
+  color: #fff;
+}
+.home-competition-loop small {
+  color: #c8cbcd;
+}
 .platform-arena-page {
   padding-top: 1.5rem;
 }
@@ -2710,6 +2784,348 @@ a.table-row:hover {
 .more-frontiers .platform-arena-card {
   min-height: 30rem;
 }
+
+/* Plan 5: a complete Emergency Supply competition journey. */
+.competition-shell {
+  display: grid;
+  gap: 1.25rem;
+}
+.competition-scoreboard {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border: 1px solid rgb(199 255 69 / 45%);
+  background: #0d1013;
+}
+.competition-scoreboard > div {
+  min-width: 0;
+  padding: 1rem;
+  border-right: 1px solid var(--line);
+}
+.competition-scoreboard > div:last-child {
+  border-right: 0;
+}
+.competition-scoreboard span,
+.reward-console > span {
+  display: block;
+  color: var(--lime);
+  font: 0.58rem var(--font-mono);
+  letter-spacing: 0.08em;
+}
+.competition-scoreboard strong {
+  display: block;
+  margin-top: 0.55rem;
+  overflow-wrap: anywhere;
+  color: #fff;
+  font-size: 0.86rem;
+}
+.competition-nav {
+  position: sticky;
+  top: 5.6rem;
+  z-index: 5;
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--line);
+  background: rgb(8 10 13 / 94%);
+  backdrop-filter: blur(12px);
+}
+.competition-nav a {
+  flex: 1;
+  padding: 0.85rem 1rem;
+  border-right: 1px solid var(--line);
+  color: #f4f1e8;
+  font: 0.68rem var(--font-mono);
+  text-align: center;
+}
+.competition-nav a:last-child {
+  border-right: 0;
+}
+.competition-nav a:hover {
+  background: var(--lime);
+  color: #0a0c0d;
+}
+.competition-rules,
+.competition-build,
+.competition-results,
+.competition-leaderboard,
+.competition-settlement {
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border: 1px solid var(--line);
+  background: #0d1013;
+  scroll-margin-top: 10rem;
+}
+.competition-rules {
+  display: grid;
+  grid-template-columns: 1fr 0.85fr;
+  gap: 3rem;
+}
+.competition-rules h2,
+.competition-build h2,
+.competition-results h2,
+.competition-leaderboard h2,
+.competition-settlement h2 {
+  max-width: 19ch;
+  font-size: clamp(1.8rem, 3.2vw, 2.8rem);
+}
+.competition-rules > div:first-child > p:not(.eyebrow),
+.competition-settlement > div:first-child > p:not(.eyebrow) {
+  color: #d8dadd;
+}
+.rule-cards {
+  display: grid;
+  gap: 1px;
+  align-self: stretch;
+  border: 1px solid var(--line);
+  background: var(--line);
+}
+.rule-cards article {
+  display: grid;
+  align-content: center;
+  gap: 0.45rem;
+  padding: 1.2rem;
+  background: #090b0e;
+}
+.rule-cards span {
+  color: var(--lime);
+  font: 0.58rem var(--font-mono);
+}
+.rule-cards strong {
+  color: #fff;
+}
+.rule-cards small {
+  color: #c8cbcd;
+}
+.competition-build > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  align-items: end;
+}
+.submission-mode-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.5rem 0 1rem;
+}
+.submission-mode-tabs button {
+  border: 1px solid #454b50;
+  border-radius: 0;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  color: #f4f1e8;
+}
+.submission-mode-tabs button.active {
+  border-color: var(--lime);
+  background: var(--lime);
+  color: #111;
+}
+.competition-vendors {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border: 1px solid var(--line);
+}
+.competition-vendors label {
+  display: grid;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 1rem;
+  border-right: 1px solid var(--line);
+}
+.competition-vendors label:last-child {
+  border-right: 0;
+}
+.competition-vendors label > span:first-child {
+  display: grid;
+  min-height: 3rem;
+}
+.competition-vendors label > span:nth-child(2),
+.competition-vendors small {
+  color: #c5c8ca;
+  font: 0.62rem var(--font-mono);
+}
+.competition-vendors input,
+.json-submission-editor textarea,
+.github-provenance input {
+  width: 100%;
+  border: 1px solid #454b50;
+  border-radius: 0;
+  background: #080a0d;
+  color: #fff;
+  padding: 0.75rem;
+  font: 0.78rem var(--font-mono);
+}
+.json-submission-editor {
+  display: grid;
+  gap: 0.6rem;
+  color: #fff;
+  font: 0.68rem var(--font-mono);
+}
+.file-drop {
+  display: grid;
+  place-items: center;
+  min-height: 16rem;
+  gap: 0.65rem;
+  border: 1px dashed #62696e;
+  color: #fff;
+  text-align: center;
+}
+.file-drop span {
+  color: #c8cbcd;
+}
+.github-provenance {
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+}
+.github-provenance summary {
+  padding: 0.9rem 1rem;
+  color: #f4f1e8;
+  cursor: pointer;
+  font: 0.68rem var(--font-mono);
+}
+.github-provenance > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 0 1rem 1rem;
+}
+.github-provenance label {
+  display: grid;
+  gap: 0.45rem;
+  color: #d8dadd;
+  font-size: 0.72rem;
+}
+.submit-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  align-items: center;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid rgb(199 255 69 / 35%);
+  background: rgb(199 255 69 / 5%);
+}
+.submit-bar > div {
+  display: grid;
+  gap: 0.35rem;
+}
+.submit-bar span {
+  color: #c8cbcd;
+  font-size: 0.75rem;
+}
+.competition-revisions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.competition-revisions article {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1.2rem;
+  border: 1px solid var(--line);
+  background: #090b0e;
+}
+.competition-revisions article header {
+  display: flex;
+  justify-content: space-between;
+}
+.competition-revisions article header > div {
+  display: grid;
+}
+.competition-revisions article header span,
+.competition-revisions article header strong,
+.competition-revisions article header b {
+  font: 0.62rem var(--font-mono);
+}
+.competition-revisions article header span {
+  color: var(--lime);
+}
+.competition-revisions dl {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+.competition-revisions dd {
+  color: #fff;
+  font: 0.76rem var(--font-mono);
+}
+.competition-revisions code {
+  overflow-wrap: anywhere;
+  color: #c1c5c7;
+  font-size: 0.58rem;
+}
+.selected-final {
+  border: 1px solid var(--lime);
+  background: transparent;
+  color: var(--lime);
+}
+.leaderboard-table {
+  border: 1px solid var(--line);
+}
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 1.35fr repeat(4, 1fr);
+  gap: 1rem;
+  align-items: center;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--line);
+  color: #fff;
+  font: 0.72rem var(--font-mono);
+}
+.leaderboard-row:last-child {
+  border-bottom: 0;
+}
+.leaderboard-row > span:first-child {
+  display: grid;
+}
+.leaderboard-row small {
+  color: #bfc3c5;
+}
+.leaderboard-head {
+  color: #bfc3c5;
+  font-size: 0.58rem;
+  text-transform: uppercase;
+}
+.leaderboard-row.on-frontier {
+  box-shadow: inset 3px 0 var(--lime);
+}
+.leaderboard-row.dominated {
+  color: #bfc3c5;
+}
+.competition-settlement {
+  display: grid;
+  grid-template-columns: 1fr 0.7fr;
+  gap: 3rem;
+}
+.reward-console {
+  display: grid;
+  align-content: center;
+  gap: 0.8rem;
+  padding: 1.5rem;
+  border: 1px solid var(--lime);
+  background: #090b0e;
+}
+.reward-console > strong {
+  color: var(--lime);
+  font-size: clamp(2rem, 4vw, 3.5rem);
+}
+.reward-console small {
+  color: #c8cbcd;
+}
+.reward-console a {
+  color: var(--lime);
+  font: 0.72rem var(--font-mono);
+}
+.competition-trust-note {
+  display: grid;
+  grid-template-columns: 0.3fr 1fr;
+  gap: 2rem;
+  padding: 1.2rem;
+  border-left: 3px solid var(--lime);
+  background: #0d1013;
+}
+.competition-trust-note p {
+  margin: 0;
+  color: #d8dadd;
+}
 .trust-evidence {
   display: grid;
   grid-template-columns: 0.7fr 1.3fr;
@@ -2830,6 +3246,61 @@ a.table-row:hover {
   color: #c7c9ca;
 }
 @media (max-width: 760px) {
+  .competition-scoreboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .competition-scoreboard > div {
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .competition-nav {
+    top: 8.9rem;
+    overflow-x: auto;
+  }
+  .competition-nav a {
+    flex: 0 0 auto;
+  }
+  .competition-rules,
+  .competition-settlement {
+    grid-template-columns: 1fr;
+  }
+  .competition-build > header,
+  .submit-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .submission-mode-tabs {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .competition-vendors,
+  .competition-revisions,
+  .github-provenance > div {
+    grid-template-columns: 1fr;
+  }
+  .competition-vendors label {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .competition-vendors label:last-child {
+    border-bottom: 0;
+  }
+  .leaderboard-table {
+    overflow-x: auto;
+  }
+  .leaderboard-row {
+    min-width: 46rem;
+  }
+  .competition-trust-note {
+    grid-template-columns: 1fr;
+  }
+  .home-competition-loop {
+    grid-template-columns: 1fr;
+  }
+  .home-competition-loop li {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
   .site-header {
     grid-template-columns: 1fr auto;
   }

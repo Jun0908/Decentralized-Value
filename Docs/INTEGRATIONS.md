@@ -20,6 +20,8 @@ Environment-dependent evidence must fail closed. Missing public contract or tran
 
 This does not mean a production participant tournament has settled.
 
+Plan 5 has a separate participant-addressed pool at `0x120160ec7d3a6bc649f8f060f3a82cbdb059c962`, funded with a finite 100,000 FDT at `0x57ffcce9342c69ab07a1f405fe5f70f919e0351b`. Its Vercel relayer owns only the pool, holds limited Sepolia gas, and cannot mint more tokens. Public deployment evidence is recorded in [`deployments/sepolia-plan5-reward.json`](deployments/sepolia-plan5-reward.json).
+
 ## Bazantic — optional agent distribution
 
 The API source of truth is `openapi/frontier-v1.yaml`. The operation map is `bazantic/mcp-tools.json`, and agent instructions are in `bazantic/recipe.md`.
@@ -39,9 +41,17 @@ When maintaining the integration:
 
 The codebase has a chain-aware fail-closed boundary for runner discovery and authorization. No live parent name, subname hierarchy, delegated permission mutation, or current runtime evidence is configured. Do not describe ENS authorization as active until those transactions and resolved records exist.
 
-## Privy — optional wallet UX
+## Privy — Plan 5 account UX active
 
-Privy is a human onboarding and wallet convenience layer, not part of deterministic evaluation. It requires `NEXT_PUBLIC_PRIVY_APP_ID`. Measurement must remain usable when it is absent.
+The client is configured for Google, email, or wallet login and creates an Ethereum embedded wallet for users who do not already have one. `NEXT_PUBLIC_PRIVY_APP_ID` and `PRIVY_VERIFICATION_KEY` are active in production. Email and wallet login are enabled in the Privy project; Google OAuth still requires project-dashboard activation.
+
+## Upstash Redis — adapter implemented, connection pending
+
+Plan 5 stores participants, revisions, evaluations, Final Entry, and reward records through a provider-neutral competition-store boundary. The Vercel implementation uses Upstash Redis and accepts either `KV_REST_API_URL` / `KV_REST_API_TOKEN` or the equivalent `UPSTASH_REDIS_REST_*` names. The free Tokyo resource cannot be created until the project owner accepts the Upstash Marketplace terms in Vercel. Production writes remain disabled while storage is absent.
+
+## Plan 5 Sepolia relayer — configured
+
+The participant-addressed payout is enabled through a dedicated, limited Sepolia relayer. It owns the `FrontierRewardPool` but not the token, so it cannot mint. The server verifies pool ownership and chain, enforces a per-reward cap, checks the finite prefunded balance, commits a participant-specific allocation, distributes once, waits for confirmation, and persists the receipt. Production writes still fail closed until durable Redis credentials are attached.
 
 ## Ledger — archived and unused
 

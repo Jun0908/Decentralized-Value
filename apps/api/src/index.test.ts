@@ -1,6 +1,6 @@
 import benchmark from "../../../benchmarks/evm-orderbook/results/latest.json";
 import { describe, expect, it, vi } from "vitest";
-import { createApi, createDemoApi } from "./index";
+import { createApi, createDemoApi, MemoryPlan5CompetitionStore } from "./index";
 
 function request(path: string, init?: RequestInit) {
   return new Request(`http://localhost${path}`, init);
@@ -251,6 +251,138 @@ describe("Frontier API contracts", () => {
     ).json();
     expect(history.storage).toBe("ephemeral-memory");
     expect(history.submissions).toHaveLength(1);
+  });
+
+  it("runs the authenticated Emergency Supply competition from join through final entry", async () => {
+    const competition = new MemoryPlan5CompetitionStore();
+    const identity = vi.fn(async () => ({
+      userId: "did:privy:test-builder",
+      wallet: "0x4444444444444444444444444444444444444444" as const,
+    }));
+    const settlement = vi.fn(async () => ({
+      allocationRoot: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" as const,
+      transactionHash:
+        "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" as const,
+      blockNumber: "12345",
+    }));
+    const api = createApi(benchmark, undefined, undefined, {
+      store: competition,
+      identity,
+      settlement,
+    });
+
+    const join = await api.fetch(
+      request("/v1/challenges/emergency-supply/join", { method: "POST" }),
+    );
+    expect(join.status).toBe(201);
+    const participant = (await join.json()).participant;
+
+    const submissionBody = JSON.stringify({
+      allocations: {
+        "harbor-aid": 300,
+        northstar: 150,
+        "inland-works": 300,
+        "local-grid": 150,
+        airbridge: 100,
+      },
+      sourceMethod: "UPLOAD",
+      repositoryUrl: null,
+      sourceCommit: null,
+    });
+    const submissionResponse = await api.fetch(
+      request("/v1/challenges/emergency-supply/submissions", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "idempotency-key": "plan5-test-submission-1",
+        },
+        body: submissionBody,
+      }),
+    );
+    expect(submissionResponse.status).toBe(201);
+    const submission = (await submissionResponse.json()).submission;
+    expect(submission.evaluation.correctness).toBe(true);
+    expect(submission.revision).toBe(1);
+
+    const repeatedResponse = await api.fetch(
+      request("/v1/challenges/emergency-supply/submissions", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "idempotency-key": "plan5-test-submission-1",
+        },
+        body: submissionBody,
+      }),
+    );
+    expect(repeatedResponse.status).toBe(200);
+    expect((await repeatedResponse.json()).submission.submissionId).toBe(submission.submissionId);
+
+    const finalResponse = await api.fetch(
+      request("/v1/challenges/emergency-supply/final-entry", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ submissionId: submission.submissionId }),
+      }),
+    );
+    expect(finalResponse.status).toBe(200);
+    expect((await finalResponse.json()).finalEntry.submissionId).toBe(submission.submissionId);
+
+    const mine = await (
+      await api.fetch(request("/v1/challenges/emergency-supply/submissions/mine"))
+    ).json();
+    expect(mine.participant.participantId).toBe(participant.participantId);
+    expect(mine.submissions).toHaveLength(1);
+    expect(mine.finalEntry.submissionId).toBe(submission.submissionId);
+
+    const leaderboard = await (
+      await api.fetch(request("/v1/challenges/emergency-supply/leaderboard"))
+    ).json();
+    expect(leaderboard.submissionCount).toBe(1);
+    const participantEntry = leaderboard.entries.find(
+      (entry: { kind: string }) => entry.kind === "PARTICIPANT",
+    );
+    expect(participantEntry).toBeDefined();
+    expect(participantEntry.frontier).toBe(true);
+    expect(participantEntry.rewardPreview).toBeGreaterThan(0);
+
+    const settlementResponse = await api.fetch(
+      request("/v1/challenges/emergency-supply/demo-settlement", { method: "POST" }),
+    );
+    expect(settlementResponse.status).toBe(201);
+    const reward = (await settlementResponse.json()).reward;
+    expect(reward.status).toBe("PAID");
+    expect(reward.recipient).toBe("0x4444444444444444444444444444444444444444");
+    expect(BigInt(reward.amount)).toBeGreaterThan(0n);
+    expect(settlement).toHaveBeenCalledTimes(1);
+
+    const repeatedSettlement = await api.fetch(
+      request("/v1/challenges/emergency-supply/demo-settlement", { method: "POST" }),
+    );
+    expect(repeatedSettlement.status).toBe(200);
+    expect(settlement).toHaveBeenCalledTimes(1);
+  });
+
+  it("fails closed on reward until a correct Final Entry and configured settlement exist", async () => {
+    const competition = new MemoryPlan5CompetitionStore();
+    const identity = async () => ({
+      userId: "did:privy:test-builder",
+      wallet: "0x4444444444444444444444444444444444444444" as const,
+    });
+    const api = createApi(benchmark, undefined, undefined, { store: competition, identity });
+    await api.fetch(request("/v1/challenges/emergency-supply/join", { method: "POST" }));
+    const response = await api.fetch(
+      request("/v1/challenges/emergency-supply/demo-settlement", { method: "POST" }),
+    );
+    expect(response.status).toBe(503);
+    expect((await response.json()).error.code).toBe("SETTLEMENT_UNCONFIGURED");
+  });
+
+  it("downloads a real multi-file Emergency Supply starter kit", async () => {
+    const api = createApi(benchmark);
+    const response = await api.fetch(request("/v1/challenges/emergency-supply/starter-kit"));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe("application/zip");
+    expect((await response.arrayBuffer()).byteLength).toBeGreaterThan(500);
   });
 
   it("fails closed when World ID is not configured", async () => {

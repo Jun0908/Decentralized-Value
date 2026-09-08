@@ -165,8 +165,15 @@ export default async function ChallengePage({ params }: { params: Promise<{ id: 
         <Link className="secondary-action" href="/sponsor">
           Open draft console
         </Link>
-        <Link className="primary-action" href={`/participate/${manifest.id}`}>
-          Try submission sandbox
+        <Link
+          className="primary-action"
+          href={
+            manifest.id === "emergency-supply-v1"
+              ? "/arenas/emergency-supply#build"
+              : `/participate/${manifest.id}`
+          }
+        >
+          {manifest.id === "emergency-supply-v1" ? "Enter competition" : "Try submission sandbox"}
         </Link>
       </section>
     </main>

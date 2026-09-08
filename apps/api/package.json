@@ -14,9 +14,10 @@
   "dependencies": {
     "@frontier/calldata-compression": "workspace:*",
     "@frontier/emergency-supply": "workspace:*",
-    "@frontier/microgrid-dispatch": "workspace:*",
     "@frontier/ens-adapter": "workspace:*",
+    "@frontier/microgrid-dispatch": "workspace:*",
     "@frontier/shared": "workspace:*",
+    "fflate": "^0.8.3",
     "viem": "2.56.3",
     "zod": "4.5.4"
   }

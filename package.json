@@ -18,6 +18,7 @@
     "demo:check": "tsx scripts/demo-check.ts",
     "demo:seed": "tsx scripts/demo-seed.ts",
     "deploy:reward-demo": "tsx scripts/deploy-reward-demo.ts",
+    "deploy:plan5-reward": "tsx scripts/deploy-plan5-reward.ts",
     "env:check": "tsx scripts/validate-env.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

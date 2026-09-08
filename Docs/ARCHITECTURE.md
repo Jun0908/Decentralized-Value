@@ -73,9 +73,11 @@ The primary user journey is:
 
 1. `/` explains the protocol and presents a working Ethereum proof.
 2. `/arenas` lists competitions from the shared Arena Registry.
-3. `/arenas/[slug]` combines a common challenge shell with an arena-specific workbench.
-4. Practice results show correctness, outcomes, Pareto status, contribution, and reproducibility evidence.
-5. `/participate/[id]` exposes an explicitly ephemeral submission sandbox.
+3. `/arenas/emergency-supply` is the Plan 5 competition path: Privy account, rules and Starter Kit, submitted revisions, deterministic evaluation, frontier leaderboard, Final Entry, and an optional Sepolia demo reward.
+4. Other `/arenas/[slug]` pages combine a common challenge shell with an arena-specific practice workbench.
+5. Practice results show correctness, outcomes, Pareto status, contribution, and reproducibility evidence. The older `/participate/[id]` route remains an explicitly ephemeral engineering sandbox.
+
+Plan 5 keeps external state behind fail-closed adapters. Privy tokens are verified server-side before account-bound reads or writes. Upstash Redis is the durable Vercel adapter; process memory is allowed only for local development and tests. The Sepolia relayer is disabled unless a dedicated key, an owned pre-funded reward pool, RPC, and a per-participant reward cap are all configured. The runtime relayer has no token mint authority.
 
 `apps/web/src/lib/arenas.ts` is the source of display metadata. `apps/web/src/lib/arena-adapters.tsx` maps an evaluator kind to its workbench and manifest loader. An unknown evaluator fails closed. Microgrid proves that Pareto membership and contribution can use all metrics while the chart projects any two axes.
 

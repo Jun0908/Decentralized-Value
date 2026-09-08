@@ -3,6 +3,9 @@ import { EnsRunnerDirectory, ViemEnsRecordReader } from "@frontier/ens-adapter";
 import { createPublicClient, http } from "viem";
 import { sepolia } from "viem/chains";
 import benchmark from "../../../../benchmarks/evm-orderbook/results/latest.json";
+import { createPlan5Store } from "@/lib/plan5-store";
+import { createPrivyIdentityResolver } from "@/lib/privy-server";
+import { createPlan5Settlement } from "@/lib/plan5-settlement";
 
 function createRunnerDirectory() {
   const rpcUrl = process.env.SEPOLIA_RPC_URL;
@@ -19,7 +22,15 @@ const globalApi = globalThis as typeof globalThis & {
   frontierDemoApi?: ReturnType<typeof createDemoApi>;
 };
 
+const identity = createPrivyIdentityResolver();
+const settlement = createPlan5Settlement();
+const plan5 = {
+  store: createPlan5Store(),
+  ...(identity ? { identity } : {}),
+  ...(settlement ? { settlement } : {}),
+};
+
 export const frontierDemoApi =
-  globalApi.frontierDemoApi ?? createDemoApi(benchmark, createRunnerDirectory());
+  globalApi.frontierDemoApi ?? createDemoApi(benchmark, createRunnerDirectory(), plan5);
 
 if (process.env.NODE_ENV !== "production") globalApi.frontierDemoApi = frontierDemoApi;

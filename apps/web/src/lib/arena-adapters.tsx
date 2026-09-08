@@ -2,7 +2,7 @@ import type { ChallengeManifestV2 } from "@frontier/shared";
 import type { ReactNode } from "react";
 import { CalldataCompressionDemo } from "@/components/calldata-compression-demo";
 import { MicrogridDispatchDemo } from "@/components/microgrid-dispatch-demo";
-import { SupplyAllocationDemo } from "@/components/supply-allocation-demo";
+import { EmergencySupplyCompetition } from "@/components/emergency-supply-competition";
 
 export type ArenaAdapter = {
   kind: string;
@@ -16,7 +16,8 @@ const supplyAdapter: ArenaAdapter = {
   challengeId: "emergency-supply-v1",
   async renderWorkbench() {
     const { publicEmergencySupplyScenario } = await import("@frontier/emergency-supply");
-    return <SupplyAllocationDemo scenario={publicEmergencySupplyScenario()} />;
+    const scenario = publicEmergencySupplyScenario();
+    return <EmergencySupplyCompetition initialScenario={scenario} />;
   },
   async loadManifest() {
     const { emergencySupplyManifest, emergencySupplyManifestHash } =
