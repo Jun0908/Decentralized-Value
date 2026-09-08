@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useFrontierAccount } from "@/components/wallet-panel";
 
 type HeroEvmResult = {
   calldataGas: number;
@@ -37,6 +38,7 @@ function formatContribution(ppm: number) {
 }
 
 export function HomeProtocolHero({ initialResult }: { initialResult: HeroEvmResult }) {
+  const account = useFrontierAccount();
   const [result, setResult] = useState(initialResult);
   const [runState, setRunState] = useState<RunState>("ready");
 
@@ -74,12 +76,27 @@ export function HomeProtocolHero({ initialResult }: { initialResult: HeroEvmResu
           </p>
           <p className="hero-ethereum-line">Ethereum makes the rules and rewards verifiable.</p>
           <div className="actions hero-actions">
-            <Link className="primary-action" href="/arenas">
-              Explore 3 arenas
+            {account.authenticated ? (
+              <Link className="primary-action" href="/arenas/emergency-supply">
+                Enter live arena
+              </Link>
+            ) : (
+              <button
+                className="primary-action"
+                disabled={!account.configured || !account.ready}
+                onClick={account.login}
+                type="button"
+              >
+                {!account.configured
+                  ? "Login unavailable"
+                  : account.ready
+                    ? "Log in"
+                    : "Checking login..."}
+              </button>
+            )}
+            <Link className="secondary-action" href="/arenas">
+              Explore arenas
             </Link>
-            <a className="secondary-action" href="#reward-evidence">
-              Verify on Sepolia
-            </a>
           </div>
         </div>
 
