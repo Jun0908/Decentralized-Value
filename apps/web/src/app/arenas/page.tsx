@@ -11,25 +11,42 @@ export default function ArenasPage() {
   return (
     <main className="page-shell catalog-page">
       <header className="catalog-heading">
-        <p className="eyebrow">Open problems · Multiple kinds of value</p>
-        <h1>Choose a frontier to expand.</h1>
+        <p className="eyebrow">03 arenas · One open protocol</p>
+        <h1>Choose the value you want to improve.</h1>
         <p>
-          Every arena defines its own inputs and measurements, but follows the same rule: pass the
-          shared correctness gate, then compare independent outcome metrics.
+          Enter a problem, submit a solution, and see which tradeoffs expand the frontier. Start
+          with Emergency Supply for the complete competition and Sepolia reward experience.
         </p>
       </header>
+      <ol className="arena-catalog-flow" aria-label="How arenas work">
+        <li>
+          <span>01</span>
+          <strong>Choose a problem</strong>
+          <small>Logistics, Ethereum, or energy</small>
+        </li>
+        <li>
+          <span>02</span>
+          <strong>Build and submit</strong>
+          <small>One public rule set per arena</small>
+        </li>
+        <li>
+          <span>03</span>
+          <strong>Expand the frontier</strong>
+          <small>Keep every valuable tradeoff visible</small>
+        </li>
+      </ol>
       <section className="arena-catalog" aria-label="Available arenas">
         {arenaRegistry.map((arena, index) => (
           <ArenaCard arena={arena} index={index} key={arena.slug} />
         ))}
       </section>
       <aside className="catalog-expansion-note">
-        <span>{String(arenaRegistry.length).padStart(2, "0")} arenas now</span>
+        <span>One protocol, more values</span>
         <div>
-          <h2>Designed for the next problem, too.</h2>
+          <h2>Finance is not the only value worth coordinating.</h2>
           <p>
-            Catalog metadata and URLs are generated from one registry. A new problem type plugs in
-            its own deterministic evaluator while reusing the catalog and challenge shell.
+            New arenas can define different goals without compressing them into one score. The same
+            protocol can reward cheaper, cleaner, safer, or more resilient solutions together.
           </p>
         </div>
       </aside>

@@ -1,7 +1,7 @@
 # Frontier Protocol Plan 5 — Emergency Supply Competition
 
 更新日: 2026-09-08  
-状態: アプリ実装済み・Production外部設定待ち
+状態: Production接続済み・E2Eリハーサル待ち
 対象: Privy認証、Emergency Supplyの参加・提出・評価・報酬
 
 ## 1. Plan 5のゴール
@@ -468,7 +468,7 @@ Sepolia Demo Tokenに金銭的価値がないことは短く明示する。
 
 - [x] Emergency SupplyをOpen Competitionとして表示
 - [x] UserがChallengeへJoin
-- [ ] ParticipantをDurable Storeへ保存
+- [x] ParticipantをDurable Storeへ保存
 - [x] 再読込後に参加状態を復元するAPI/UI
 - [x] Reward Recipient Walletを固定
 

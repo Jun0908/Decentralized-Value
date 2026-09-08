@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { WalletPanel, WalletProvider } from "@/components/wallet-panel";
@@ -24,8 +25,18 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <WalletProvider appId={privyAppId}>
           <header className="site-header">
             <Link className="wordmark" href="/" aria-label="Value Decentralization home">
-              <span className="wordmark-title">VALUE DECENTRALIZATION</span>
-              <small>Powered by Frontier Protocol</small>
+              <Image
+                className="wordmark-logo"
+                src="/logo.png"
+                alt=""
+                width={44}
+                height={44}
+                priority
+              />
+              <span className="wordmark-copy">
+                <span className="wordmark-title">VALUE DECENTRALIZATION</span>
+                <small>Powered by Frontier Protocol</small>
+              </span>
             </Link>
             <nav aria-label="Primary navigation">
               <Link href="/#evm-demo">Live proof</Link>

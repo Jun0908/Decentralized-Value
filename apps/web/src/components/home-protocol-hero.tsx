@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
 type HeroEvmResult = {
@@ -73,16 +74,9 @@ export function HomeProtocolHero({ initialResult }: { initialResult: HeroEvmResu
           </p>
           <p className="hero-ethereum-line">Ethereum makes the rules and rewards verifiable.</p>
           <div className="actions hero-actions">
-            <button
-              aria-busy={runState === "running"}
-              aria-controls="home-live-proof"
-              className="primary-action"
-              disabled={runState === "running"}
-              onClick={() => void runProof()}
-              type="button"
-            >
-              Run live proof
-            </button>
+            <Link className="primary-action" href="/arenas">
+              Explore 3 arenas
+            </Link>
             <a className="secondary-action" href="#reward-evidence">
               Verify on Sepolia
             </a>
@@ -146,7 +140,18 @@ export function HomeProtocolHero({ initialResult }: { initialResult: HeroEvmResu
               {result.resultHash.slice(0, 12)}…{result.resultHash.slice(-8)}
             </code>
           </span>
-          <a href="#reward-evidence">Sepolia verification →</a>
+          <div className="hero-proof-footer-actions">
+            <button
+              aria-busy={runState === "running"}
+              className="hero-proof-rerun"
+              disabled={runState === "running"}
+              onClick={() => void runProof()}
+              type="button"
+            >
+              {runState === "running" ? "Measuring…" : "Re-run measurement"}
+            </button>
+            <a href="#reward-evidence">Sepolia verification →</a>
+          </div>
         </footer>
       </section>
     </>

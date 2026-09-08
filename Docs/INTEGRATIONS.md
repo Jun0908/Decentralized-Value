@@ -45,13 +45,13 @@ The codebase has a chain-aware fail-closed boundary for runner discovery and aut
 
 The client is configured for Google, email, or wallet login and creates an Ethereum embedded wallet for users who do not already have one. `NEXT_PUBLIC_PRIVY_APP_ID` and `PRIVY_VERIFICATION_KEY` are active in production. Email and wallet login are enabled in the Privy project; Google OAuth still requires project-dashboard activation.
 
-## Upstash Redis — adapter implemented, connection pending
+## Upstash Redis — active
 
-Plan 5 stores participants, revisions, evaluations, Final Entry, and reward records through a provider-neutral competition-store boundary. The Vercel implementation uses Upstash Redis and accepts either `KV_REST_API_URL` / `KV_REST_API_TOKEN` or the equivalent `UPSTASH_REDIS_REST_*` names. The free Tokyo resource cannot be created until the project owner accepts the Upstash Marketplace terms in Vercel. Production writes remain disabled while storage is absent.
+Plan 5 stores participants, revisions, evaluations, Final Entry, idempotency records, and reward receipts through a provider-neutral competition-store boundary. The `frontier-plan5` Upstash resource is attached to the Vercel project for Production, Preview, and Development through `KV_REST_API_URL` / `KV_REST_API_TOKEN`. The public challenge API reports `durable-redis` when this adapter is active.
 
 ## Plan 5 Sepolia relayer — configured
 
-The participant-addressed payout is enabled through a dedicated, limited Sepolia relayer. It owns the `FrontierRewardPool` but not the token, so it cannot mint. The server verifies pool ownership and chain, enforces a per-reward cap, checks the finite prefunded balance, commits a participant-specific allocation, distributes once, waits for confirmation, and persists the receipt. Production writes still fail closed until durable Redis credentials are attached.
+The participant-addressed payout is enabled through a dedicated, limited Sepolia relayer. It owns the `FrontierRewardPool` but not the token, so it cannot mint. The server verifies pool ownership and chain, enforces a per-reward cap, checks the finite prefunded balance, commits a participant-specific allocation, distributes once, waits for confirmation, and persists the receipt in Redis.
 
 ## Ledger — archived and unused
 

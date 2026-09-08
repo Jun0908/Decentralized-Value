@@ -166,9 +166,9 @@ export default async function HomePage() {
         </div>
         <p>
           Three evaluators and reward contracts exist today. Plan 5 adds authenticated revisions, a
-          frontier leaderboard, and Final Entry selection. Production persistence and a
-          participant-addressed Sepolia payout remain fail-closed until their external credentials
-          are active.
+          frontier leaderboard, and Final Entry selection. Durable competition storage and the
+          participant-addressed Sepolia demo pool are active; this remains a demo round, not a
+          monetary-value tournament.
         </p>
         <Link className="primary-action" href="/architecture">
           Inspect boundaries

@@ -28,7 +28,7 @@ Sepolia evidence: [deployment record](deployments/sepolia-reward-demo.json), [al
 | Capability | Honest boundary |
 | --- | --- |
 | Privy account | The client offers Google, email, or wallet login, distinguishes `authenticated` from wallet discovery, creates an embedded wallet for users without one, and provides logout/link-wallet controls. Protected APIs verify access and identity tokens. The Production verification key is configured; Google OAuth remains disabled in the Privy project while email and wallet login are enabled. |
-| Plan 5 durable storage | A Redis adapter persists participants, submissions, evaluations, Final Entry, and reward records. Vercel Upstash installation is waiting for the project owner to accept the provider terms, so production writes fail closed. |
+| Plan 5 durable storage | Vercel Upstash Redis is connected in Production, Preview, and Development. The adapter persists participants, submissions, evaluations, Final Entry, idempotency records, and reward receipts across deployments. |
 | Plan 5 participant reward | A dedicated Sepolia reward pool is funded with a finite 100,000 FDT demo balance. Its limited relayer has no token mint authority. The orchestrator commits one participant allocation, waits for `RewardPaid`, and stores the receipt; Production contract and relayer variables are configured. |
 | Bazantic | A gateway and MCP tool surface were activated externally; Marketplace verification was pending and service/Recipe identifiers are not committed as repository evidence |
 | ENSv2 | Adapter and fail-closed boundary exist, but no current parent name, delegated permission, or live runtime evidence is configured |
@@ -38,7 +38,6 @@ Sepolia evidence: [deployment record](deployments/sepolia-reward-demo.json), [al
 
 ## Not implemented as a production tournament
 
-- Active production participant and submission storage (adapter implemented; Upstash connection pending)
 - World ID or another deployed uniqueness check
 - Arbitrary untrusted source compilation and isolated execution
 - Hidden final datasets or workloads
@@ -63,7 +62,6 @@ Never infer one state from another.
 
 ### Now
 
-- Accept the free Upstash integration terms so the already implemented durable adapter receives Production credentials.
 - Deploy and rehearse the Emergency Supply path from login through reload, Final Entry, and a fresh recipient transaction.
 
 ### Next
