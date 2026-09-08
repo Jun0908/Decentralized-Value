@@ -3118,6 +3118,10 @@ a.table-row:hover {
   color: #c1c5c7;
   font-size: 0.58rem;
 }
+.competition-revisions button:not(.selected-final) {
+  color: #111;
+  -webkit-text-fill-color: #111;
+}
 .selected-final {
   border: 1px solid var(--lime);
   background: transparent;
