@@ -36,9 +36,6 @@ export function HomeProtocolHero() {
                   : "Checking login..."}
             </button>
           )}
-          <Link className="secondary-action" href="/arenas">
-            Explore arenas
-          </Link>
         </div>
       </div>
 
