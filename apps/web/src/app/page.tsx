@@ -1,4 +1,3 @@
-import { evaluateCalldataCodec } from "@frontier/calldata-compression";
 import Link from "next/link";
 import { ArenaCard } from "@/components/arena-card";
 import { HomeProtocolHero } from "@/components/home-protocol-hero";
@@ -7,8 +6,7 @@ import { arenaRegistry } from "@/lib/arenas";
 
 const github = "https://github.com/Jun0908/Decentralized-Value";
 
-export default async function HomePage() {
-  const evmResult = await evaluateCalldataCodec("packed");
+export default function HomePage() {
   const deploymentCommit = process.env.VERCEL_GIT_COMMIT_SHA;
   const commit = deploymentCommit?.slice(0, 7) ?? "local build";
   const commitHref = deploymentCommit
@@ -18,21 +16,7 @@ export default async function HomePage() {
   return (
     <main className="page-shell platform-home">
       <section className="finalist-hero" id="evm-demo">
-        <HomeProtocolHero initialResult={evmResult} />
-        <dl className="finalist-proof-strip">
-          <div>
-            <dt>Live Cancun EVM</dt>
-            <dd>Real Solidity execution</dd>
-          </div>
-          <div>
-            <dt>71 tests</dt>
-            <dd>Automated checks passed</dd>
-          </div>
-          <div>
-            <dt>Sepolia payout</dt>
-            <dd>RewardPaid recorded</dd>
-          </div>
-        </dl>
+        <HomeProtocolHero />
       </section>
 
       <section className="role-flow" id="how-it-works" aria-labelledby="role-flow-heading">
