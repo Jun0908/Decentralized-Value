@@ -27,7 +27,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
             <Link className="wordmark" href="/" aria-label="Value Decentralization home">
               <Image
                 className="wordmark-logo"
-                src="/logo.png"
+                src="/logo.svg"
                 alt=""
                 width={44}
                 height={44}
