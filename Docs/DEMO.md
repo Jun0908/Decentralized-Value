@@ -83,6 +83,13 @@ State clearly that this is a completed Sepolia demonstration payout, not a compl
 | A community Value Pool changes practice allocation | The community pool funded or changed the Sepolia payout |
 | A wallet can connect through Privy | The connection is a tournament entry or payout approval |
 | The instant demo reveals a precommitted final scenario set | A scheduled hidden-final tournament has run |
+| Secret Gate generates a real Semaphore proof in the browser and verifies it offchain | The proof was verified on Ethereum or establishes a real identity |
+
+## Optional Secret Gate walkthrough
+
+After the primary demo, open **Secret Gate** and create a disposable identity. Explain that the secret remains in the browser and only its commitment joins an eight-member synthetic group snapshot. Create the snapshot, press **Prove and enter**, and show the offchain verification receipt. Press it again to demonstrate nullifier replay rejection.
+
+The personal-device benchmark runs real proofs but is not an official competition result. The first controlled feasibility run was a `PIVOT`, so do not describe the latency-memory frontier or proposed Value Pools as settled competition evidence.
 
 ## Recovery
 

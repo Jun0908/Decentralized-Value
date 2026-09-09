@@ -41,7 +41,7 @@ export default function HomePage() {
       <section className="home-arenas" id="arenas" aria-labelledby="home-arenas-heading">
         <header className="section-heading-row">
           <div>
-            <p className="eyebrow">03 arenas</p>
+            <p className="eyebrow">{String(arenaRegistry.length).padStart(2, "0")} arenas</p>
             <h2 id="home-arenas-heading">Choose the value you want to improve.</h2>
           </div>
         </header>

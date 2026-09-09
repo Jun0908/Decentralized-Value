@@ -23,7 +23,8 @@ export function ArenaPageShell({
             <div className="arena-labels">
               <span className="arena-status">{arena.status}</span>
               <span className="evidence-level">
-                Evidence L{arena.evidenceLevel} · Deterministic public evaluator
+                Evidence L{arena.evidenceLevel} ·
+                {arena.evidenceLabel ?? "Deterministic public evaluator"}
               </span>
             </div>
             <h1>{arena.headline}</h1>

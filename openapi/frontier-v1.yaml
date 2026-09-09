@@ -9,6 +9,44 @@ paths:
     get: { operationId: getHealth, responses: { "200": { description: Healthy } } }
   /v1/arenas:
     get: { operationId: listArenas, responses: { "200": { description: Arena list } } }
+  /v1/secret-gate:
+    get:
+      operationId: getSecretGateScenario
+      description: Returns the fixed offchain Gate policy, bounded practice strategy, workloads, artifact versions, context hash, and honest evidence boundary.
+      responses: { "200": { description: Public Secret Gate scenario } }
+  /v1/secret-gate/enroll:
+    post:
+      operationId: enrollSecretGateCommitment
+      description: Creates a short-lived synthetic eight-member group snapshot containing the submitted public commitment. No identity secret is accepted.
+      requestBody:
+        {
+          required: true,
+          content:
+            { application/json: { schema: { $ref: "#/components/schemas/SecretGateEnrollment" } } },
+        }
+      responses:
+        {
+          "201": { description: Trusted 30-minute synthetic group snapshot },
+          "400": { $ref: "#/components/responses/BadRequest" },
+          "503": { description: Durable production storage is unavailable },
+        }
+  /v1/secret-gate/enter:
+    post:
+      operationId: verifySecretGateEntry
+      description: Verifies a real Semaphore proof against the trusted root, fixed message and scope, then atomically reserves its nullifier. The result is offchain and is not an Ethereum transaction.
+      requestBody:
+        {
+          required: true,
+          content:
+            { application/json: { schema: { $ref: "#/components/schemas/SecretGateEntry" } } },
+        }
+      responses:
+        {
+          "201": { description: Gate opened with offchain verification receipt },
+          "400": { $ref: "#/components/responses/BadRequest" },
+          "409": { description: Nullifier was already used for this Gate scope },
+          "503": { description: Durable production storage is unavailable },
+        }
   /v1/emergency-supply:
     get:
       operationId: getEmergencySupplyScenario
@@ -476,6 +514,32 @@ components:
     Id: { name: id, in: path, required: true, schema: { $ref: "#/components/schemas/Bytes32" } }
   schemas:
     Bytes32: { type: string, pattern: "^0x[0-9a-fA-F]{64}$" }
+    SecretGateEnrollment:
+      type: object
+      required: [commitment]
+      properties:
+        commitment: { type: string, pattern: "^[1-9][0-9]*$" }
+      additionalProperties: false
+    SemaphoreProof:
+      type: object
+      required: [merkleTreeDepth, merkleTreeRoot, message, nullifier, scope, points]
+      properties:
+        merkleTreeDepth: { type: integer, minimum: 1, maximum: 32 }
+        merkleTreeRoot: { type: string, pattern: "^[1-9][0-9]*$" }
+        message: { type: string, pattern: "^[1-9][0-9]*$" }
+        nullifier: { type: string, pattern: "^[1-9][0-9]*$" }
+        scope: { type: string, pattern: "^[1-9][0-9]*$" }
+        points:
+          { type: array, minItems: 8, maxItems: 8, items: { type: string, pattern: "^[0-9]+$" } }
+      additionalProperties: false
+    SecretGateEntry:
+      type: object
+      required: [gateId, epoch, proof]
+      properties:
+        gateId: { type: string, const: public-demo-gate }
+        epoch: { type: string, const: 2026-09-demo-1 }
+        proof: { $ref: "#/components/schemas/SemaphoreProof" }
+      additionalProperties: false
     EvaluationInput:
       type: object
       required: [artifactId]

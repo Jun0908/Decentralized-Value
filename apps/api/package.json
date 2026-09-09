@@ -17,6 +17,7 @@
     "@frontier/emergency-supply": "workspace:*",
     "@frontier/ens-adapter": "workspace:*",
     "@frontier/microgrid-dispatch": "workspace:*",
+    "@frontier/secret-gate": "workspace:*",
     "@frontier/shared": "workspace:*",
     "fflate": "^0.8.3",
     "viem": "2.56.3",

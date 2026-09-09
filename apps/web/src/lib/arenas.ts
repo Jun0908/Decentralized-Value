@@ -25,6 +25,7 @@ export type ArenaDefinition = {
   audience: string;
   metrics: readonly { name: string; direction: "Minimize" | "Maximize"; unit: string }[];
   evidenceLevel: 0 | 1 | 2 | 3 | 4;
+  evidenceLabel?: string;
   actionLabel: string;
 } & ArenaLifecycle;
 
@@ -73,6 +74,29 @@ export const arenaRegistry = [
     deadline: "No deadline",
     reward: "No practice reward",
     actionLabel: "Measure a codec",
+  },
+  {
+    slug: "secret-gate",
+    challengeId: "secret-gate-v1",
+    kind: "secret-gate",
+    name: "Secret Gate",
+    category: "Ethereum privacy",
+    status: "Practice",
+    funding: { state: "none" },
+    headline: "Prove membership. Keep the identity secret on your device.",
+    summary:
+      "Generate a real Semaphore proof in the browser, verify one-use access off-chain, and inspect the latency and memory cost without combining them into one score.",
+    audience: "Privacy, identity, wallet, and client-side proving developers",
+    evidenceLevel: 0,
+    evidenceLabel: "Real ZK · controlled observational benchmark",
+    metrics: [
+      { name: "P95 proof latency", direction: "Minimize", unit: "ms" },
+      { name: "Peak incremental memory", direction: "Minimize", unit: "MiB" },
+    ],
+    participation: "Open practice",
+    deadline: "No deadline",
+    reward: "No practice reward",
+    actionLabel: "Prove and enter",
   },
   {
     slug: "microgrid-dispatch",

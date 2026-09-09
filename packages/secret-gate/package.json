@@ -1,0 +1,23 @@
+{
+  "name": "@frontier/secret-gate",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@frontier/shared": "workspace:*",
+    "@semaphore-protocol/group": "4.14.3",
+    "@semaphore-protocol/identity": "4.14.3",
+    "@semaphore-protocol/proof": "4.14.3",
+    "viem": "2.56.3",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "vitest": "5.0.0"
+  }
+}

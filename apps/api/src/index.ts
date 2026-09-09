@@ -19,6 +19,7 @@ import {
   publicDisasterResponseScenario,
 } from "@frontier/disaster-response";
 import { evaluateMicrogridDispatch, publicMicrogridScenario } from "@frontier/microgrid-dispatch";
+import { publicSecretGateScenario } from "@frontier/secret-gate";
 import type { EnsRunnerDirectory } from "@frontier/ens-adapter";
 import { z } from "zod";
 import { keccak256, stringToHex, type Hex } from "viem";
@@ -342,6 +343,7 @@ export class FrontierApi {
           publicEmergencySupplyScenario(),
           await publicCalldataCompressionScenario(),
           publicMicrogridScenario(),
+          publicSecretGateScenario(),
           this.challenge(),
         ],
       });

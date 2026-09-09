@@ -84,6 +84,12 @@ The competition APIs keep external state behind fail-closed adapters. Privy toke
 
 Development and legacy surfaces such as `/arena`, `/artifact/*`, `/runners`, and `/sponsor-debug` are not part of the primary user navigation.
 
+### Secret Gate observational boundary
+
+Secret Gate adds a different evidence class from the deterministic arena evaluators. The browser creates the Semaphore identity and generates the proof in a Web Worker. The server receives only a commitment during enrollment and a proof with public signals during entry. It accepts only an unexpired synthetic group root, the fixed Gate message and scope, a valid official Semaphore verification result, and an atomically unused nullifier.
+
+Strategy, workload, artifact, and environment hashes are deterministic. Wall-clock latency and process memory are observations and may vary between runs. A benchmark evidence hash commits the exact raw observations and deterministic aggregation; it does not claim that a rerun produces identical values. Personal-device observations and controlled-runner evidence use separate contexts and never share a leaderboard or allocation calculation.
+
 ## Runtime layout
 
 ```text
@@ -95,6 +101,7 @@ packages/emergency-supply     allocation scenario and evaluator
 packages/disaster-response    Strategy v2, 72-hour simulator, scenarios, value evidence inputs
 packages/calldata-compression codecs, compiler output, EVM evaluator
 packages/microgrid-dispatch   three-axis evaluator
+packages/secret-gate          Semaphore gate policy, strategy schema, contexts, and evidence
 packages/contracts            Foundry contracts and deployment scripts
 packages/ens-adapter          optional ENS discovery/authorization boundary
 packages/ledger-adapter       archived optional hardware boundary

@@ -9,7 +9,9 @@ export function ArenaCard({ arena, index }: { arena: ArenaDefinition; index: num
         <span className="arena-status">{arena.status}</span>
       </header>
       <p className="arena-category">{arena.category}</p>
-      <p className="evidence-level">Evidence L{arena.evidenceLevel} · Deterministic evaluator</p>
+      <p className="evidence-level">
+        Evidence L{arena.evidenceLevel} · {arena.evidenceLabel ?? "Deterministic evaluator"}
+      </p>
       <h3>{arena.name}</h3>
       <p className="arena-card-summary">{arena.summary}</p>
       <dl className="arena-card-metrics">

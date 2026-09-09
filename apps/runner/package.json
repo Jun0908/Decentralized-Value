@@ -10,6 +10,7 @@
     "@frontier/ens-adapter": "workspace:*",
     "@frontier/ledger-adapter": "workspace:*",
     "@frontier/shared": "workspace:*",
+    "@frontier/secret-gate": "workspace:*",
     "viem": "2.56.3",
     "zod": "4.5.4"
   }

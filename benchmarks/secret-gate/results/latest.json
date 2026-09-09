@@ -1,0 +1,162 @@
+{
+  "generatedAt": "2026-09-09T14:18:00.711Z",
+  "browser": "installed Google Chrome, headless controlled profile",
+  "environment": "local Windows feasibility runner",
+  "status": "feasibility-only; not settlement evidence",
+  "schemaVersion": "1",
+  "measurementClass": "controlled-chromium-feasibility",
+  "decision": "PIVOT",
+  "rationale": "The initial trials did not establish a stable multi-point latency-memory frontier.",
+  "thresholds": {
+    "latencyTolerance": "max(25 ms, 5%)",
+    "memoryTolerance": "max(5 MiB, 5%)",
+    "maximumCoefficientOfVariation": 0.15,
+    "minimumFrontierPoints": 2
+  },
+  "summaries": [
+    {
+      "strategyId": "parallel-2",
+      "trialCount": 2,
+      "maxParallelProofs": 2,
+      "workerLifecycle": "reuse",
+      "artifactLoad": "on-demand",
+      "medianP95LatencyMs": 2759,
+      "medianPeakIncrementalMemoryMb": 463,
+      "latencyCv": 0.299,
+      "memoryCv": 0.003
+    },
+    {
+      "strategyId": "parallel-4",
+      "trialCount": 2,
+      "maxParallelProofs": 4,
+      "workerLifecycle": "reuse",
+      "artifactLoad": "on-demand",
+      "medianP95LatencyMs": 3978,
+      "medianPeakIncrementalMemoryMb": 172.6,
+      "latencyCv": 0.595,
+      "memoryCv": 0.331
+    },
+    {
+      "strategyId": "sequential-fresh",
+      "trialCount": 2,
+      "maxParallelProofs": 1,
+      "workerLifecycle": "per-request",
+      "artifactLoad": "on-demand",
+      "medianP95LatencyMs": 4572,
+      "medianPeakIncrementalMemoryMb": 102.4,
+      "latencyCv": 0.52,
+      "memoryCv": 0.184
+    },
+    {
+      "strategyId": "sequential-reuse",
+      "trialCount": 2,
+      "maxParallelProofs": 1,
+      "workerLifecycle": "reuse",
+      "artifactLoad": "on-demand",
+      "medianP95LatencyMs": 1943,
+      "medianPeakIncrementalMemoryMb": 463.4,
+      "latencyCv": 0.098,
+      "memoryCv": 0.065
+    }
+  ],
+  "frontierStrategyIds": ["parallel-4", "sequential-fresh", "sequential-reuse"],
+  "trials": [
+    {
+      "strategyId": "sequential-reuse",
+      "maxParallelProofs": 1,
+      "workerLifecycle": "reuse",
+      "artifactLoad": "on-demand",
+      "p95LatencyMs": 1753,
+      "baselineRssBytes": 627933184,
+      "peakRssBytes": 1145556992,
+      "peakIncrementalMemoryMb": 493.6,
+      "proofCount": 4,
+      "allProofsVerified": true
+    },
+    {
+      "strategyId": "parallel-4",
+      "maxParallelProofs": 4,
+      "workerLifecycle": "reuse",
+      "artifactLoad": "on-demand",
+      "p95LatencyMs": 6346,
+      "baselineRssBytes": 616898560,
+      "peakRssBytes": 857788416,
+      "peakIncrementalMemoryMb": 229.7,
+      "proofCount": 4,
+      "allProofsVerified": true
+    },
+    {
+      "strategyId": "sequential-fresh",
+      "maxParallelProofs": 1,
+      "workerLifecycle": "per-request",
+      "artifactLoad": "on-demand",
+      "p95LatencyMs": 6951,
+      "baselineRssBytes": 616026112,
+      "peakRssBytes": 703549440,
+      "peakIncrementalMemoryMb": 83.5,
+      "proofCount": 4,
+      "allProofsVerified": true
+    },
+    {
+      "strategyId": "parallel-2",
+      "maxParallelProofs": 2,
+      "workerLifecycle": "reuse",
+      "artifactLoad": "on-demand",
+      "p95LatencyMs": 1935,
+      "baselineRssBytes": 623136768,
+      "peakRssBytes": 1109909504,
+      "peakIncrementalMemoryMb": 464.2,
+      "proofCount": 4,
+      "allProofsVerified": true
+    },
+    {
+      "strategyId": "parallel-2",
+      "maxParallelProofs": 2,
+      "workerLifecycle": "reuse",
+      "artifactLoad": "on-demand",
+      "p95LatencyMs": 3583,
+      "baselineRssBytes": 619548672,
+      "peakRssBytes": 1103663104,
+      "peakIncrementalMemoryMb": 461.7,
+      "proofCount": 4,
+      "allProofsVerified": true
+    },
+    {
+      "strategyId": "sequential-fresh",
+      "maxParallelProofs": 1,
+      "workerLifecycle": "per-request",
+      "artifactLoad": "on-demand",
+      "p95LatencyMs": 2193,
+      "baselineRssBytes": 627888128,
+      "peakRssBytes": 754950144,
+      "peakIncrementalMemoryMb": 121.2,
+      "proofCount": 4,
+      "allProofsVerified": true
+    },
+    {
+      "strategyId": "parallel-4",
+      "maxParallelProofs": 4,
+      "workerLifecycle": "reuse",
+      "artifactLoad": "on-demand",
+      "p95LatencyMs": 1610,
+      "baselineRssBytes": 621318144,
+      "peakRssBytes": 742318080,
+      "peakIncrementalMemoryMb": 115.4,
+      "proofCount": 4,
+      "allProofsVerified": true
+    },
+    {
+      "strategyId": "sequential-reuse",
+      "maxParallelProofs": 1,
+      "workerLifecycle": "reuse",
+      "artifactLoad": "on-demand",
+      "p95LatencyMs": 2132,
+      "baselineRssBytes": 617132032,
+      "peakRssBytes": 1071362048,
+      "peakIncrementalMemoryMb": 433.2,
+      "proofCount": 4,
+      "allProofsVerified": true
+    }
+  ],
+  "evidenceHash": "0xe6d463a7d825dbc1ffedbf05991af8989d82803b464785263c62ca06c617b149"
+}

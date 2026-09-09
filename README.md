@@ -60,7 +60,7 @@ The Sepolia demonstration records the final allocation, prevents a second commit
 
 The demonstration increased the recipient balance by `10,000 FDT`. FDT is a Sepolia demonstration token with no claim of monetary value.
 
-## Three working arenas
+## Four working arenas
 
 ### Ethereum Calldata Compression
 
@@ -82,6 +82,12 @@ Measures energy cost, worst-case delivered energy and lifecycle carbon as three 
 
 [Build a dispatch](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/microgrid-dispatch)
 
+### Secret Gate
+
+Creates a disposable Semaphore identity in the browser, enrolls only its public commitment, and generates a real zero-knowledge membership proof in a Web Worker. The current reference Gate verifies offchain and rejects a second use of the same nullifier. Its personal-device latency and memory measurements are observational practice evidence, not an official competition.
+
+[Prove membership](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/secret-gate)
+
 Each arena supplies its own inputs, correctness checks and metrics. The challenge shell, frontier engine and settlement interface remain shared.
 
 ## Beyond a better competition
@@ -100,7 +106,8 @@ Working today:
 - deterministic correctness, metric and Pareto evaluation;
 - editable Disaster Response and Microgrid simulations;
 - independent Value Pool manifests, deterministic allocations, and a community Protect a Region practice pool;
-- `84` automated TypeScript tests in the local build evidence;
+- `91` automated TypeScript tests in the local build evidence;
+- real client-side Semaphore proof generation and one-use offchain Gate verification;
 - a publicly inspectable Sepolia reward-path demonstration.
 
 The public evaluators and Sepolia reward demonstration are real. Disaster Response and Classic Emergency Supply participant state use durable Redis storage in production. Participant uniqueness, isolated arbitrary-code execution, hidden final workloads, and scheduled final settlement are not deployed.

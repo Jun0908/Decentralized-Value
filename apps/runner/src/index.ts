@@ -10,6 +10,8 @@ import {
 import { getAddress, keccak256, recoverTypedDataAddress, stringToHex, type Hex } from "viem";
 import { z } from "zod";
 
+export * from "./secret-gate-runner";
+
 export const runnerJobSchema = z.object({
   jobId: z.string().uuid(),
   challengeId: bytes32Schema,

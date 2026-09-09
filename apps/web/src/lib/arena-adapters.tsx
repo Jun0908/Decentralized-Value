@@ -56,8 +56,27 @@ const microgridAdapter: ArenaAdapter = {
   },
 };
 
+const secretGateAdapter: ArenaAdapter = {
+  kind: "secret-gate",
+  challengeId: "secret-gate-v1",
+  async renderWorkbench() {
+    const [{ publicSecretGateScenario }, { SecretGateWorkbench }] = await Promise.all([
+      import("@frontier/secret-gate"),
+      import("@/components/secret-gate-workbench"),
+    ]);
+    return <SecretGateWorkbench scenario={publicSecretGateScenario()} />;
+  },
+  async loadManifest() {
+    const { secretGateManifest, secretGateManifestHash } = await import("@frontier/secret-gate");
+    return { manifest: secretGateManifest, manifestHash: secretGateManifestHash };
+  },
+};
+
 export const arenaAdapters: ReadonlyMap<string, ArenaAdapter> = new Map(
-  [supplyAdapter, calldataAdapter, microgridAdapter].map((adapter) => [adapter.kind, adapter]),
+  [supplyAdapter, calldataAdapter, microgridAdapter, secretGateAdapter].map((adapter) => [
+    adapter.kind,
+    adapter,
+  ]),
 );
 
 export function getArenaAdapter(kind: string): ArenaAdapter | undefined {

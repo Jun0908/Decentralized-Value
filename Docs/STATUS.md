@@ -2,15 +2,15 @@
 
 - **Last verified:** 2026-09-09
 - **Public application:** <https://web-rho-seven-d6te7t3f0y.vercel.app>
-- **Active plan:** none; the repository is ready for the next product brief
+- **Active plan:** [`Plan8.md`](Plan8.md) — Secret Gate feasibility, reference application, and conditional client-side proving competition
 
-This document records the current capability boundary. Product rules live in [`PRODUCT.md`](PRODUCT.md), and completed plans live under [`archive/`](archive/).
+This document records the current capability boundary. Product rules live in [`PRODUCT.md`](PRODUCT.md), the active Secret Gate work is scoped in [`Plan8.md`](Plan8.md), and completed plans live under [`archive/`](archive/).
 
 ## Working now
 
 | Area | Proven capability |
 | --- | --- |
-| Public web application | The Top page explains the protocol and routes users to three working arenas. The UI and `/v1/*` API share one Vercel origin. |
+| Public web application | The Top page explains the protocol and routes users to four working arenas. The UI and `/v1/*` API share one Vercel origin. |
 | 72-Hour Disaster Response | Strategy v2 builder, seven deterministic scenarios, 15-second replay, revision history, one selected Final Entry, three independent outcomes, Value Pools, practice missions, Agent provenance, and Sepolia demo settlement. |
 | Calldata Compression | Compiled Solidity decoder bytecode executes in EthereumJS EVM under Cancun rules. Calldata gas and decoder execution gas remain separate. |
 | Community Microgrid Dispatch | Deterministic comparison across energy cost, worst-case delivered energy, and lifecycle carbon. |
@@ -19,6 +19,7 @@ This document records the current capability boundary. Product rules live in [`P
 | Human and Agent entry | The Disaster Response Starter Kit publishes the Strategy schema, evaluator contract, scenarios, constraints, limits, baseline Agent, and reproduction command. Only measured outcomes affect allocation. |
 | Reward contracts | `FrontierRewardPool` and `FrontierDemoToken` cover commitment, distribution, and claim fallback. A completed Sepolia demonstration records funding, allocation commitment, `RewardPaid`, and recipient balance evidence. |
 | Classic fallback | The earlier Emergency Supply competition remains available at `/arenas/emergency-supply-classic` with its independent API and storage namespace. |
+| Secret Gate reference application | A real Semaphore V4 proof is generated in a browser Web Worker, verified offchain against a trusted synthetic group snapshot, and protected against same-scope reuse by an atomic nullifier store. The public production route passed desktop and mobile verification. |
 
 Sepolia evidence: [deployment record](deployments/sepolia-reward-demo.json), [allocation commitment](https://sepolia.etherscan.io/tx/0x96fd7a9d1f4a3bbd2fa7a9ea28d250a16e8eedbaff05b51a4f33e581c3839f2c), and [RewardPaid](https://sepolia.etherscan.io/tx/0xd976a968aefeb66d7e60fba7a9cf64c8711195fc3652aeccc20c7448069ad708).
 
@@ -33,6 +34,7 @@ Sepolia evidence: [deployment record](deployments/sepolia-reward-demo.json), [al
 | Policy Artifact | The declarative contract is documented in the Starter Kit but arbitrary participant policies are not executed. |
 | Legacy order-book sample | Retained as historical technical material; its throughput axis is simulated rather than observed chain throughput. |
 | Ledger adapter | Retained as historical optional code and unused by the public path. |
+| Secret Gate competition | The first controlled Chrome feasibility run verified all 32 proofs but returned `PIVOT`: latency and memory variance exceeded the declared stability gate. Personal-device measurements are available, but no official leaderboard or Value Pool is active. |
 
 ## Not yet a production tournament
 
@@ -53,6 +55,6 @@ Sepolia evidence: [deployment record](deployments/sepolia-reward-demo.json), [al
 | `paid` | Transfer/event and recipient evidence exist |
 | `Practice` | Measurement is real while the production tournament layer remains incomplete |
 
-## Starting the next change
+## Active next change
 
-Begin from the user's new outcome rather than a new numbered plan. Record a multi-turn objective here only when it helps coordinate unfinished work; otherwise update the relevant product, architecture, integration, arena, or demo document alongside the implementation.
+The real offchain Secret Gate is publicly deployed. The initial competition decision is `PIVOT`; see [`arenas/secret-gate.md`](arenas/secret-gate.md) and the checked-in feasibility evidence. Any later Sepolia step remains unfinished. The proving benchmark must not be presented as a competition unless repeated controlled measurements demonstrate a stable independent tradeoff.

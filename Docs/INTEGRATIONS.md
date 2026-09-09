@@ -49,6 +49,14 @@ The client is configured for Google, email, or wallet login and creates an Ether
 
 The competition store persists participants, revisions, evaluations, Final Entries, idempotency records, and reward receipts through a provider-neutral boundary. The Upstash resource is attached to the Vercel project for Production, Preview, and Development through `KV_REST_API_URL` / `KV_REST_API_TOKEN`. The public challenge API reports `durable-redis` when this adapter is active.
 
+Secret Gate uses a separate `frontier:secret-gate:v1` namespace for trusted 30-minute group snapshots and one-day nullifier replay protection. Production enrollment and entry fail closed without durable Redis.
+
+## Semaphore V4 — public offchain implementation active
+
+Secret Gate pins `@semaphore-protocol/identity`, `group`, and `proof` to 4.14.3. The depth-3 4.13.0 proof artifacts are checked into the web public assets with recorded SHA-256 hashes, so browser proof generation does not depend on a cross-origin artifact fetch.
+
+The current Gate verification is offchain. No Sepolia Semaphore group, Gate contract transaction, or onchain nullifier evidence has been created, so the UI must not display an onchain-verified state.
+
 ## Participant reward relayer — configured
 
 The participant-addressed payout is enabled through a dedicated, limited Sepolia relayer. It owns the `FrontierRewardPool` but not the token, so it cannot mint. The server verifies pool ownership and chain, enforces a per-reward cap, checks the finite prefunded balance, commits a participant-specific allocation, distributes once, waits for confirmation, and persists the receipt in Redis.

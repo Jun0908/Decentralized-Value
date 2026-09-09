@@ -47,6 +47,7 @@ In the current Disaster Response practice arena, Human and AI Agent submissions 
 | Ethereum Calldata Compression | Minimize calldata gas and decoder execution gas | Main Ethereum technical proof |
 | 72-Hour Disaster Response | Minimize 72-hour cost while maximizing worst-case delivery and worst-region coverage | Primary social competition with strategy, disaster replay, independent Value Pools, community value creation, and demo settlement |
 | Community Microgrid Dispatch | Minimize cost and carbon while maximizing worst-case delivered energy | Three-axis extensibility proof |
+| Secret Gate | Prove synthetic group membership once per scope; observe proof latency and memory separately | Real client-side Semaphore reference application; competition remains gated by benchmark stability |
 
 Detailed active specifications are under `Docs/arenas/`. The arena registry adds shared presentation and routing; a genuinely new problem shape still requires an evaluator adapter and deterministic tests.
 

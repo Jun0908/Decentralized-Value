@@ -10,16 +10,19 @@
   },
   "scripts": {
     "benchmark:orderbook": "tsx benchmarks/evm-orderbook/src/run.ts",
+    "benchmark:secret-gate": "tsx scripts/benchmark-secret-gate.ts",
     "build": "pnpm build:contracts && pnpm --filter @frontier/web build",
     "build:contracts": "forge build --root packages/contracts",
     "ci": "pnpm env:check && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm benchmark:orderbook && pnpm build",
     "dev": "pnpm --filter @frontier/web dev",
     "deploy:sepolia": "pnpm --dir packages/contracts exec forge script script/Deploy.s.sol:Deploy --rpc-url sepolia --broadcast --verify",
+    "deploy:secret-gate:sepolia": "pnpm --dir packages/contracts exec forge script script/DeploySecretGate.s.sol:DeploySecretGate --rpc-url sepolia --broadcast --verify",
     "demo:check": "tsx scripts/demo-check.ts",
     "demo:seed": "tsx scripts/demo-seed.ts",
     "deploy:reward-demo": "tsx scripts/deploy-reward-demo.ts",
     "deploy:plan5-reward": "tsx scripts/deploy-plan5-reward.ts",
     "env:check": "tsx scripts/validate-env.ts",
+    "artifacts:secret-gate": "tsx scripts/fetch-secret-gate-artifacts.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . && forge fmt --root packages/contracts --check",
@@ -29,7 +32,8 @@
     "test:contracts": "forge test --root packages/contracts",
     "test:ts": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "pnpm -r --if-present typecheck"
+    "typecheck": "pnpm -r --if-present typecheck",
+    "verify:secret-gate": "tsx scripts/verify-secret-gate.ts"
   },
   "devDependencies": {
     "@types/node": "22.20.1",
@@ -38,6 +42,7 @@
     "eslint-config-next": "16.3.4",
     "eslint-config-prettier": "10.1.8",
     "prettier": "3.9.6",
+    "playwright": "1.63.0",
     "solc": "0.8.30",
     "tsx": "4.23.13",
     "typescript": "6.0.3",
