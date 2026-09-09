@@ -1,18 +1,8 @@
-import Link from "next/link";
 import { ArenaCard } from "@/components/arena-card";
 import { HomeProtocolHero } from "@/components/home-protocol-hero";
-import { SettlementEvidence } from "@/components/settlement-evidence";
 import { arenaRegistry } from "@/lib/arenas";
 
-const github = "https://github.com/Jun0908/Decentralized-Value";
-
 export default function HomePage() {
-  const deploymentCommit = process.env.VERCEL_GIT_COMMIT_SHA;
-  const commit = deploymentCommit?.slice(0, 7) ?? "local build";
-  const commitHref = deploymentCommit
-    ? `${github}/commit/${deploymentCommit}`
-    : `${github}/commits/main`;
-
   return (
     <main className="page-shell platform-home">
       <section className="finalist-hero" id="evm-demo">
@@ -60,57 +50,6 @@ export default function HomePage() {
             <ArenaCard arena={arena} index={index} key={arena.slug} />
           ))}
         </div>
-      </section>
-
-      <SettlementEvidence />
-
-      <section className="trust-evidence" id="about" aria-labelledby="trust-heading">
-        <div>
-          <p className="eyebrow">Inspect, reproduce, challenge</p>
-          <h2 id="trust-heading">The proof is part of the product.</h2>
-          <p>
-            Dataset, constraints, metrics, result, and settlement are separate evidence layers. A
-            missing external proof remains visibly missing—it is never replaced by demo data.
-          </p>
-        </div>
-        <div className="trust-links">
-          <Link href="/architecture">
-            <span>Architecture</span>
-            <strong>Follow every hash and trust boundary →</strong>
-          </Link>
-          <a href={`${github}/tree/main/packages/emergency-supply/src`}>
-            <span>Evaluator source</span>
-            <strong>Inspect the deterministic measurement →</strong>
-          </a>
-          <a href={`${github}/tree/main/packages/contracts/src`}>
-            <span>Settlement source</span>
-            <strong>Inspect commit, distribute, and claim →</strong>
-          </a>
-          <a href={`${github}/blob/main/Docs/deployments/sepolia-reward-demo.json`}>
-            <span>Deployment evidence</span>
-            <strong>Inspect Sepolia addresses and receipts →</strong>
-          </a>
-          <a href={commitHref}>
-            <span>Build evidence</span>
-            <strong>71 TypeScript tests · CI commit {commit} →</strong>
-          </a>
-        </div>
-      </section>
-
-      <section className="platform-status">
-        <div>
-          <p className="eyebrow">Honest product status</p>
-          <h2>72-Hour Disaster Response is now the complete demo competition.</h2>
-        </div>
-        <p>
-          Build a strategy, test it against public disruptions, submit revisions, choose a Final
-          Entry, and receive a Sepolia demo reward for the values it advances. The original
-          Emergency Supply experience remains available as a fallback; this is still a demo round,
-          not a monetary-value tournament.
-        </p>
-        <Link className="primary-action" href="/architecture">
-          Inspect boundaries
-        </Link>
       </section>
     </main>
   );

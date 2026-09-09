@@ -1570,7 +1570,7 @@ export function DisasterResponseCompetition({ initialScenario }: { initialScenar
               onClick={() => void runPractice()}
               translate="no"
             >
-              Run simulation / シミュレーション実行
+              Run simulation
             </button>
             <button
               disabled={!participant || pending === "submit" || !agentEvidenceValid}

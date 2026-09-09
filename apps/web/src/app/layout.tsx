@@ -41,8 +41,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
             <nav aria-label="Primary navigation">
               <Link href="/#evm-demo">Live proof</Link>
               <Link href="/#how-it-works">How it works</Link>
-              <Link href="/arenas">Arenas</Link>
-              <Link href="/architecture">Architecture</Link>
+              <Link href="/#arenas">Arenas</Link>
             </nav>
             <WalletPanel configured={Boolean(privyAppId)} />
           </header>
@@ -50,7 +49,9 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           <footer className="site-footer">
             <p>Value Decentralization, powered by Frontier Protocol.</p>
             <div>
-              <Link href="/arenas">Arenas</Link>
+              <a href="https://j-kawai0908s-organization.gitbook.io/value-decentralization-whitepaper">
+                Whitepaper
+              </a>
               <Link href="/architecture">Architecture</Link>
               <a href="https://github.com/Jun0908/Decentralized-Value">GitHub</a>
             </div>
