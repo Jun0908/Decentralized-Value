@@ -1,61 +1,117 @@
 # Value Decentralization
 
-**Powered by Frontier Protocol**
+**Frontier Protocol rewards useful tradeoffs without hiding them inside one score.**
 
-> Reward every valid solution that expands what is possible.
+Most competitions combine cost, performance, safety or resilience into a weighted total. That produces a clean ranking, but the weights have already decided which kind of improvement matters most.
 
-Frontier Protocol is an Ethereum-native reward protocol for problems with more than one valid definition of “better.” Sponsors publish independent goals and correctness rules. Builders and AI agents submit solutions. Deterministic evaluators preserve every non-dominated tradeoff on a Pareto frontier, and Ethereum makes the final reward allocation publicly verifiable.
+Value Decentralization keeps each metric independent and lets funders publish separate Value Pools with visible rules and budgets. Correct solutions can receive support for efficiency, resilience, fairness, or the new Pareto-frontier area they contribute—without one overall winner.
 
-[Open the public demo](https://web-rho-seven-d6te7t3f0y.vercel.app) · [Verify the Sepolia reward](https://sepolia.etherscan.io/tx/0xd976a968aefeb66d7e60fba7a9cf64c8711195fc3652aeccc20c7448069ad708)
+[Live product](https://web-rho-seven-d6te7t3f0y.vercel.app) · [Sepolia reward](https://sepolia.etherscan.io/tx/0xd976a968aefeb66d7e60fba7a9cf64c8711195fc3652aeccc20c7448069ad708) · [Architecture](https://web-rho-seven-d6te7t3f0y.vercel.app/architecture)
+
+## A result you can reproduce
+
+The homepage runs compiled Solidity decoder bytecode inside an EthereumJS Cancun EVM. The preloaded Packed codec produces:
+
+| Calldata gas | Decoder gas | Correctness | Frontier contribution |
+| -----------: | ----------: | :---------: | --------------------: |
+|      `8,200` |    `13,061` |   `PASS`    |              `+5.27%` |
+
+Dictionary encoding uses less calldata. Packed decoding uses less execution gas. Neither dominates the other, so both remain rewardable. Standard ABI performs worse on both axes and receives no frontier reward.
+
+The measurement and result hash are calculated from executable bytecode rather than a precomputed animation.
+
+**[Run the live EVM proof](https://web-rho-seven-d6te7t3f0y.vercel.app/#evm-demo)**
 
 ## How it works
 
 ```text
-Sponsor publishes goals, constraints, and a reward pool
-  -> Builder or AI agent submits a valid solution
-  -> Evaluator measures every solution under the same public context
-  -> Pareto analysis keeps distinct useful tradeoffs
-  -> Ethereum records the result and distributes rewards
+Public goals, constraints, and Value Pools
+        ↓
+Builder or AI agent submits a solution
+        ↓
+Correctness gate and deterministic measurement
+        ↓
+Independent pool rules and Pareto contribution
+        ↓
+Ethereum allocation and reward
 ```
 
-A solution does not win by maximizing one hidden weighted score. It remains valuable when no other valid solution is better on every independent axis. Reward allocation is based on how much useful frontier area each solution contributes.
+Each challenge fixes its dataset, hard constraints, metrics and evaluation environment before results arrive. Invalid artifacts never enter the performance comparison.
 
-## Working proofs
+A valid result remains on the frontier when no other result performs at least as well on every axis and strictly better on one. Its exclusive contribution is the frontier area lost when that result is removed.
 
-### Ethereum Calldata Compression
+```text
+contribution[i] = HV(frontier) - HV(frontier without result[i])
 
-The Top page runs compiled Solidity decoder bytecode in a local Cancun EVM. The preloaded Packed codec deterministically reproduces:
+reward[i] = rewardPool × contribution[i] ÷ totalContribution
+```
 
-- `8,200` calldata gas
-- `13,061` decoder execution gas
-- correctness `PASS`
-- `5.27%` frontier contribution
-
-Dictionary encoding uses less calldata while Packed decoding uses less execution gas, so both remain rewardable. Standard ABI loses on both axes and is dominated.
-
-### Emergency Supply Allocation
-
-Users allocate 1,000 emergency kits among five suppliers. The API recalculates total cost, worst-case delivery, all nine single-failure scenarios, correctness, Pareto status, frontier contribution, and deterministic hashes from the submitted allocation. This is an editable social application of the same protocol, not a precomputed animation.
-
-### Extensible arenas
-
-Community Microgrid Dispatch measures cost, worst-case delivered energy, and lifecycle carbon across three independent axes. It demonstrates that Frontier Protocol is not limited to one dashboard or two metrics.
+The same evidence can therefore unlock different rewards without asking one sponsor to compress every value into a preferred weighting.
 
 ## Why Ethereum
 
-Evaluation is performed offchain because arena-specific computation can be expensive. Ethereum is used where a neutral public record matters: committing the final allocation, preventing it from being silently rewritten, and exposing reward events to every participant.
+Arena-specific evaluation runs offchain, where different datasets and execution environments are practical. Ethereum handles the boundary that participants should be able to verify independently.
 
-The Sepolia demonstration completed token funding, allocation commitment, `RewardPaid`, and a 10,000 FDT recipient balance increase:
+The Sepolia demonstration records the final allocation, prevents a second commitment or duplicate claim and emits the reward event publicly.
 
 - [Deployment record](Docs/deployments/sepolia-reward-demo.json)
 - [Allocation commitment](https://sepolia.etherscan.io/tx/0x96fd7a9d1f4a3bbd2fa7a9ea28d250a16e8eedbaff05b51a4f33e581c3839f2c)
 - [RewardPaid transaction](https://sepolia.etherscan.io/tx/0xd976a968aefeb66d7e60fba7a9cf64c8711195fc3652aeccc20c7448069ad708)
 
-The token is a Sepolia demonstration asset and has no monetary-value claim.
+The demonstration increased the recipient balance by `10,000 FDT`. FDT is a Sepolia demonstration token with no claim of monetary value.
+
+## Three working arenas
+
+### Ethereum Calldata Compression
+
+Measures calldata gas and decoder execution gas while requiring the Solidity decoder to reproduce the reference result and reject malformed input.
+
+[Measure a codec](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/calldata-compression)
+
+### 72-Hour Disaster Response
+
+Builds a response strategy across five suppliers, four routes and four regions, then replays seven disruption scenarios. Independent Value Pools reward the cheapest valid strategy, strongest worst-case delivery, fairest regional coverage and positive frontier contribution without declaring an overall winner.
+
+[Build a response strategy](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/emergency-supply)
+
+### Community Microgrid Dispatch
+
+Measures energy cost, worst-case delivered energy and lifecycle carbon as three independent axes.
+
+[Build a dispatch](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/microgrid-dispatch)
+
+Each arena supplies its own inputs, correctness checks and metrics. The challenge shell, frontier engine and settlement interface remain shared.
+
+## Beyond a better competition
+
+Ethereum made ownership and participation more open. Value Decentralization applies the same direction to a quieter question: which improvements receive capital?
+
+When price is the only visible axis, the cheapest solution wins. Keeping environmental impact separate can leave room for low-cost, low-carbon, locally resilient and circular approaches to develop at the same time.
+
+The protocol does not choose society's values. Communities publish the axes, bounds and correctness rules. Those choices stay visible, and another community can create a market with different rules.
+
+## Current status
+
+Working today:
+
+- compiled Solidity execution in a Cancun EVM;
+- deterministic correctness, metric and Pareto evaluation;
+- editable Disaster Response and Microgrid simulations;
+- independent Value Pool manifests, deterministic allocations, and a community Protect a Region practice pool;
+- `79` automated TypeScript tests in the local build evidence;
+- a publicly inspectable Sepolia reward-path demonstration.
+
+The public evaluators and Sepolia reward demonstration are real but currently separate. A funded public tournament, durable participant storage, World ID uniqueness, hidden final workloads and scheduled final settlement are not deployed.
+
+See [Docs/STATUS.md](Docs/STATUS.md) for the exact implementation boundary.
 
 ## Run locally
 
-Requirements: Node.js 22+, pnpm 11.24.0 through Corepack, and Foundry 1.8.1 for contract tests.
+Requirements:
+
+- Node.js `22+`
+- pnpm `11.24.0` through Corepack
+- Foundry `1.8.1` for contract tests
 
 ```bash
 corepack enable
@@ -63,32 +119,22 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Run the complete local verification suite with:
+Run the full verification suite:
 
 ```bash
 pnpm run ci
 ```
 
-Optional integrations use `.env.local`. The repository ignores `.env` and `.env.*` except `.env.example`; never commit private keys, wallet material, or service credentials.
-
-## Current boundary
-
-The public practice evaluations and Sepolia reward-path demonstration are real. A production tournament with durable participant storage, World ID uniqueness, arbitrary source isolation, hidden final workloads, and scheduled final settlement is not deployed. The UI must not describe those incomplete capabilities as live.
-
-See [current implementation status](Docs/STATUS.md) for the exact boundary.
+Optional integrations use `.env.local`. Never commit private keys, wallet material or service credentials.
 
 ## Documentation
 
-- [Product and competition model](Docs/PRODUCT.md)
+- [Product model](Docs/PRODUCT.md)
 - [Architecture and trust boundaries](Docs/ARCHITECTURE.md)
-- [Current status and next work](Docs/STATUS.md)
+- [Current implementation status](Docs/STATUS.md)
 - [Demo and recovery guide](Docs/DEMO.md)
 - [Optional integrations](Docs/INTEGRATIONS.md)
-- [Emergency Supply specification](Docs/arenas/emergency-supply.md)
-- [Calldata Compression specification](Docs/arenas/calldata-compression.md)
 
-Historical plans and superseded sponsor-specific briefs are retained under `Docs/archive/` for provenance, but they are not current implementation instructions.
+## Provenance
 
-## Hackathon provenance
-
-This repository began during the hackathon on 2026-09-05. The product thesis, arena choices, metrics, fairness model, reward philosophy, and UX priorities were directed by the human project owner. Codex and Claude Code were used as implementation partners; generated work was checked through deterministic fixtures, TypeScript, Vitest, Foundry tests, production builds, and browser verification.
+Development began during the hackathon on 2026-09-05. The human project owner directed the product thesis, arena choices, metrics, fairness model and reward philosophy. Codex and Claude Code supported implementation. Generated work was checked through deterministic fixtures, TypeScript and Foundry tests, production builds and browser verification.

@@ -117,6 +117,152 @@ paths:
       operationId: getMyEmergencySupplyReward
       security: [{ PrivyAccessToken: [] }]
       responses: { "200": { description: Current reward and transaction state } }
+  /v1/disaster-response:
+    get:
+      operationId: getDisasterResponseScenario
+      description: Returns the 72-hour logistics network, suppliers, regions, public training scenarios, and committed final-scenario hash.
+      responses: { "200": { description: Public disaster-response scenario } }
+  /v1/disaster-response/evaluations:
+    post:
+      operationId: practiceDisasterResponseStrategy
+      description: Runs a deterministic practice evaluation without joining or persisting a submission.
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                { schema: { $ref: "#/components/schemas/DisasterResponseStrategy" } },
+            },
+        }
+      responses:
+        {
+          "200":
+            { description: Strategy outcome, scenario replay, hashes, and frontier comparison },
+          "400": { $ref: "#/components/responses/BadRequest" },
+        }
+  /v1/challenges/disaster-response:
+    get:
+      operationId: getDisasterResponseCompetition
+      description: Returns the Plan 6 instant demo round, storage/authentication/settlement availability, rules, and scenario.
+      responses: { "200": { description: Disaster-response competition lobby } }
+  /v1/challenges/disaster-response/starter-kit:
+    get:
+      operationId: downloadDisasterResponseStarterKit
+      responses:
+        "200":
+          {
+            description: Manifest,
+            network,
+            training scenarios,
+            schema,
+            sample strategy,
+            and instructions as ZIP,
+            content: { application/zip: { schema: { type: string, format: binary } } },
+          }
+  /v1/challenges/disaster-response/leaderboard:
+    get:
+      operationId: getDisasterResponseLeaderboard
+      description: Compares selected Final Entries with public benchmarks and allocates independent Value Pools without producing an overall rank.
+      responses:
+        { "200": { description: Three-axis frontier, Value Pool allocations, and reward previews } }
+  /v1/challenges/disaster-response/value-pools:
+    post:
+      operationId: publishDisasterResponseValuePool
+      description: Publishes one authenticated practice Protect a Region Value Pool. It allocates demo credits and does not fund or transfer Sepolia tokens.
+      security: [{ PrivyAccessToken: [] }]
+      requestBody:
+        {
+          required: true,
+          content:
+            { application/json: { schema: { $ref: "#/components/schemas/Plan6ValuePoolInput" } } },
+        }
+      responses:
+        {
+          "201": { description: Practice Value Pool manifest persisted },
+          "400": { $ref: "#/components/responses/BadRequest" },
+          "401": { description: Privy token missing or invalid },
+          "409": { description: This account already published its practice Value Pool },
+        }
+  /v1/challenges/disaster-response/join:
+    post:
+      operationId: joinDisasterResponseCompetition
+      security: [{ PrivyAccessToken: [] }]
+      responses:
+        {
+          "201": { description: Authenticated participant created or restored },
+          "401": { description: Privy token missing or invalid },
+          "503": { description: Authentication or durable storage unavailable },
+        }
+  /v1/challenges/disaster-response/submissions:
+    post:
+      operationId: submitDisasterResponseRevision
+      security: [{ PrivyAccessToken: [] }]
+      parameters: [{ name: Idempotency-Key, in: header, required: true, schema: { type: string } }]
+      requestBody:
+        {
+          required: true,
+          content:
+            { application/json: { schema: { $ref: "#/components/schemas/Plan6SubmissionInput" } } },
+        }
+      responses:
+        {
+          "201": { description: Persisted and evaluated strategy revision },
+          "400": { $ref: "#/components/responses/BadRequest" },
+          "401": { description: Privy token missing or invalid },
+        }
+  /v1/challenges/disaster-response/submissions/mine:
+    get:
+      operationId: getMyDisasterResponseSubmissions
+      security: [{ PrivyAccessToken: [] }]
+      responses: { "200": { description: Participant, revisions, and selected Final Entry } }
+  /v1/challenges/disaster-response/final-entry:
+    put:
+      operationId: selectDisasterResponseFinalEntry
+      security: [{ PrivyAccessToken: [] }]
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                {
+                  schema:
+                    {
+                      type: object,
+                      required: [submissionId],
+                      properties: { submissionId: { $ref: "#/components/schemas/Bytes32" } },
+                      additionalProperties: false,
+                    },
+                },
+            },
+        }
+      responses: { "200": { description: Current Final Entry saved } }
+  /v1/challenges/disaster-response/demo-settlement:
+    post:
+      operationId: settleDisasterResponseDemoReward
+      security: [{ PrivyAccessToken: [] }]
+      responses:
+        {
+          "201": { description: Committed Value Pool allocation paid and persisted },
+          "409": { description: No valid rewarding Final Entry },
+          "503": { description: Capped Sepolia relayer unavailable },
+        }
+  /v1/challenges/disaster-response/reward/mine:
+    get:
+      operationId: getMyDisasterResponseReward
+      security: [{ PrivyAccessToken: [] }]
+      responses:
+        {
+          "200":
+            {
+              description: Value Pool breakdown,
+              allocation evidence,
+              reward amount,
+              recipient,
+              and transaction state,
+            },
+        }
   /v1/calldata-compression:
     get:
       operationId: getCalldataCompressionScenario
@@ -353,6 +499,59 @@ components:
         sourceMethod: { type: string, enum: [VISUAL, JSON, UPLOAD] }
         repositoryUrl: { type: [string, "null"], format: uri }
         sourceCommit: { type: [string, "null"], pattern: "^[0-9a-f]{40}$" }
+      additionalProperties: false
+    DisasterResponseStrategy:
+      type: object
+      required:
+        [
+          schemaVersion,
+          name,
+          primarySupplierOrder,
+          emergencySupplierOrder,
+          regionPolicy,
+          reserveKits,
+          emergencyBudgetUsd,
+        ]
+      properties:
+        schemaVersion: { type: string, const: "2" }
+        name: { type: string, minLength: 1, maxLength: 80 }
+        primarySupplierOrder:
+          {
+            type: array,
+            minItems: 5,
+            maxItems: 5,
+            items: { $ref: "#/components/schemas/DisasterSupplierId" },
+          }
+        emergencySupplierOrder:
+          {
+            type: array,
+            minItems: 5,
+            maxItems: 5,
+            items: { $ref: "#/components/schemas/DisasterSupplierId" },
+          }
+        regionPolicy: { type: string, enum: [deadline-first, highest-need, equalize-coverage] }
+        reserveKits: { type: integer, minimum: 0, maximum: 300 }
+        emergencyBudgetUsd: { type: integer, minimum: 0, maximum: 25000 }
+      additionalProperties: false
+    DisasterSupplierId:
+      { type: string, enum: [harbor-aid, northstar, inland-works, local-grid, airbridge] }
+    Plan6SubmissionInput:
+      type: object
+      required: [strategy, sourceMethod]
+      properties:
+        strategy: { $ref: "#/components/schemas/DisasterResponseStrategy" }
+        sourceMethod: { type: string, enum: [VISUAL, JSON, UPLOAD] }
+        repositoryUrl: { type: [string, "null"], format: uri }
+        sourceCommit: { type: [string, "null"], pattern: "^[0-9a-f]{40}$" }
+      additionalProperties: false
+    Plan6ValuePoolInput:
+      type: object
+      required: [name, valueStatement, regionId, poolCredits]
+      properties:
+        name: { type: string, minLength: 3, maxLength: 60 }
+        valueStatement: { type: string, minLength: 10, maxLength: 180 }
+        regionId: { type: string, enum: [coast, river, highland, south] }
+        poolCredits: { type: integer, minimum: 100, maximum: 2500 }
       additionalProperties: false
     CalldataEvaluationInput:
       type: object

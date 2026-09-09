@@ -2,7 +2,7 @@ import type { ChallengeManifestV2 } from "@frontier/shared";
 import type { ReactNode } from "react";
 import { CalldataCompressionDemo } from "@/components/calldata-compression-demo";
 import { MicrogridDispatchDemo } from "@/components/microgrid-dispatch-demo";
-import { EmergencySupplyCompetition } from "@/components/emergency-supply-competition";
+import { DisasterResponseCompetition } from "@/components/disaster-response-competition";
 
 export type ArenaAdapter = {
   kind: string;
@@ -13,16 +13,15 @@ export type ArenaAdapter = {
 
 const supplyAdapter: ArenaAdapter = {
   kind: "supply",
-  challengeId: "emergency-supply-v1",
+  challengeId: "disaster-response-v2",
   async renderWorkbench() {
-    const { publicEmergencySupplyScenario } = await import("@frontier/emergency-supply");
-    const scenario = publicEmergencySupplyScenario();
-    return <EmergencySupplyCompetition initialScenario={scenario} />;
+    const { publicDisasterResponseScenario } = await import("@frontier/disaster-response");
+    return <DisasterResponseCompetition initialScenario={publicDisasterResponseScenario()} />;
   },
   async loadManifest() {
-    const { emergencySupplyManifest, emergencySupplyManifestHash } =
-      await import("@frontier/emergency-supply");
-    return { manifest: emergencySupplyManifest, manifestHash: emergencySupplyManifestHash };
+    const { disasterResponseManifest, disasterResponseManifestHash } =
+      await import("@frontier/disaster-response");
+    return { manifest: disasterResponseManifest, manifestHash: disasterResponseManifestHash };
   },
 };
 

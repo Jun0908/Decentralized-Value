@@ -4,6 +4,7 @@ import { createPublicClient, http } from "viem";
 import { sepolia } from "viem/chains";
 import benchmark from "../../../../benchmarks/evm-orderbook/results/latest.json";
 import { createPlan5Store } from "@/lib/plan5-store";
+import { createPlan6Store } from "@/lib/plan6-store";
 import { createPrivyIdentityResolver } from "@/lib/privy-server";
 import { createPlan5Settlement } from "@/lib/plan5-settlement";
 
@@ -29,8 +30,13 @@ const plan5 = {
   ...(identity ? { identity } : {}),
   ...(settlement ? { settlement } : {}),
 };
+const plan6 = {
+  store: createPlan6Store(),
+  ...(identity ? { identity } : {}),
+  ...(settlement ? { settlement } : {}),
+};
 
 export const frontierDemoApi =
-  globalApi.frontierDemoApi ?? createDemoApi(benchmark, createRunnerDirectory(), plan5);
+  globalApi.frontierDemoApi ?? createDemoApi(benchmark, createRunnerDirectory(), plan5, plan6);
 
 if (process.env.NODE_ENV !== "production") globalApi.frontierDemoApi = frontierDemoApi;

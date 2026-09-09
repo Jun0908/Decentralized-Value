@@ -1,6 +1,6 @@
 # Current implementation status
 
-- **Last verified:** 2026-09-08
+- **Last verified:** 2026-09-09
 - **Public application:** <https://web-rho-seven-d6te7t3f0y.vercel.app>
 
 This is the only current status document. Historical checklists and numbered plans under `archive/` must not override it.
@@ -20,6 +20,12 @@ This is the only current status document. Historical checklists and numbered pla
 | Sepolia reward-path demo | Token funding, allocation commitment, `RewardPaid`, and a 10,000 FDT recipient balance increase are recorded publicly |
 | Submission sandbox | Revision history and one selected final entry work with ephemeral process-local state |
 | Emergency Supply Plan 5 application | Competition lobby, rules, downloadable five-file Starter Kit, Visual/JSON/upload submission workspace, real evaluation, revision history, frontier leaderboard, Final Entry, and reward status are implemented with API coverage |
+| 72-Hour Disaster Response application | A Strategy v2 evaluator, generated network illustration, public practice run, seven-scenario replay, durable revisions, selected Final Entry, three-axis frontier, independent Value Pools, and Sepolia demo settlement are implemented with API coverage |
+| Plan 6 strategy clarity | Direct numeric inputs and supplier ranking, login-free live seven-scenario forecast, decision trace, visible Pareto rules, and the rules-to-payment evidence chain are implemented in the arena UI |
+| Plan 7 15-second disaster replay | The evaluator returns exact purchase, loss, recovery, and regional-delivery traces. The worst scenario autoplays as loadout → route failure → reroute → four-region result, with replay, scenario switching, and strategy comparison controls. |
+| Plan 7 Value Pools | Four funders publish distinct manifests and budgets; resilience, efficiency, and fairness select different reference strategies, while frontier credits split proportionally. A logged-in user can add one durable Protect a Region practice pool, and settlement evidence includes the committed pool breakdown. |
+| Plan 7 rules and result clarity | A pre-play rules brief explains the five simulation stages, three independent outcomes, reference strategies, and no-overall-winner model. Parameter controls identify their causal stage; measured results show source scenarios, revision deltas, deterministic failure reasons, trade-off-aware next moves, and pool allocation evidence before hashes. |
+| Classic fallback | The complete Plan 5 interface and API remain unchanged at `/arenas/emergency-supply-classic` and `/v1/challenges/emergency-supply/*` |
 
 Sepolia evidence: [deployment record](deployments/sepolia-reward-demo.json), [allocation commitment](https://sepolia.etherscan.io/tx/0x96fd7a9d1f4a3bbd2fa7a9ea28d250a16e8eedbaff05b51a4f33e581c3839f2c), and [RewardPaid](https://sepolia.etherscan.io/tx/0xd976a968aefeb66d7e60fba7a9cf64c8711195fc3652aeccc20c7448069ad708).
 
@@ -28,7 +34,7 @@ Sepolia evidence: [deployment record](deployments/sepolia-reward-demo.json), [al
 | Capability | Honest boundary |
 | --- | --- |
 | Privy account | The client offers Google, email, or wallet login, distinguishes `authenticated` from wallet discovery, creates an embedded wallet for users without one, and provides logout/link-wallet controls. Protected APIs verify access and identity tokens. The Production verification key is configured; Google OAuth remains disabled in the Privy project while email and wallet login are enabled. |
-| Plan 5 durable storage | Vercel Upstash Redis is connected in Production, Preview, and Development. The adapter persists participants, submissions, evaluations, Final Entry, idempotency records, and reward receipts across deployments. |
+| Plan 5 / Plan 6 durable storage | Vercel Upstash Redis is connected in Production, Preview, and Development. Separate `frontier:plan5` and `frontier:plan6` namespaces persist participants, submissions, evaluations, Final Entry, idempotency records, and reward receipts across deployments. |
 | Plan 5 participant reward | A dedicated Sepolia reward pool is funded with a finite 100,000 FDT demo balance. Its limited relayer has no token mint authority. The orchestrator commits one participant allocation, waits for `RewardPaid`, and stores the receipt; Production contract and relayer variables are configured. |
 | Bazantic | A gateway and MCP tool surface were activated externally; Marketplace verification was pending and service/Recipe identifiers are not committed as repository evidence |
 | ENSv2 | Adapter and fail-closed boundary exist, but no current parent name, delegated permission, or live runtime evidence is configured |
@@ -40,7 +46,7 @@ Sepolia evidence: [deployment record](deployments/sepolia-reward-demo.json), [al
 
 - World ID or another deployed uniqueness check
 - Arbitrary untrusted source compilation and isolated execution
-- Hidden final datasets or workloads
+- A scheduled hidden-final round with a deadline and entry lock. Plan 6 uses an explicitly labeled instant demo: four final scenarios are committed and revealed as part of the submission response.
 - Deadline scheduler and automatic final-entry lock
 - Multi-runner threshold attestations and dispute/slashing flow
 - Scheduled final-day allocation and payout for real participants
@@ -62,7 +68,7 @@ Never infer one state from another.
 
 ### Now
 
-- Deploy and rehearse the Emergency Supply path from login through reload, Final Entry, and a fresh recipient transaction.
+- Deploy and rehearse the Value Pool route from four competing definitions of value through replay, Final Entry, pool-specific allocations, reload, and a fresh recipient transaction.
 
 ### Next
 

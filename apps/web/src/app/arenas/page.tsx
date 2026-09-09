@@ -15,7 +15,8 @@ export default function ArenasPage() {
         <h1>Choose the value you want to improve.</h1>
         <p>
           Enter a problem, submit a solution, and see which tradeoffs expand the frontier. Start
-          with Emergency Supply for the complete competition and Sepolia reward experience.
+          with 72-Hour Disaster Response for the complete strategy, replay, awards, and Sepolia
+          reward experience.
         </p>
       </header>
       <ol className="arena-catalog-flow" aria-label="How arenas work">

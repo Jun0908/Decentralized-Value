@@ -35,34 +35,36 @@ Press **Run the live EVM proof**. Show the reproduced Packed codec result:
 
 Dictionary minimizes calldata gas while Packed minimizes decoder gas, so both remain rewardable. Standard ABI loses on both axes and is dominated. The evaluator ran real compiled Solidity bytecode under Cancun rules.
 
-### 1:10-2:20 — Change a social solution
+### 1:10-2:30 — Build and break a disaster-response strategy
 
-Open Emergency Supply, change the five supplier allocations while keeping the total at 1,000, and evaluate.
+Open **72-Hour Disaster Response**. Pause on the first illustration: suppliers and routes are on the left, a disaster breaks part of the network, and aid must still reach every region on the right.
 
-Show:
+Choose a preset, change the recovery budget or regional priority, then press **Run practice simulation**. The worst scenario opens automatically and reaches the result in about 15 seconds. Let the replay show:
 
-1. correctness;
-2. total cost and worst-case delivered kits;
-3. before/after frontier contribution;
-4. all nine supplier/route failures;
-5. context and result hashes;
-6. the exact reproduction request.
+1. the exact starting loadout and recovery vault;
+2. the broken route and lost inventory;
+3. the replacement suppliers and recovery spend;
+4. all four region outcomes, maximum scenario cost, worst-case delivery, and worst-region coverage.
 
-Explain that the API recalculates the entered numbers; the screen is not selecting a precomputed artifact.
+Use **Replay** only if the judge asks. Open **Verify committed evaluation evidence** to show the context, committed final-scenario, and result hashes.
 
-### 2:20-3:00 — Show multiple valuable winners
+Explain that the evaluator executes the submitted Strategy v2 against three public training and four committed instant-final scenarios. It is not selecting a precomputed result.
 
-Run the Agent A/B/C replay. A is cheapest. B costs more but preserves more deliveries after a failure. C costs more than B and delivers less, so C is dominated. A and B divide practice credits according to exclusive contribution; C receives zero.
+### 2:30-3:10 — Show decentralized value
 
-The replay is calculated from the complete set, so submission order cannot alter the result.
+Before submission, point to the four Value Pools. Different funders publicly support resilience, efficiency, fairness, and frontier expansion; there is no overall score or overall winner.
 
-### 3:00-3:40 — Verify Ethereum settlement
+In **Value Allocations**, show that `Resilience Mesh`, `Budget Sprint`, and `Fair Reach` receive different pools at the same time. The Frontier Expansion Pool splits proportionally across positive exclusive contributions. If time allows, sign in and add a **Protect Highland Clinic** practice pool to show how a new public value changes who receives support without changing the evidence or creating a global ranking.
+
+Then submit and select a Final Entry. The complete field is recalculated together, so submission order cannot change frontier membership or pool allocation.
+
+### 3:10-3:45 — Verify Ethereum settlement
 
 Open the [allocation commitment](https://sepolia.etherscan.io/tx/0x96fd7a9d1f4a3bbd2fa7a9ea28d250a16e8eedbaff05b51a4f33e581c3839f2c) and [RewardPaid transaction](https://sepolia.etherscan.io/tx/0xd976a968aefeb66d7e60fba7a9cf64c8711195fc3652aeccc20c7448069ad708). Show the reward pool, demo token, block, events, and recipient balance evidence.
 
 State clearly that this is a completed Sepolia demonstration payout, not a completed production tournament.
 
-### 3:40-4:00 — Close
+### 3:45-4:00 — Close
 
 > Frontier does not crown one hidden-weight winner. It gives humans and agents the same measurable problem, preserves different useful tradeoffs, and rewards whoever expands what is possible.
 
@@ -74,13 +76,16 @@ State clearly that this is a completed Sepolia demonstration payout, not a compl
 | Compiled Solidity runs in a Cancun EVM | The measurement itself happens onchain |
 | The Sepolia demonstration reward was paid | A live production tournament has settled |
 | Practice credits show contribution allocation | Practice credits are tokens |
+| A community Value Pool changes practice allocation | The community pool funded or changed the Sepolia payout |
 | A wallet can connect through Privy | The connection is a tournament entry or payout approval |
+| The instant demo reveals a precommitted final scenario set | A scheduled hidden-final tournament has run |
 
 ## Recovery
 
 | Failure | Recovery |
 | --- | --- |
 | Public deployment unavailable | Run `pnpm --filter @frontier/web build` and `pnpm --filter @frontier/web start` locally |
+| New disaster-response UI fails during judging | Open `/arenas/emergency-supply-classic`; the Plan 5 competition is preserved unchanged |
 | Sepolia RPC or Explorer slow | Use the recorded deployment JSON and transaction links; do not redeploy during the demo |
 | Optional ENS unavailable | Keep the fail-closed state visible and continue with the evaluator and reward proof |
 | Bazantic gateway unavailable | Continue through the public same-origin API; the gateway is not the product critical path |

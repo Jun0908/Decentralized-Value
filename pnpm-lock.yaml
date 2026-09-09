@@ -53,6 +53,9 @@ importers:
       '@frontier/calldata-compression':
         specifier: workspace:*
         version: link:../../packages/calldata-compression
+      '@frontier/disaster-response':
+        specifier: workspace:*
+        version: link:../../packages/disaster-response
       '@frontier/emergency-supply':
         specifier: workspace:*
         version: link:../../packages/emergency-supply
@@ -101,6 +104,9 @@ importers:
       '@frontier/calldata-compression':
         specifier: workspace:*
         version: link:../../packages/calldata-compression
+      '@frontier/disaster-response':
+        specifier: workspace:*
+        version: link:../../packages/disaster-response
       '@frontier/emergency-supply':
         specifier: workspace:*
         version: link:../../packages/emergency-supply
@@ -113,6 +119,9 @@ importers:
       '@frontier/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@heroicons/react':
+        specifier: 2.2.0
+        version: 2.2.0(react@19.2.8)
       '@privy-io/node':
         specifier: 0.34.0
         version: 0.34.0(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10))(viem@2.56.3(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@3.25.76))
@@ -187,6 +196,19 @@ importers:
       '@openzeppelin/contracts':
         specifier: 5.4.0
         version: 5.4.0
+
+  packages/disaster-response:
+    dependencies:
+      '@frontier/shared':
+        specifier: workspace:*
+        version: link:../shared
+      viem:
+        specifier: 2.56.3
+        version: 2.56.3(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(zod@4.5.4)
+    devDependencies:
+      vitest:
+        specifier: 5.0.0
+        version: 5.0.0(@types/node@22.20.1)(vite@8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(tsx@4.23.13))
 
   packages/emergency-supply:
     dependencies:

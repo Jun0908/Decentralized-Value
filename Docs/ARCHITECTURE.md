@@ -5,13 +5,13 @@ Frontier Protocol separates public competition rules, deterministic measurement,
 ## System flow
 
 ```text
-Sponsor
-  challenge manifest
+Sponsors
+  challenge manifest + Value Pool manifests
     - dataset and evaluator version
     - hard constraints
     - independent metrics and directions
     - public/final context commitment
-    - reward configuration
+    - independent value rules and pool budgets
              |
              v
 Builder or AI agent -> solution -> Frontier API -> deterministic evaluator
@@ -22,7 +22,7 @@ Builder or AI agent -> solution -> Frontier API -> deterministic evaluator
                                                    - context/result hashes
                                                              |
                                                              v
-                                                  reward allocation root
+                                                  pool allocations + evidence hash
                                                              |
                                                              v
                                                   FrontierRewardPool
@@ -35,7 +35,7 @@ Builder or AI agent -> solution -> Frontier API -> deterministic evaluator
 
 Every arena commits the data, constraints, metrics, evaluator version, and execution settings into a context hash. A result hash covers the context, submitted solution, measured outcomes, correctness evidence, and frontier result. Timestamps and request-specific randomness are excluded.
 
-Emergency Supply enumerates nine failure cases for every allocation. Calldata Compression executes compiled Solidity runtime bytecode in a local Cancun EVM. Microgrid Dispatch evaluates three axes with a fixed versioned scenario. New problem shapes require their own adapter and tests but use the same outcome, Pareto, contribution, and evidence types.
+72-Hour Disaster Response simulates three public training and four committed instant-final scenarios for every Strategy v2 artifact. It preserves procurement cost, worst-case delivery, and worst-region coverage as independent axes, and returns the event timeline plus per-region evidence. Four built-in Value Pool manifests apply independent deterministic rules to those outcomes; a community Protect a Region template can add a practice pool without executing arbitrary code. The Classic Emergency Supply evaluator still enumerates nine failures for a static allocation. Calldata Compression executes compiled Solidity runtime bytecode in a local Cancun EVM. Microgrid Dispatch evaluates three axes with a fixed versioned scenario. New problem shapes require their own adapter and tests but use the same outcome, Pareto, contribution, and evidence types.
 
 ## Why computation is offchain
 
@@ -73,11 +73,12 @@ The primary user journey is:
 
 1. `/` explains the protocol and presents a working Ethereum proof.
 2. `/arenas` lists competitions from the shared Arena Registry.
-3. `/arenas/emergency-supply` is the Plan 5 competition path: Privy account, rules and Starter Kit, submitted revisions, deterministic evaluation, frontier leaderboard, Final Entry, and an optional Sepolia demo reward.
-4. Other `/arenas/[slug]` pages combine a common challenge shell with an arena-specific practice workbench.
-5. Practice results show correctness, outcomes, Pareto status, contribution, and reproducibility evidence. The older `/participate/[id]` route remains an explicitly ephemeral engineering sandbox.
+3. `/arenas/emergency-supply` is the primary social competition path: a visual 72-hour mission, independent Value Pools, Strategy v2 builder, public practice, disaster replay, submitted revisions, selected Final Entry, pool-specific allocations, and an optional Sepolia demo reward.
+4. `/arenas/emergency-supply-classic` preserves the complete Plan 5 static-allocation experience as an independent fallback.
+5. Other `/arenas/[slug]` pages combine a common challenge shell with an arena-specific practice workbench.
+6. Practice results show correctness, outcomes, Pareto status, contribution, and reproducibility evidence. The older `/participate/[id]` route remains an explicitly ephemeral engineering sandbox.
 
-Plan 5 keeps external state behind fail-closed adapters. Privy tokens are verified server-side before account-bound reads or writes. Upstash Redis is the durable Vercel adapter; process memory is allowed only for local development and tests. The Sepolia relayer is disabled unless a dedicated key, an owned pre-funded reward pool, RPC, and a per-participant reward cap are all configured. The runtime relayer has no token mint authority.
+Plan 5 and Plan 6 keep external state behind fail-closed adapters. Privy tokens are verified server-side before account-bound reads or writes. Upstash Redis is the durable Vercel adapter; the two competitions use separate prefixes and process memory is allowed only for local development and tests. The Sepolia relayer is disabled unless a dedicated key, an owned pre-funded reward pool, RPC, and a per-participant reward cap are all configured. The runtime relayer has no token mint authority.
 
 `apps/web/src/lib/arenas.ts` is the source of display metadata. `apps/web/src/lib/arena-adapters.tsx` maps an evaluator kind to its workbench and manifest loader. An unknown evaluator fails closed. Microgrid proves that Pareto membership and contribution can use all metrics while the chart projects any two axes.
 
@@ -91,6 +92,7 @@ apps/api                      reusable API handlers
 apps/runner                   evaluation and attestation boundary
 packages/shared               schemas, hashing, Pareto, contribution
 packages/emergency-supply     allocation scenario and evaluator
+packages/disaster-response    Strategy v2, 72-hour simulator, scenarios, value evidence inputs
 packages/calldata-compression codecs, compiler output, EVM evaluator
 packages/microgrid-dispatch   three-axis evaluator
 packages/contracts            Foundry contracts and deployment scripts
@@ -103,6 +105,7 @@ openapi/frontier-v1.yaml      public API source of truth
 
 - Deterministic evaluator behavior is covered by unit and API tests.
 - The `/v2/sandbox` store is process-local memory and resets on restart or serverless cold start.
+- Community-created Value Pools are authenticated, durable practice manifests. They allocate practice credits only; built-in committed pools alone determine the current Sepolia settlement total.
 - Privy can establish a browser-wallet session without a raw-message signature; the session does not create a final onchain entry.
 - World ID uniqueness, arbitrary source isolation, and hidden final evaluation are not configured.
 - Sepolia reward funding, allocation commitment, payout, and balance evidence are complete for the demonstration path.

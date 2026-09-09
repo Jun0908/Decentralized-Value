@@ -12,6 +12,7 @@
 | [DEMO.md](DEMO.md) | Judge demo, verification checklist, and safe fallbacks |
 | [INTEGRATIONS.md](INTEGRATIONS.md) | Vercel, Sepolia, Bazantic, ENS, Privy, and Ledger status |
 | [arenas/emergency-supply.md](arenas/emergency-supply.md) | Emergency Supply measurement specification |
+| [arenas/disaster-response.md](arenas/disaster-response.md) | 72-Hour Disaster Response strategy and award specification |
 | [arenas/calldata-compression.md](arenas/calldata-compression.md) | Calldata Compression measurement specification |
 | [deployments/sepolia-reward-demo.json](deployments/sepolia-reward-demo.json) | Machine-readable Sepolia reward evidence |
 | [reference/Value_Decentralization_Whitepaper_JP.pdf](reference/Value_Decentralization_Whitepaper_JP.pdf) | Original Japanese concept paper |

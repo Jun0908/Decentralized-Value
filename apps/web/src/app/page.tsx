@@ -100,13 +100,13 @@ export default function HomePage() {
       <section className="platform-status">
         <div>
           <p className="eyebrow">Honest product status</p>
-          <h2>Emergency Supply now has a complete demo-competition flow.</h2>
+          <h2>72-Hour Disaster Response is now the complete demo competition.</h2>
         </div>
         <p>
-          Three evaluators and reward contracts exist today. Plan 5 adds authenticated revisions, a
-          frontier leaderboard, and Final Entry selection. Durable competition storage and the
-          participant-addressed Sepolia demo pool are active; this remains a demo round, not a
-          monetary-value tournament.
+          Build a strategy, test it against public disruptions, submit revisions, choose a Final
+          Entry, and receive a Sepolia demo reward for the values it advances. The original
+          Emergency Supply experience remains available as a fallback; this is still a demo round,
+          not a monetary-value tournament.
         </p>
         <Link className="primary-action" href="/architecture">
           Inspect boundaries

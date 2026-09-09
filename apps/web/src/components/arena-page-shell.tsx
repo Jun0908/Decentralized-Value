@@ -9,6 +9,7 @@ export function ArenaPageShell({
   arena: ArenaDefinition;
   children: ReactNode;
 }) {
+  const hasDemoSettlement = arena.challengeId === "disaster-response-v2";
   return (
     <main className="page-shell detail-page platform-arena-page">
       <header className="platform-arena-hero">
@@ -29,7 +30,7 @@ export function ArenaPageShell({
             <p>{arena.summary}</p>
           </div>
           <aside>
-            <p className="eyebrow">Two independent axes</p>
+            <p className="eyebrow">{arena.metrics.length} independent axes</p>
             <dl>
               {arena.metrics.map((metric) => (
                 <div key={metric.name}>
@@ -75,11 +76,15 @@ export function ArenaPageShell({
               <small>Runner evidence pending.</small>
             </div>
           </li>
-          <li className="pending">
+          <li className={hasDemoSettlement ? undefined : "pending"}>
             <span>05</span>
             <div>
               <strong>Settle</strong>
-              <small>No funded pool.</small>
+              <small>
+                {hasDemoSettlement
+                  ? "Participant-addressed Sepolia demo reward."
+                  : "No funded pool."}
+              </small>
             </div>
           </li>
         </ol>

@@ -2,6 +2,7 @@ import {
   artifactSchema,
   benchmarkRecordSchema,
   bytes32Schema,
+  canonicalProtocolJson,
   stringifyProtocolJson,
 } from "@frontier/shared";
 import {
@@ -13,6 +14,10 @@ import {
   publicEmergencySupplyScenario,
   replayEmergencySupplyAgents,
 } from "@frontier/emergency-supply";
+import {
+  evaluateDisasterResponseStrategy,
+  publicDisasterResponseScenario,
+} from "@frontier/disaster-response";
 import { evaluateMicrogridDispatch, publicMicrogridScenario } from "@frontier/microgrid-dispatch";
 import type { EnsRunnerDirectory } from "@frontier/ens-adapter";
 import { z } from "zod";
@@ -29,8 +34,22 @@ import {
   type Plan5Identity,
   type Plan5Reward,
 } from "./plan5-competition";
+import {
+  buildPlan6Leaderboard,
+  createPlan6CommunityValuePool,
+  createPlan6StarterKitZip,
+  disasterResponseStrategySchema,
+  plan6ChallengeId,
+  plan6SubmissionSchema,
+  plan6ValueFunderId,
+  plan6ValuePoolSchema,
+  preparePlan6Submission,
+  type Plan6CompetitionStore,
+  type Plan6Reward,
+} from "./plan6-competition";
 
 export * from "./plan5-competition";
+export * from "./plan6-competition";
 
 const evaluationSchema = z.object({ artifactId: bytes32Schema });
 const supplyEvaluationSchema = z
@@ -82,6 +101,7 @@ const sandboxFinalEntrySchema = z
   .object({ participantId: bytes32Schema, submissionId: bytes32Schema })
   .strict();
 const plan5FinalEntrySchema = z.object({ submissionId: bytes32Schema }).strict();
+const plan6FinalEntrySchema = z.object({ submissionId: bytes32Schema }).strict();
 
 export type Plan5IdentityResolver = (request: Request) => Promise<Plan5Identity>;
 export type Plan5Settlement = (input: {
@@ -95,6 +115,19 @@ export type Plan5Options = {
   store?: Plan5CompetitionStore;
   identity?: Plan5IdentityResolver;
   settlement?: Plan5Settlement;
+};
+
+export type Plan6Settlement = (input: {
+  participantId: Hex;
+  recipient: `0x${string}`;
+  amount: bigint;
+  resultHash: Hex;
+}) => Promise<Pick<Plan6Reward, "allocationRoot" | "transactionHash" | "blockNumber">>;
+
+export type Plan6Options = {
+  store?: Plan6CompetitionStore;
+  identity?: Plan5IdentityResolver;
+  settlement?: Plan6Settlement;
 };
 
 class ApiError extends Error {
@@ -155,6 +188,7 @@ export class FrontierApi {
     private readonly dispatcher?: EvaluationDispatcher,
     private readonly runnerDirectory?: EnsRunnerDirectory,
     private readonly plan5: Plan5Options = {},
+    private readonly plan6: Plan6Options = {},
   ) {}
 
   async fetch(request: Request): Promise<Response> {
@@ -180,6 +214,61 @@ export class FrontierApi {
 
   private async get(path: string, url: URL, request: Request): Promise<Response> {
     const { store } = this;
+    if (path === "/v1/challenges/disaster-response") {
+      const leaderboard = this.plan6.store
+        ? await buildPlan6Leaderboard(this.plan6.store)
+        : { participantCount: 0, submissionCount: 0, valuePools: [] };
+      return json({
+        challengeId: plan6ChallengeId,
+        name: "72-Hour Disaster Response",
+        state: "OPEN_DEMO",
+        rewardPool: "10,000 FDT demo credits",
+        participantCount: leaderboard.participantCount,
+        submissionCount: leaderboard.submissionCount,
+        valuePools: leaderboard.valuePools,
+        maxRevisions: 20,
+        storage: this.plan6.store?.durability ?? "unconfigured",
+        authentication: this.plan6.identity ? "privy-verified" : "unconfigured",
+        settlement: this.plan6.settlement ? "sepolia-ready" : "unconfigured",
+        scenario: publicDisasterResponseScenario(),
+      });
+    }
+    if (path === "/v1/challenges/disaster-response/starter-kit") {
+      const archive = createPlan6StarterKitZip();
+      const archiveBody = archive.buffer.slice(
+        archive.byteOffset,
+        archive.byteOffset + archive.byteLength,
+      ) as ArrayBuffer;
+      return new Response(archiveBody, {
+        headers: {
+          "cache-control": "public, max-age=3600",
+          "content-disposition": 'attachment; filename="disaster-response-starter.zip"',
+          "content-type": "application/zip",
+        },
+      });
+    }
+    if (path === "/v1/challenges/disaster-response/leaderboard") {
+      return json(await buildPlan6Leaderboard(this.requirePlan6Store()));
+    }
+    if (path === "/v1/challenges/disaster-response/submissions/mine") {
+      const identity = await this.requirePlan6Identity(request);
+      const competition = this.requirePlan6Store();
+      const participant = await competition.participantForUser(identity.userId);
+      if (!participant) return json({ participant: null, submissions: [], finalEntry: null });
+      return json({
+        participant,
+        submissions: await competition.submissionsForParticipant(participant.participantId),
+        finalEntry: await competition.finalEntry(participant.participantId),
+      });
+    }
+    if (path === "/v1/challenges/disaster-response/reward/mine") {
+      const identity = await this.requirePlan6Identity(request);
+      const competition = this.requirePlan6Store();
+      const participant = await competition.participantForUser(identity.userId);
+      return json({
+        reward: participant ? await competition.reward(participant.participantId) : null,
+      });
+    }
     if (path === "/v1/challenges/emergency-supply") {
       const leaderboard = this.plan5.store
         ? await buildPlan5Leaderboard(this.plan5.store)
@@ -247,12 +336,14 @@ export class FrontierApi {
     if (path === "/v1/arenas")
       return json({
         arenas: [
+          publicDisasterResponseScenario(),
           publicEmergencySupplyScenario(),
           await publicCalldataCompressionScenario(),
           publicMicrogridScenario(),
           this.challenge(),
         ],
       });
+    if (path === "/v1/disaster-response") return json(publicDisasterResponseScenario());
     if (path === "/v1/emergency-supply") {
       const contextId = z
         .enum(["public-normal-operations", "public-port-constrained"])
@@ -340,6 +431,166 @@ export class FrontierApi {
 
   private async post(path: string, request: Request): Promise<Response> {
     const { store } = this;
+    if (path === "/v1/challenges/disaster-response/join") {
+      const identity = await this.requirePlan6Identity(request);
+      const competition = this.requirePlan6Store(true);
+      return json(
+        { storage: competition.durability, participant: await competition.join(identity) },
+        201,
+      );
+    }
+    if (path === "/v1/challenges/disaster-response/value-pools") {
+      const identity = await this.requirePlan6Identity(request);
+      const competition = this.requirePlan6Store(true);
+      const parsed = plan6ValuePoolSchema.parse(await body(request));
+      const funderId = plan6ValueFunderId(identity.userId);
+      const existing = await competition.valuePoolForFunder(funderId);
+      const candidate = createPlan6CommunityValuePool(identity, parsed);
+      if (existing) {
+        if (existing.manifestHash === candidate.manifestHash) {
+          return json({ storage: competition.durability, valuePool: existing });
+        }
+        throw new ApiError(
+          409,
+          "VALUE_POOL_EXISTS",
+          "This demo account has already published its one community Value Pool",
+        );
+      }
+      await competition.saveValuePool(candidate);
+      return json({ storage: competition.durability, valuePool: candidate }, 201);
+    }
+    if (path === "/v1/challenges/disaster-response/submissions") {
+      const identity = await this.requirePlan6Identity(request);
+      const competition = this.requirePlan6Store(true);
+      const participant = await competition.participantForUser(identity.userId);
+      if (!participant)
+        throw new ApiError(409, "NOT_JOINED", "Join this challenge before submitting");
+      const idempotencyKey = request.headers.get("idempotency-key")?.trim();
+      if (!idempotencyKey || idempotencyKey.length < 8 || idempotencyKey.length > 128) {
+        throw new ApiError(
+          400,
+          "IDEMPOTENCY_KEY_REQUIRED",
+          "A unique Idempotency-Key between 8 and 128 characters is required",
+        );
+      }
+      const existing = await competition.submissionForIdempotency(
+        participant.participantId,
+        idempotencyKey,
+      );
+      if (existing) return json({ storage: competition.durability, submission: existing });
+      const parsed = plan6SubmissionSchema.parse(await body(request));
+      const submission = await competition.addSubmission(
+        preparePlan6Submission(participant, parsed),
+      );
+      await competition.saveSubmissionIdempotency(
+        participant.participantId,
+        idempotencyKey,
+        submission.submissionId,
+      );
+      return json({ storage: competition.durability, submission }, 201);
+    }
+    if (path === "/v1/challenges/disaster-response/demo-settlement") {
+      const identity = await this.requirePlan6Identity(request);
+      const competition = this.requirePlan6Store(true);
+      if (!this.plan6.settlement)
+        throw new ApiError(
+          503,
+          "SETTLEMENT_UNCONFIGURED",
+          "Sepolia demo settlement is not configured",
+        );
+      const participant = await competition.participantForUser(identity.userId);
+      if (!participant) throw new ApiError(409, "NOT_JOINED", "Join this challenge first");
+      const previous = await competition.reward(participant.participantId);
+      if (previous?.status === "PAID") return json({ reward: previous });
+      if (previous?.status === "SENDING")
+        throw new ApiError(409, "SETTLEMENT_IN_PROGRESS", "Reward settlement is in progress");
+      const finalEntry = await competition.finalEntry(participant.participantId);
+      if (!finalEntry)
+        throw new ApiError(409, "FINAL_ENTRY_REQUIRED", "Choose a Final Entry first");
+      const submissions = await competition.submissionsForParticipant(participant.participantId);
+      const selected = submissions.find(
+        ({ submissionId }) => submissionId === finalEntry.submissionId,
+      );
+      if (!selected?.evaluation.correctness)
+        throw new ApiError(409, "VALID_ENTRY_REQUIRED", "The Final Entry must pass correctness");
+      const leaderboard = await buildPlan6Leaderboard(competition);
+      const entry = leaderboard.entries.find(({ id }) => id === selected.submissionId);
+      const poolAllocations =
+        entry?.valueAllocations
+          .filter(({ poolStatus }) => poolStatus === "COMMITTED")
+          .map(({ poolId, poolName, manifestHash, credits }) => ({
+            poolId,
+            poolName,
+            manifestHash,
+            credits,
+          })) ?? [];
+      const amount = BigInt(entry?.settlementEligibleCredits ?? 0);
+      if (amount === 0n)
+        throw new ApiError(
+          409,
+          "NO_VALUE_ALLOCATION",
+          "This Final Entry has no committed Value Pool allocation",
+        );
+      const allocationEvidenceHash = keccak256(
+        stringToHex(
+          canonicalProtocolJson({
+            challengeId: plan6ChallengeId,
+            resultHash: selected.evaluation.resultHash,
+            poolAllocations,
+          }),
+        ),
+      );
+      const now = new Date().toISOString();
+      const sending: Plan6Reward = {
+        participantId: participant.participantId,
+        challengeId: plan6ChallengeId,
+        recipient: participant.wallet,
+        amount: amount.toString(),
+        awardIds: entry?.awardIds ?? [],
+        poolAllocations,
+        allocationEvidenceHash,
+        status: "SENDING",
+        allocationRoot: null,
+        transactionHash: null,
+        blockNumber: null,
+        createdAt: previous?.createdAt ?? now,
+        updatedAt: now,
+        error: null,
+      };
+      await competition.saveReward(sending);
+      try {
+        const receipt = await this.plan6.settlement({
+          participantId: participant.participantId,
+          recipient: participant.wallet,
+          amount,
+          resultHash: allocationEvidenceHash,
+        });
+        const paid: Plan6Reward = {
+          ...sending,
+          ...receipt,
+          status: "PAID",
+          updatedAt: new Date().toISOString(),
+        };
+        await competition.saveReward(paid);
+        return json({ reward: paid }, 201);
+      } catch (cause) {
+        await competition.saveReward({
+          ...sending,
+          status: "FAILED",
+          updatedAt: new Date().toISOString(),
+          error: cause instanceof Error ? cause.message : "Settlement failed",
+        });
+        throw new ApiError(
+          502,
+          "SETTLEMENT_FAILED",
+          cause instanceof Error ? cause.message : "Settlement failed",
+        );
+      }
+    }
+    if (path === "/v1/disaster-response/evaluations") {
+      const strategy = disasterResponseStrategySchema.parse(await body(request));
+      return json({ state: "measured", ...evaluateDisasterResponseStrategy(strategy) });
+    }
     if (path === "/v1/challenges/emergency-supply/join") {
       const identity = await this.requirePlan5Identity(undefined, request);
       const competition = this.requirePlan5Store(true);
@@ -577,6 +828,18 @@ export class FrontierApi {
   }
 
   private async put(path: string, request: Request): Promise<Response> {
+    if (path === "/v1/challenges/disaster-response/final-entry") {
+      const identity = await this.requirePlan6Identity(request);
+      const competition = this.requirePlan6Store(true);
+      const participant = await competition.participantForUser(identity.userId);
+      if (!participant) throw new ApiError(409, "NOT_JOINED", "Join this challenge first");
+      const parsed = plan6FinalEntrySchema.parse(await body(request));
+      const finalEntry = await competition.selectFinal(
+        participant.participantId,
+        parsed.submissionId,
+      );
+      return json({ storage: competition.durability, finalEntry });
+    }
     if (path === "/v1/challenges/emergency-supply/final-entry") {
       const identity = await this.requirePlan5Identity(undefined, request);
       const competition = this.requirePlan5Store(true);
@@ -616,6 +879,47 @@ export class FrontierApi {
       );
     }
     return competition;
+  }
+
+  private requirePlan6Store(forWrite = false) {
+    const competition = this.plan6.store;
+    if (!competition)
+      throw new ApiError(
+        503,
+        "STORAGE_UNCONFIGURED",
+        "Disaster Response storage is not configured",
+      );
+    if (
+      forWrite &&
+      competition.durability !== "durable-redis" &&
+      process.env.NODE_ENV === "production"
+    ) {
+      throw new ApiError(
+        503,
+        "DURABLE_STORAGE_REQUIRED",
+        "Durable Disaster Response storage is not configured",
+      );
+    }
+    return competition;
+  }
+
+  private async requirePlan6Identity(request?: Request) {
+    if (!this.plan6.identity)
+      throw new ApiError(
+        503,
+        "PRIVY_SERVER_UNCONFIGURED",
+        "Privy server verification is not configured",
+      );
+    if (!request) throw new ApiError(401, "AUTH_REQUIRED", "Authentication is required");
+    try {
+      return await this.plan6.identity(request);
+    } catch (cause) {
+      throw new ApiError(
+        401,
+        "AUTH_INVALID",
+        cause instanceof Error ? cause.message : "Authentication failed",
+      );
+    }
   }
 
   private async requirePlan5Identity(_url?: URL, request?: Request) {
@@ -660,12 +964,14 @@ export function createApi(
   dispatcher?: EvaluationDispatcher,
   runnerDirectory?: EnsRunnerDirectory,
   plan5?: Plan5Options,
+  plan6?: Plan6Options,
 ): FrontierApi {
   return new FrontierApi(
     new FrontierStore(benchmarkRecordSchema.parse(benchmark)),
     dispatcher,
     runnerDirectory,
     plan5,
+    plan6,
   );
 }
 
@@ -678,6 +984,7 @@ export function createDemoApi(
   benchmark: unknown,
   runnerDirectory?: EnsRunnerDirectory,
   plan5?: Plan5Options,
+  plan6?: Plan6Options,
 ): FrontierApi {
   const store = new FrontierStore(benchmarkRecordSchema.parse(benchmark));
   const dispatcher: EvaluationDispatcher = {
@@ -693,5 +1000,5 @@ export function createDemoApi(
     },
   };
 
-  return new FrontierApi(store, dispatcher, runnerDirectory, plan5);
+  return new FrontierApi(store, dispatcher, runnerDirectory, plan5, plan6);
 }

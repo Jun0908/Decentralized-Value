@@ -1,6 +1,11 @@
 import benchmark from "../../../benchmarks/evm-orderbook/results/latest.json";
 import { describe, expect, it, vi } from "vitest";
-import { createApi, createDemoApi, MemoryPlan5CompetitionStore } from "./index";
+import {
+  createApi,
+  createDemoApi,
+  MemoryPlan5CompetitionStore,
+  MemoryPlan6CompetitionStore,
+} from "./index";
 
 function request(path: string, init?: RequestInit) {
   return new Request(`http://localhost${path}`, init);
@@ -383,6 +388,194 @@ describe("Frontier API contracts", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("application/zip");
     expect((await response.arrayBuffer()).byteLength).toBeGreaterThan(500);
+  });
+
+  it("runs the Plan 6 disaster-response competition without changing Plan 5", async () => {
+    const competition = new MemoryPlan6CompetitionStore();
+    const identity = vi.fn(async () => ({
+      userId: "did:privy:plan6-builder",
+      wallet: "0x5555555555555555555555555555555555555555" as const,
+    }));
+    const settlement = vi.fn(async (input: { resultHash: `0x${string}` }) => {
+      void input;
+      return {
+        allocationRoot:
+          "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" as const,
+        transactionHash:
+          "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd" as const,
+        blockNumber: "67890",
+      };
+    });
+    const api = createApi(benchmark, undefined, undefined, undefined, {
+      store: competition,
+      identity,
+      settlement,
+    });
+
+    const scenarioResponse = await api.fetch(request("/v1/disaster-response"));
+    const scenario = await scenarioResponse.json();
+    expect(scenarioResponse.status).toBe(200);
+    expect(scenario.durationHours).toBe(72);
+    expect(scenario.trainingScenarios).toHaveLength(3);
+    expect(scenario.finalScenarioCommitment).toMatch(/^0x[0-9a-f]{64}$/);
+
+    const joinResponse = await api.fetch(
+      request("/v1/challenges/disaster-response/join", { method: "POST" }),
+    );
+    expect(joinResponse.status).toBe(201);
+
+    const submissionBody = JSON.stringify({
+      strategy: scenario.defaultStrategy,
+      sourceMethod: "VISUAL",
+      repositoryUrl: null,
+      sourceCommit: null,
+    });
+    const submissionResponse = await api.fetch(
+      request("/v1/challenges/disaster-response/submissions", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "idempotency-key": "plan6-test-submission-1",
+        },
+        body: submissionBody,
+      }),
+    );
+    expect(submissionResponse.status).toBe(201);
+    const submission = (await submissionResponse.json()).submission;
+    expect(submission.evaluation.correctness).toBe(true);
+    expect(submission.evaluation.scenarioOutcomes).toHaveLength(7);
+    expect(submission.evaluation.worstCaseDeliveredKits).toBeGreaterThan(0);
+
+    const finalResponse = await api.fetch(
+      request("/v1/challenges/disaster-response/final-entry", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ submissionId: submission.submissionId }),
+      }),
+    );
+    expect(finalResponse.status).toBe(200);
+
+    const leaderboard = await (
+      await api.fetch(request("/v1/challenges/disaster-response/leaderboard"))
+    ).json();
+    const participantEntry = leaderboard.entries.find(
+      (entry: { kind: string }) => entry.kind === "PARTICIPANT",
+    );
+    expect(leaderboard.valuePools).toHaveLength(4);
+    expect(leaderboard.awards).toHaveLength(4);
+    expect(participantEntry.awardIds.length).toBeGreaterThan(0);
+    expect(participantEntry.valueAllocations.length).toBeGreaterThan(0);
+    expect(participantEntry.rewardPreview).toBeGreaterThan(0);
+    expect(participantEntry.settlementEligibleCredits).toBeGreaterThan(0);
+    expect(
+      leaderboard.valuePools.find((pool: { poolId: string }) => pool.poolId === "resilience")
+        .allocations[0].entryName,
+    ).toBe("Resilience Mesh");
+    expect(
+      leaderboard.valuePools.find((pool: { poolId: string }) => pool.poolId === "efficiency")
+        .allocations[0].entryName,
+    ).toBe("Budget Sprint");
+    expect(
+      leaderboard.valuePools.find((pool: { poolId: string }) => pool.poolId === "fairness")
+        .allocations[0].entryName,
+    ).toBe("Fair Reach");
+    expect(
+      new Set(
+        leaderboard.valuePools.flatMap((pool: { allocations: { entryName: string }[] }) =>
+          pool.allocations.map(({ entryName }) => entryName),
+        ),
+      ).size,
+    ).toBeGreaterThanOrEqual(3);
+    const frontierPool = leaderboard.valuePools.find(
+      (pool: { poolId: string }) => pool.poolId === "frontier",
+    );
+    expect(frontierPool.allocations.length).toBeGreaterThan(1);
+    expect(
+      frontierPool.allocations.reduce(
+        (sum: number, allocation: { credits: number }) => sum + allocation.credits,
+        0,
+      ),
+    ).toBe(2_500);
+
+    const settlementResponse = await api.fetch(
+      request("/v1/challenges/disaster-response/demo-settlement", { method: "POST" }),
+    );
+    expect(settlementResponse.status).toBe(201);
+    const reward = (await settlementResponse.json()).reward;
+    expect(reward.status).toBe("PAID");
+    expect(reward.awardIds.length).toBeGreaterThan(0);
+    expect(reward.poolAllocations.length).toBeGreaterThan(0);
+    expect(reward.allocationEvidenceHash).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(settlement).toHaveBeenCalledOnce();
+    expect(settlement.mock.calls[0]![0]!.resultHash).toBe(reward.allocationEvidenceHash);
+
+    const classicResponse = await api.fetch(request("/v1/challenges/emergency-supply"));
+    expect(classicResponse.status).toBe(200);
+    expect((await classicResponse.json()).challengeId).toBe("emergency-supply-v1");
+  });
+
+  it("publishes one practice Protect a Region Value Pool and allocates it deterministically", async () => {
+    const competition = new MemoryPlan6CompetitionStore();
+    const identity = vi.fn(async () => ({
+      userId: "did:privy:value-funder",
+      wallet: "0x6666666666666666666666666666666666666666" as const,
+    }));
+    const api = createApi(benchmark, undefined, undefined, undefined, {
+      store: competition,
+      identity,
+    });
+    const body = JSON.stringify({
+      name: "Highland Care Pool",
+      valueStatement: "Protect the clinic that is easiest for the main network to leave behind.",
+      regionId: "highland",
+      poolCredits: 1_200,
+    });
+    const first = await api.fetch(
+      request("/v1/challenges/disaster-response/value-pools", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body,
+      }),
+    );
+    const firstPool = (await first.json()).valuePool;
+    expect(first.status).toBe(201);
+    expect(firstPool.status).toBe("PRACTICE");
+    expect(firstPool.rule).toEqual({ type: "PROTECT_REGION", regionId: "highland" });
+    expect(firstPool.manifestHash).toMatch(/^0x[0-9a-f]{64}$/);
+
+    const repeated = await api.fetch(
+      request("/v1/challenges/disaster-response/value-pools", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body,
+      }),
+    );
+    expect(repeated.status).toBe(200);
+    expect((await repeated.json()).valuePool.manifestHash).toBe(firstPool.manifestHash);
+
+    const leaderboard = await (
+      await api.fetch(request("/v1/challenges/disaster-response/leaderboard"))
+    ).json();
+    const customPool = leaderboard.valuePools.find(
+      (pool: { manifestHash: string }) => pool.manifestHash === firstPool.manifestHash,
+    );
+    expect(leaderboard.valuePools).toHaveLength(5);
+    expect(leaderboard.practicePoolCredits).toBe(1_200);
+    expect(customPool.allocations.length).toBeGreaterThan(0);
+    expect(
+      customPool.allocations.reduce(
+        (sum: number, allocation: { credits: number }) => sum + allocation.credits,
+        0,
+      ),
+    ).toBe(1_200);
+  });
+
+  it("downloads the Plan 6 disaster-response starter kit", async () => {
+    const api = createApi(benchmark);
+    const response = await api.fetch(request("/v1/challenges/disaster-response/starter-kit"));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe("application/zip");
+    expect((await response.arrayBuffer()).byteLength).toBeGreaterThan(700);
   });
 
   it("fails closed when World ID is not configured", async () => {

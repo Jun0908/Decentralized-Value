@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@frontier/calldata-compression": "workspace:*",
+    "@frontier/disaster-response": "workspace:*",
     "@frontier/emergency-supply": "workspace:*",
     "@frontier/ens-adapter": "workspace:*",
     "@frontier/microgrid-dispatch": "workspace:*",

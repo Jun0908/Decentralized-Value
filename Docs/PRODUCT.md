@@ -4,17 +4,17 @@
 
 Many competitions combine cost, safety, speed, and quality into one weighted score. Whoever chooses those weights quietly chooses what “better” means and often chooses the winner before participants begin.
 
-Frontier Protocol keeps independent values separate. Every correct solution that offers a useful tradeoff can remain on the Pareto frontier and receive a reward based on the frontier area it contributes.
+Frontier Protocol keeps independent values separate. Funders publish distinct Value Pools instead of hiding their priorities inside one organizer-controlled score. A correct solution can receive support for resilience, efficiency, fairness, or the new Pareto-frontier area it contributes.
 
 > Reward every valid solution that expands what is possible.
 
 ## The protocol in five steps
 
-1. A sponsor publishes a challenge, independent metrics, hard constraints, a fixed evaluation context, and a reward pool.
+1. Sponsors publish a challenge, independent metrics, hard constraints, a fixed evaluation context, and Value Pools with explicit rules and budgets.
 2. Human builders and AI agents submit solutions under the same opportunity and compute limits.
 3. A deterministic evaluator rejects incorrect solutions and measures every surviving solution on every declared axis.
-4. Pareto analysis preserves solutions that are not beaten on all axes and calculates each solution's frontier contribution.
-5. Ethereum commits the result and makes reward distribution publicly auditable.
+4. Each Value Pool evaluates the same evidence under its own public rule; Pareto analysis also preserves solutions that add a new tradeoff.
+5. Ethereum commits the selected result and allocation evidence and makes reward distribution publicly auditable.
 
 There may be several winners. A cheaper solution and a more resilient solution can both be valuable when neither is strictly better than the other on every axis.
 
@@ -29,6 +29,7 @@ There may be several winners. A cheaper solution and a more resilient solution c
 | Context | Versioned dataset, evaluator, constraints, metrics, and execution settings |
 | Pareto frontier | Valid solutions for which no other solution is at least as good everywhere and better somewhere |
 | Frontier contribution | The useful outcome area uniquely added by a solution |
+| Value Pool | A funder's public value statement, deterministic allocation rule, budget, context, and manifest hash |
 | Settlement | The committed final allocation and reward transfer |
 
 ## How it differs
@@ -42,10 +43,12 @@ There may be several winners. A cheaper solution and a more resilient solution c
 | Arena | Independent goals | Product role |
 | --- | --- | --- |
 | Ethereum Calldata Compression | Minimize calldata gas and decoder execution gas | Main Ethereum technical proof |
-| Emergency Supply Allocation | Minimize procurement cost and maximize worst-case delivered kits | Understandable social application |
+| 72-Hour Disaster Response | Minimize 72-hour cost while maximizing worst-case delivery and worst-region coverage | Primary social competition with strategy, disaster replay, independent Value Pools, community value creation, and demo settlement |
 | Community Microgrid Dispatch | Minimize cost and carbon while maximizing worst-case delivered energy | Three-axis extensibility proof |
 
 Detailed active specifications are under `Docs/arenas/`. The arena registry adds shared presentation and routing; a genuinely new problem shape still requires an evaluator adapter and deterministic tests.
+
+The original five-number Emergency Supply Allocation remains available as a Classic fallback. It is not the primary arena and has its own independent API and storage namespace.
 
 ## Fairness model
 

@@ -168,12 +168,14 @@ export default async function ChallengePage({ params }: { params: Promise<{ id: 
         <Link
           className="primary-action"
           href={
-            manifest.id === "emergency-supply-v1"
+            manifest.id === "emergency-supply-v1" || manifest.id === "disaster-response-v2"
               ? "/arenas/emergency-supply#build"
               : `/participate/${manifest.id}`
           }
         >
-          {manifest.id === "emergency-supply-v1" ? "Enter competition" : "Try submission sandbox"}
+          {manifest.id === "emergency-supply-v1" || manifest.id === "disaster-response-v2"
+            ? "Enter competition"
+            : "Try submission sandbox"}
         </Link>
       </section>
     </main>

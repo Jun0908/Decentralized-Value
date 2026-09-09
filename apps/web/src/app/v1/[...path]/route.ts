@@ -7,4 +7,4 @@ async function handle(request: Request) {
   return frontierDemoApi.fetch(request);
 }
 
-export { handle as GET, handle as POST };
+export { handle as GET, handle as POST, handle as PUT };
