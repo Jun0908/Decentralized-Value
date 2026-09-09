@@ -26,7 +26,7 @@ Point to the Sponsor -> Builder/Agent -> Evaluator -> Ethereum flow.
 
 ### 0:30-1:10 — Run the Ethereum proof
 
-Press **Run the live EVM proof**. Show the reproduced Packed codec result:
+Open **Ethereum Calldata Compression**, then press **Measure this codec**. Show the reproduced Packed codec result:
 
 - `8,200` calldata gas;
 - `13,061` decoder execution gas;
@@ -89,7 +89,7 @@ State clearly that this is a completed Sepolia demonstration payout, not a compl
 | Failure | Recovery |
 | --- | --- |
 | Public deployment unavailable | Run `pnpm --filter @frontier/web build` and `pnpm --filter @frontier/web start` locally |
-| New disaster-response UI fails during judging | Open `/arenas/emergency-supply-classic`; the Plan 5 competition is preserved unchanged |
+| New disaster-response UI fails during judging | Open `/arenas/emergency-supply-classic`; the Classic competition is preserved independently |
 | Sepolia RPC or Explorer slow | Use the recorded deployment JSON and transaction links; do not redeploy during the demo |
 | Optional ENS unavailable | Keep the fail-closed state visible and continue with the evaluator and reward proof |
 | Bazantic gateway unavailable | Continue through the public same-origin API; the gateway is not the product critical path |

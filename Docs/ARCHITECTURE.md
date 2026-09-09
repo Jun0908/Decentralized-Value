@@ -71,14 +71,14 @@ Changing an allocation changes its result hash. Changing data, constraints, metr
 
 The primary user journey is:
 
-1. `/` explains the protocol and presents a working Ethereum proof.
-2. `/arenas` lists competitions from the shared Arena Registry.
+1. `/` explains the protocol and links directly to the available arenas.
+2. `/#arenas` presents competitions from the shared Arena Registry; `/arenas` remains a standalone catalog route.
 3. `/arenas/emergency-supply` is the primary social competition path: a visual 72-hour mission, independent Value Pools, Strategy v2 builder, public practice, disaster replay, submitted revisions, selected Final Entry, pool-specific allocations, and an optional Sepolia demo reward.
-4. `/arenas/emergency-supply-classic` preserves the complete Plan 5 static-allocation experience as an independent fallback.
+4. `/arenas/emergency-supply-classic` preserves the complete static-allocation experience as an independent fallback.
 5. Other `/arenas/[slug]` pages combine a common challenge shell with an arena-specific practice workbench.
 6. Practice results show correctness, outcomes, Pareto status, contribution, and reproducibility evidence. The older `/participate/[id]` route remains an explicitly ephemeral engineering sandbox.
 
-Plan 5 and Plan 6 keep external state behind fail-closed adapters. Privy tokens are verified server-side before account-bound reads or writes. Upstash Redis is the durable Vercel adapter; the two competitions use separate prefixes and process memory is allowed only for local development and tests. The Sepolia relayer is disabled unless a dedicated key, an owned pre-funded reward pool, RPC, and a per-participant reward cap are all configured. The runtime relayer has no token mint authority.
+The competition APIs keep external state behind fail-closed adapters. Privy tokens are verified server-side before account-bound reads or writes. Upstash Redis is the durable Vercel adapter; Disaster Response and Classic Emergency Supply use separate prefixes, and process memory is allowed only for local development and tests. The Sepolia relayer is disabled unless a dedicated key, an owned pre-funded reward pool, RPC, and a per-participant reward cap are all configured. The runtime relayer has no token mint authority.
 
 `apps/web/src/lib/arenas.ts` is the source of display metadata. `apps/web/src/lib/arena-adapters.tsx` maps an evaluator kind to its workbench and manifest loader. An unknown evaluator fails closed. Microgrid proves that Pareto membership and contribution can use all metrics while the chart projects any two axes.
 

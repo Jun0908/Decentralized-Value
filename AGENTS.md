@@ -1,84 +1,40 @@
-# Frontier Protocol agent instructions
+# Frontier Protocol agent guide
 
-This file is for coding agents. `README.md` is the Judge- and human-facing project entry point; do not turn it into an internal task log.
+Frontier Protocol rewards correct solutions that expand a reproducible Pareto frontier. Independent values stay separate, every comparable result uses the same committed context, and Ethereum makes final reward evidence verifiable.
 
-## Mission
+## Start here
 
-Frontier Protocol rewards valid solutions that expand a reproducible Pareto frontier. It keeps independent values separate instead of hiding them inside one weighted score, measures every participant under the same committed context, and uses Ethereum to make reward allocation verifiable.
+Read only the documents relevant to the task:
 
-## Read only what the task needs
+- [`Docs/STATUS.md`](Docs/STATUS.md): what works now and what remains incomplete
+- [`Docs/PRODUCT.md`](Docs/PRODUCT.md): product rules and vocabulary
+- [`Docs/ARCHITECTURE.md`](Docs/ARCHITECTURE.md): system and trust boundaries
+- [`Docs/arenas/`](Docs/arenas/): evaluator-specific rules
+- [`Docs/DEMO.md`](Docs/DEMO.md): public demo and recovery flow
+- [`Docs/INTEGRATIONS.md`](Docs/INTEGRATIONS.md): external services and deployment state
+- [`openapi/frontier-v1.yaml`](openapi/frontier-v1.yaml): public API contract
 
-Start with:
+`README.md` is the public entry point. `Docs/archive/` is historical context, not an active requirement. Work under `apps/web/` also follows its generated `AGENTS.md`.
 
-1. `Docs/STATUS.md` for what is actually working now.
-2. `Docs/PRODUCT.md` for product rules and vocabulary.
-3. `Docs/ARCHITECTURE.md` for system and trust boundaries.
-4. The relevant file under `Docs/arenas/` for evaluator work.
-5. `Docs/DEMO.md` for Judge-facing or demo work.
-6. `Docs/INTEGRATIONS.md` only for external-service work.
+## Product invariants
 
-`Docs/archive/` contains historical plans, reviews, and superseded assumptions. Never treat archived text as a current requirement unless the user explicitly revives it and the current docs are updated first.
+- Correctness is a hard gate.
+- Compare results only when evaluator, dataset, constraints, metrics, and evidence context match.
+- Keep every metric and its direction independent; avoid hidden weights.
+- Pareto, contribution, context hashes, and result hashes remain deterministic and submission-order independent.
+- Treat `measured`, `simulated`, `committed`, and `paid` as distinct states. Practice credits are not tokens.
+- Public claims must match available evidence.
 
-The nested `apps/web/AGENTS.md` also applies to work under `apps/web/` and contains generated Next.js-specific rules.
+## Working approach
 
-## Sources of truth
+1. Check `git status` and preserve unrelated work.
+2. Read the relevant current document, nearby implementation, and tests.
+3. Make the smallest coherent change.
+4. Add or update deterministic tests when behavior changes.
+5. Update `Docs/STATUS.md` when the implementation boundary changes, and `README.md` when the public claim or quickstart changes.
+6. Run checks proportional to the change.
 
-- Product intent and competition rules: `Docs/PRODUCT.md`
-- Implemented, partial, and missing capabilities: `Docs/STATUS.md`
-- System boundaries: `Docs/ARCHITECTURE.md`
-- Arena measurement rules: `Docs/arenas/*.md` plus evaluator tests
-- Public API: `openapi/frontier-v1.yaml`
-- Sepolia proof: `Docs/deployments/sepolia-reward-demo.json`
-- Public claims and first-run instructions: `README.md`
-
-When code, tests, and docs disagree, do not silently choose the most impressive claim. Verify the implementation, correct `Docs/STATUS.md`, and keep public language within the proven boundary.
-
-## Non-negotiable product rules
-
-- Correctness is a hard gate, not another score.
-- Compare outcomes only when evaluator version, dataset, constraints, metrics, and evidence context match.
-- Preserve each independent metric and its direction. Do not introduce hidden weights.
-- Pareto and contribution calculations must be deterministic and independent of submission order.
-- Do not include timestamps or request-specific randomness in context or result hashes.
-- `measured`, `simulated`, `committed`, and `paid` are different states.
-- Practice credits are not tokens. A preview is not settlement.
-- Never claim ENS authorization, World ID uniqueness, a signature, a transaction, or a payout without corresponding evidence.
-- The public demo does not require Ledger hardware. Do not put Ledger back on its critical path.
-- The Sepolia demo token has no monetary-value claim.
-
-## Current implementation boundary
-
-The public demo has real deterministic evaluators for Calldata Compression, Emergency Supply, and Microgrid Dispatch. The Calldata evaluator executes compiled Solidity bytecode under Cancun rules. Emergency Supply evaluates user-entered allocations across nine exhaustive single failures. The reward contracts have a completed Sepolia demonstration.
-
-Production tournament storage, World ID uniqueness, arbitrary participant source isolation, hidden-final evaluation, and scheduled final-day settlement are not complete. Read `Docs/STATUS.md` before changing UI claims.
-
-## Repository map
-
-```text
-apps/web                     Next.js UI and same-origin API routes
-apps/api                     Frontier HTTP API logic
-apps/runner                  reproducible runner service
-packages/shared              schemas, Pareto, contribution, and hashes
-packages/emergency-supply    social evaluator
-packages/calldata-compression Solidity/EVM evaluator
-packages/microgrid-dispatch  three-axis evaluator
-packages/contracts           Foundry contracts and deployment scripts
-openapi                      public API specification
-bazantic                     gateway and Recipe material
-Docs                         current human-readable specifications
-```
-
-## Change workflow
-
-1. Inspect `git status` and preserve unrelated user changes.
-2. Read the relevant current doc and nearby tests before editing.
-3. Make the smallest coherent change; do not revive archived scope accidentally.
-4. Add or update deterministic tests for changed behavior.
-5. Update `Docs/STATUS.md` when the proven capability boundary changes.
-6. Update `README.md` only when the Judge-facing product claim or quickstart changes.
-7. Run checks proportional to the change.
-
-Common checks:
+Useful checks:
 
 ```bash
 pnpm env:check
@@ -90,20 +46,24 @@ pnpm test:contracts
 pnpm --filter @frontier/web build
 ```
 
-Use `pnpm run ci` for the complete local suite. Frontend changes also require desktop/mobile browser verification and a console-error check.
+Use `pnpm run ci` for the complete suite. Frontend changes also need desktop/mobile browser verification and a console-error check.
 
-## Documentation hygiene
+## Repository map
 
-- Do not create `Plan5.md`, one-off audit files, or duplicate status documents in `Docs/`.
-- Put current decisions into the existing canonical document.
-- Track immediate work as `Now`, `Next`, or `Later` in `Docs/STATUS.md`.
-- Put completed or superseded planning material in `Docs/archive/`.
-- Keep module-specific instructions beside the module when they are truly local.
-- Fix inbound links whenever a document moves.
+```text
+apps/web                     Next.js UI and same-origin routes
+apps/api                     Frontier HTTP API logic
+apps/runner                  reproducible runner service
+packages/shared              schemas, Pareto, contribution, and hashes
+packages/disaster-response   72-hour strategy evaluator
+packages/emergency-supply    classic allocation evaluator
+packages/calldata-compression Solidity/EVM evaluator
+packages/microgrid-dispatch  three-axis evaluator
+packages/contracts           reward contracts and deployment scripts
+openapi                      public API specification
+Docs                         current specifications and archived history
+```
 
-## Security and external state
+## Safety
 
-- Never print or commit `.env` values, private keys, wallet secrets, API secrets, or Ledger material.
-- Do not hand-edit deployment evidence to make a feature look complete. Generate or verify it from the actual deployment flow.
-- External deployment, payment, registration, or account mutation requires explicit task scope.
-- Missing external configuration must fail closed and remain visible as unavailable or not configured.
+Keep secrets and wallet material out of output and Git. Treat deployment, payment, registration, and account changes as external actions that need clear user scope. Optional services should fail visibly when unavailable.

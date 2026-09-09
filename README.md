@@ -10,7 +10,7 @@ Value Decentralization keeps each metric independent and lets funders publish se
 
 ## A result you can reproduce
 
-The homepage runs compiled Solidity decoder bytecode inside an EthereumJS Cancun EVM. The preloaded Packed codec produces:
+The Calldata Compression arena runs compiled Solidity decoder bytecode inside an EthereumJS Cancun EVM. The preloaded Packed codec produces:
 
 | Calldata gas | Decoder gas | Correctness | Frontier contribution |
 | -----------: | ----------: | :---------: | --------------------: |
@@ -20,7 +20,7 @@ Dictionary encoding uses less calldata. Packed decoding uses less execution gas.
 
 The measurement and result hash are calculated from executable bytecode rather than a precomputed animation.
 
-**[Run the live EVM proof](https://web-rho-seven-d6te7t3f0y.vercel.app/#evm-demo)**
+**[Run the live EVM proof](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/calldata-compression)**
 
 ## How it works
 
@@ -103,7 +103,7 @@ Working today:
 - `84` automated TypeScript tests in the local build evidence;
 - a publicly inspectable Sepolia reward-path demonstration.
 
-The public evaluators and Sepolia reward demonstration are real but currently separate. A funded public tournament, durable participant storage, World ID uniqueness, hidden final workloads and scheduled final settlement are not deployed.
+The public evaluators and Sepolia reward demonstration are real. Disaster Response and Classic Emergency Supply participant state use durable Redis storage in production. Participant uniqueness, isolated arbitrary-code execution, hidden final workloads, and scheduled final settlement are not deployed.
 
 See [Docs/STATUS.md](Docs/STATUS.md) for the exact implementation boundary.
 

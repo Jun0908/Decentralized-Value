@@ -2,7 +2,7 @@
 
 ## Evidence
 
-- Source visual truth: `Docs/plans/Plan7.md` and `apps/web/public/images/disaster-response-network-normal.png`
+- Source visual truth: `Docs/archive/plans/Plan7.md` and `apps/web/public/images/disaster-response-network-normal.png`
 - Rendered implementation: `http://localhost:3000/arenas/emergency-supply#build`, Codex in-app browser tab 26
 - Implementation screenshot path: unavailable; the browser surface returned an in-session image capture but did not expose a file path
 - Viewport: 1265 × 712 browser pixels

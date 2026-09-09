@@ -20,7 +20,7 @@ Environment-dependent evidence must fail closed. Missing public contract or tran
 
 This does not mean a production participant tournament has settled.
 
-Plan 5 has a separate participant-addressed pool at `0x120160ec7d3a6bc649f8f060f3a82cbdb059c962`, funded with a finite 100,000 FDT at `0x57ffcce9342c69ab07a1f405fe5f70f919e0351b`. Its Vercel relayer owns only the pool, holds limited Sepolia gas, and cannot mint more tokens. Public deployment evidence is recorded in [`deployments/sepolia-plan5-reward.json`](deployments/sepolia-plan5-reward.json).
+Classic Emergency Supply has a separate participant-addressed pool at `0x120160ec7d3a6bc649f8f060f3a82cbdb059c962`, funded with a finite 100,000 FDT at `0x57ffcce9342c69ab07a1f405fe5f70f919e0351b`. Its Vercel relayer owns only the pool, holds limited Sepolia gas, and cannot mint more tokens. Public deployment evidence is recorded in [`deployments/sepolia-plan5-reward.json`](deployments/sepolia-plan5-reward.json).
 
 ## Bazantic — optional agent distribution
 
@@ -41,15 +41,15 @@ When maintaining the integration:
 
 The codebase has a chain-aware fail-closed boundary for runner discovery and authorization. No live parent name, subname hierarchy, delegated permission mutation, or current runtime evidence is configured. Do not describe ENS authorization as active until those transactions and resolved records exist.
 
-## Privy — Plan 5 account UX active
+## Privy — account UX active
 
 The client is configured for Google, email, or wallet login and creates an Ethereum embedded wallet for users who do not already have one. `NEXT_PUBLIC_PRIVY_APP_ID` and `PRIVY_VERIFICATION_KEY` are active in production. Email and wallet login are enabled in the Privy project; Google OAuth still requires project-dashboard activation.
 
 ## Upstash Redis — active
 
-Plan 5 stores participants, revisions, evaluations, Final Entry, idempotency records, and reward receipts through a provider-neutral competition-store boundary. The `frontier-plan5` Upstash resource is attached to the Vercel project for Production, Preview, and Development through `KV_REST_API_URL` / `KV_REST_API_TOKEN`. The public challenge API reports `durable-redis` when this adapter is active.
+The competition store persists participants, revisions, evaluations, Final Entries, idempotency records, and reward receipts through a provider-neutral boundary. The Upstash resource is attached to the Vercel project for Production, Preview, and Development through `KV_REST_API_URL` / `KV_REST_API_TOKEN`. The public challenge API reports `durable-redis` when this adapter is active.
 
-## Plan 5 Sepolia relayer — configured
+## Participant reward relayer — configured
 
 The participant-addressed payout is enabled through a dedicated, limited Sepolia relayer. It owns the `FrontierRewardPool` but not the token, so it cannot mint. The server verifies pool ownership and chain, enforces a per-reward cap, checks the finite prefunded balance, commits a participant-specific allocation, distributes once, waits for confirmation, and persists the receipt in Redis.
 

@@ -71,4 +71,4 @@ GET  /v1/challenges/disaster-response/leaderboard
 POST /v1/challenges/disaster-response/demo-settlement
 ```
 
-The Plan 5 Classic arena remains independent at `/arenas/emergency-supply-classic`; its API and evaluator are unchanged.
+The Classic arena remains independent at `/arenas/emergency-supply-classic`; its API and evaluator are unchanged.

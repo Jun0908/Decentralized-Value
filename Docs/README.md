@@ -1,24 +1,29 @@
 # Frontier Protocol documentation
 
-`Docs/` contains the current product and engineering truth. Judge-facing orientation stays in the repository-root `README.md`; coding-agent rules stay in the repository-root `AGENTS.md`.
+This directory contains the current product and engineering reference. Start with [`STATUS.md`](STATUS.md), then open only the document needed for the change.
 
-## Current documents
+## Active documents
 
-| Document | Purpose |
+| Document | Use it for |
 | --- | --- |
-| [PRODUCT.md](PRODUCT.md) | Product thesis, competition model, roles, and arena portfolio |
-| [STATUS.md](STATUS.md) | What is implemented, partial, or not implemented |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Runtime design, evidence chain, and trust boundaries |
-| [DEMO.md](DEMO.md) | Judge demo, verification checklist, and safe fallbacks |
-| [INTEGRATIONS.md](INTEGRATIONS.md) | Vercel, Sepolia, Bazantic, ENS, Privy, and Ledger status |
-| [arenas/emergency-supply.md](arenas/emergency-supply.md) | Emergency Supply measurement specification |
-| [arenas/disaster-response.md](arenas/disaster-response.md) | 72-Hour Disaster Response strategy and award specification |
-| [arenas/calldata-compression.md](arenas/calldata-compression.md) | Calldata Compression measurement specification |
-| [deployments/sepolia-reward-demo.json](deployments/sepolia-reward-demo.json) | Machine-readable Sepolia reward evidence |
+| [STATUS.md](STATUS.md) | Current capabilities, gaps, and next boundary |
+| [PRODUCT.md](PRODUCT.md) | Product model, terminology, and competition rules |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Runtime structure, evidence chain, and trust boundaries |
+| [DEMO.md](DEMO.md) | Public walkthrough, safe claims, and recovery |
+| [INTEGRATIONS.md](INTEGRATIONS.md) | Vercel, Sepolia, Privy, Redis, Bazantic, and ENS |
+| [arenas/](arenas/) | Arena-specific inputs, constraints, metrics, and evaluation rules |
+| [deployments/](deployments/) | Machine-readable deployment evidence |
 | [reference/Value_Decentralization_Whitepaper_JP.pdf](reference/Value_Decentralization_Whitepaper_JP.pdf) | Original Japanese concept paper |
 
-## Authority rule
+The repository-root [`README.md`](../README.md) is the public project entry point. The repository-root [`AGENTS.md`](../AGENTS.md) is the short working guide for coding agents. The OpenAPI contract lives at [`openapi/frontier-v1.yaml`](../openapi/frontier-v1.yaml).
 
-Current documents above take precedence over `archive/`. Archived files preserve the design history and may contain obsolete routes, sponsor assumptions, incomplete plans, or statements that have since become true or false.
+## Where updates belong
 
-Do not add another numbered plan or standalone review to the active Docs root. Update the appropriate current document, put temporary notes in the ignored `tmp/` directory, and move completed historical material into `archive/`.
+- Product behavior or vocabulary: `PRODUCT.md`
+- Proven implementation state: `STATUS.md`
+- System or trust-boundary change: `ARCHITECTURE.md`
+- Demo flow or public claim: `DEMO.md` and, when relevant, the root `README.md`
+- External-service state: `INTEGRATIONS.md`
+- Evaluator rules: the matching file under `arenas/` plus tests
+
+There is no active numbered plan. Completed plans and point-in-time reviews live under [`archive/`](archive/). Temporary notes belong in the ignored `tmp/` directory.
