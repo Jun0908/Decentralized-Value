@@ -1,4 +1,5 @@
 import benchmark from "../../../benchmarks/evm-orderbook/results/latest.json";
+import { strFromU8, unzipSync } from "fflate";
 import { describe, expect, it, vi } from "vitest";
 import {
   createApi,
@@ -418,6 +419,13 @@ describe("Frontier API contracts", () => {
     expect(scenario.durationHours).toBe(72);
     expect(scenario.trainingScenarios).toHaveLength(3);
     expect(scenario.finalScenarioCommitment).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(scenario.evaluatorVersion).toBe("disaster-response-evaluator-v2");
+    expect(scenario.strategySchema.required).toContain("emergencyBudgetUsd");
+    expect(scenario.limits).toEqual({
+      practiceRunsPerMinute: 30,
+      maxRevisions: 20,
+      maxFinalEntries: 1,
+    });
 
     const joinResponse = await api.fetch(
       request("/v1/challenges/disaster-response/join", { method: "POST" }),
@@ -445,6 +453,55 @@ describe("Frontier API contracts", () => {
     expect(submission.evaluation.correctness).toBe(true);
     expect(submission.evaluation.scenarioOutcomes).toHaveLength(7);
     expect(submission.evaluation.worstCaseDeliveredKits).toBeGreaterThan(0);
+    expect(submission.evaluation.scenarioOutcomes[0].explanation).toHaveLength(3);
+
+    const agentStrategy = {
+      ...scenario.defaultStrategy,
+      name: "Agent recovery variant",
+      emergencyBudgetUsd: scenario.defaultStrategy.emergencyBudgetUsd + 1_000,
+    };
+    const agentPractice = await (
+      await api.fetch(
+        request("/v1/disaster-response/evaluations", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(agentStrategy),
+        }),
+      )
+    ).json();
+    const agentSubmissionResponse = await api.fetch(
+      request("/v1/challenges/disaster-response/submissions", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "idempotency-key": "plan7-agent-submission-2",
+        },
+        body: JSON.stringify({
+          strategy: agentStrategy,
+          sourceMethod: "AGENT_API",
+          repositoryUrl: null,
+          sourceCommit: null,
+          agentEvidence: {
+            name: "Test Agent",
+            version: "1.0.0",
+            objective: "Explore additional recovery capacity.",
+          },
+        }),
+      }),
+    );
+    expect(agentSubmissionResponse.status).toBe(201);
+    const agentSubmission = (await agentSubmissionResponse.json()).submission;
+    expect(agentSubmission.evaluation.contextHash).toBe(agentPractice.contextHash);
+    expect(agentSubmission.evaluation.resultHash).toBe(agentPractice.resultHash);
+    expect(agentSubmission.agentEvidence).toEqual({
+      name: "Test Agent",
+      version: "1.0.0",
+      objective: "Explore additional recovery capacity.",
+    });
+    expect(
+      agentSubmission.evaluation.strategyDiff.map(({ field }: { field: string }) => field),
+    ).toEqual(["name", "emergencyBudgetUsd"]);
+    expect(agentSubmission.evaluation.outcomeDiff).not.toBeNull();
 
     const finalResponse = await api.fetch(
       request("/v1/challenges/disaster-response/final-entry", {
@@ -465,6 +522,8 @@ describe("Frontier API contracts", () => {
     expect(leaderboard.awards).toHaveLength(4);
     expect(participantEntry.awardIds.length).toBeGreaterThan(0);
     expect(participantEntry.valueAllocations.length).toBeGreaterThan(0);
+    expect(participantEntry.valueAllocations[0].qualificationReason).toBeTruthy();
+    expect(participantEntry.valueAllocations[0].allocationFormula).toBeTruthy();
     expect(participantEntry.rewardPreview).toBeGreaterThan(0);
     expect(participantEntry.settlementEligibleCredits).toBeGreaterThan(0);
     expect(
@@ -575,7 +634,19 @@ describe("Frontier API contracts", () => {
     const response = await api.fetch(request("/v1/challenges/disaster-response/starter-kit"));
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("application/zip");
-    expect((await response.arrayBuffer()).byteLength).toBeGreaterThan(700);
+    const archive = new Uint8Array(await response.arrayBuffer());
+    expect(archive.byteLength).toBeGreaterThan(700);
+    const files = unzipSync(archive);
+    expect(Object.keys(files)).toContain("disaster-response-starter/evaluation-contract.json");
+    expect(Object.keys(files)).toContain("disaster-response-starter/baseline-agent.mjs");
+    expect(Object.keys(files)).toContain(
+      "disaster-response-starter/policy-artifact-v1.schema.json",
+    );
+    const contract = JSON.parse(
+      strFromU8(files["disaster-response-starter/evaluation-contract.json"]!),
+    );
+    expect(contract.rewardBasis).toBe("measured-outcomes-only");
+    expect(contract.limits.maxFinalEntries).toBe(1);
   });
 
   it("fails closed when World ID is not configured", async () => {

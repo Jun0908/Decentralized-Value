@@ -19,6 +19,7 @@ export default defineConfig([
   prettier,
   globalIgnores([
     "**/.next/**",
+    "**/.vercel/**",
     "**/coverage/**",
     "**/dist/**",
     "**/node_modules/**",

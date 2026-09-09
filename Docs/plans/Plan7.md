@@ -249,7 +249,7 @@ Cost $67,240 · Delivery 750 · Fairness 18.2%
 
 # Plan 7 Extension — Rules, Strategy, and Agent Competition Clarity
 
-**Status:** P0 implemented and locally verified on 2026-09-09. P1 and P2 remain planned.
+**Status:** P0 and P1 implemented locally on 2026-09-09. The declarative Policy Artifact contract is designed; production-tournament P2 infrastructure remains planned.
 
 ## 解決する問題
 
@@ -349,36 +349,36 @@ East Port停止後はAirbridgeから85 kitsを追加購入できました。
 
 ### P1 — 学習用Missionを追加する
 
-- [ ] 初回利用時に、狙う価値を`低コスト`、`災害耐性`、`地域公平性`、`Frontier探索`から選べるようにする。
-- [ ] 選択は案内だけに使い、EvaluatorやValue Poolへ隠れた重みを追加しない。
-- [ ] `Budget Sprintより安くする`、`Route停止後も800 kits以上届ける`、`全地域50%以上を目指す`などのPractice Missionを用意する。
-- [ ] Mission達成は学習用表示に限定し、FDTまたはValue Pool配分と混同しない。
+- [x] 初回利用時に、狙う価値を`低コスト`、`災害耐性`、`地域公平性`、`Frontier探索`から選べるようにする。
+- [x] 選択は案内だけに使い、EvaluatorやValue Poolへ隠れた重みを追加しない。
+- [x] `Budget Sprintより安くする`、`Route停止後も800 kits以上届ける`、`全地域50%以上を目指す`などのPractice Missionを用意する。
+- [x] Mission達成は学習用表示に限定し、FDTまたはValue Pool配分と混同しない。
 
 ### P1 — AI Agentが公平に参加できる入口を作る
 
-- [ ] Strategy v2 Schema、Evaluator version、Training Scenario、Metric、ConstraintをMachine-readableに配布する。
-- [ ] Starter Kitへ、評価APIの利用例、Baseline Agent、再現コマンドを追加する。
-- [ ] Human UIとAI Agent APIが同じEvaluatorとContextを使用することをテストする。
-- [ ] Practice APIの呼び出し上限とFinal Entry数を全参加者で揃える。
-- [ ] Agent名、version、戦略の狙い、生成したStrategy JSON、Revision履歴をEvidenceとして保存する。
-- [ ] 試行回数や説明文の長さ自体には報酬を与えず、測定されたOutcomeだけを配分根拠にする。
+- [x] Strategy v2 Schema、Evaluator version、Training Scenario、Metric、ConstraintをMachine-readableに配布する。
+- [x] Starter Kitへ、評価APIの利用例、Baseline Agent、再現コマンドを追加する。
+- [x] Human UIとAI Agent APIが同じEvaluatorとContextを使用することをテストする。
+- [x] Practice APIの呼び出し上限とFinal Entry数を全参加者で揃える。
+- [x] Agent名、version、戦略の狙い、生成したStrategy JSON、Revision履歴をEvidenceとして保存する。
+- [x] 試行回数や説明文の長さ自体には報酬を与えず、測定されたOutcomeだけを配分根拠にする。
 
 ### P2 — 本番Agent Tournamentへ発展させる
 
-- [ ] 静的なStrategy JSONに加え、災害発生後に判断するPolicy Artifactを設計する。
+- [x] 静的なStrategy JSONに加え、災害発生後に判断するPolicy Artifactを設計する。
 - [ ] 任意Participant Codeを受け入れる前に、隔離実行、CPU・時間・メモリ制限を実装する。
 - [ ] 公開Training Scenarioと、Deadline後に開示するHidden Final Scenarioを分離する。
 - [ ] Deadline、Final Entry Lock、参加者一意性、複数Runner Attestationを実装する。
-- [ ] これらが揃うまでは、現在のInstant DemoをProduction TournamentまたはHidden Finalと表現しない。
+- [x] これらが揃うまでは、現在のInstant DemoをProduction TournamentまたはHidden Finalと表現しない。
 
 ## APIとデータ
 
-- [ ] Evaluation responseへ、前Revisionとの`strategyDiff`と`outcomeDiff`を追加する。
-- [ ] Scenario outcomeから導出できる決定論的な`explanation`を追加する。
-- [ ] Leaderboard entryへ、各Poolの`qualificationReason`と`allocationFormula`を追加する。
-- [ ] 説明文の根拠となる数値は必ずEvaluator結果から生成し、LLMだけに計算させない。
-- [ ] Result Hash互換性を維持する。表示専用DerivativeをHash対象から外す場合はArena仕様へ明記する。
-- [ ] OpenAPI、Arena仕様、PRODUCT、DEMO、STATUSを実装境界に合わせて更新する。
+- [x] Evaluation responseへ、前Revisionとの`strategyDiff`と`outcomeDiff`を追加する。
+- [x] Scenario outcomeから導出できる決定論的な`explanation`を追加する。
+- [x] Leaderboard entryへ、各Poolの`qualificationReason`と`allocationFormula`を追加する。
+- [x] 説明文の根拠となる数値は必ずEvaluator結果から生成し、LLMだけに計算させない。
+- [x] Result Hash互換性を維持する。表示専用DerivativeをHash対象から外す場合はArena仕様へ明記する。
+- [x] OpenAPI、Arena仕様、PRODUCT、DEMO、STATUSを実装境界に合わせて更新する。
 
 ## 完了条件
 
@@ -407,3 +407,13 @@ East Port停止後はAirbridgeから85 kitsを追加購入できました。
 - Web typecheck、targeted ESLint、Prettier、Next.js production build: passed
 - Desktop 1440pxとMobile 390pxでRules、Builder、responsive layoutを確認
 - Headless ChromeでNext.js error overlay、Uncaught exception、TypeError、ReferenceErrorがないことを確認
+
+## P1検証結果
+
+- TypeScript tests: 84 passed
+- Workspace typecheck、ESLint、Prettier、Next.js production build: passed
+- 既存のResult Hash fixtureが不変であることを確認
+- Human practice APIとAgent submissionで同一StrategyのContext HashとResult Hashが一致
+- Desktop 1440pxとMobile 390pxでMission選択、Agent Evidence、横方向overflowなしを確認
+- Production server上のHeadless Chromeでbrowser error 0件を確認
+- Foundryはこの環境に未インストールのため、`pnpm lint`内のcontract formatting checkのみ未実行

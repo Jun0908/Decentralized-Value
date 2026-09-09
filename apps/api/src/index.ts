@@ -226,7 +226,9 @@ export class FrontierApi {
         participantCount: leaderboard.participantCount,
         submissionCount: leaderboard.submissionCount,
         valuePools: leaderboard.valuePools,
-        maxRevisions: 20,
+        maxRevisions: publicDisasterResponseScenario().limits.maxRevisions,
+        maxFinalEntries: publicDisasterResponseScenario().limits.maxFinalEntries,
+        practiceRunsPerMinute: publicDisasterResponseScenario().limits.practiceRunsPerMinute,
         storage: this.plan6.store?.durability ?? "unconfigured",
         authentication: this.plan6.identity ? "privy-verified" : "unconfigured",
         settlement: this.plan6.settlement ? "sepolia-ready" : "unconfigured",
@@ -479,8 +481,11 @@ export class FrontierApi {
       );
       if (existing) return json({ storage: competition.durability, submission: existing });
       const parsed = plan6SubmissionSchema.parse(await body(request));
+      const previousEvaluation = (
+        await competition.submissionsForParticipant(participant.participantId)
+      ).at(-1)?.evaluation;
       const submission = await competition.addSubmission(
-        preparePlan6Submission(participant, parsed),
+        preparePlan6Submission(participant, parsed, previousEvaluation ?? null),
       );
       await competition.saveSubmissionIdempotency(
         participant.participantId,

@@ -120,12 +120,12 @@ paths:
   /v1/disaster-response:
     get:
       operationId: getDisasterResponseScenario
-      description: Returns the 72-hour logistics network, suppliers, regions, public training scenarios, and committed final-scenario hash.
+      description: Returns the machine-readable Strategy v2 schema, evaluator and data versions, limits, metrics, constraints, 72-hour logistics network, public training scenarios, and committed final-scenario hash.
       responses: { "200": { description: Public disaster-response scenario } }
   /v1/disaster-response/evaluations:
     post:
       operationId: practiceDisasterResponseStrategy
-      description: Runs a deterministic practice evaluation without joining or persisting a submission.
+      description: Runs the same deterministic evaluator and context used by Human UI and Agent submissions, without joining or persisting a revision. Display-only explanations are derived from measured outcomes and excluded from the compatible result hash.
       requestBody:
         {
           required: true,
@@ -140,6 +140,7 @@ paths:
           "200":
             { description: Strategy outcome, scenario replay, hashes, and frontier comparison },
           "400": { $ref: "#/components/responses/BadRequest" },
+          "429": { description: Equal per-client practice request limit reached },
         }
   /v1/challenges/disaster-response:
     get:
@@ -153,17 +154,20 @@ paths:
         "200":
           {
             description: Manifest,
+            machine-readable evaluation contract,
             network,
             training scenarios,
-            schema,
+            Strategy and future Policy schemas,
             sample strategy,
-            and instructions as ZIP,
+            baseline Agent,
+            Agent submission example,
+            and reproduction instructions as ZIP,
             content: { application/zip: { schema: { type: string, format: binary } } },
           }
   /v1/challenges/disaster-response/leaderboard:
     get:
       operationId: getDisasterResponseLeaderboard
-      description: Compares selected Final Entries with public benchmarks and allocates independent Value Pools without producing an overall rank.
+      description: Compares selected Final Entries with public benchmarks and allocates independent Value Pools without producing an overall rank. Every allocation includes a deterministic qualification reason and formula.
       responses:
         { "200": { description: Three-axis frontier, Value Pool allocations, and reward previews } }
   /v1/challenges/disaster-response/value-pools:
@@ -207,7 +211,11 @@ paths:
         }
       responses:
         {
-          "201": { description: Persisted and evaluated strategy revision },
+          "201":
+            {
+              description: Persisted and evaluated Human or Agent strategy revision,
+              including Agent evidence and previous-revision differences when supplied,
+            },
           "400": { $ref: "#/components/responses/BadRequest" },
           "401": { description: Privy token missing or invalid },
         }
@@ -540,9 +548,21 @@ components:
       required: [strategy, sourceMethod]
       properties:
         strategy: { $ref: "#/components/schemas/DisasterResponseStrategy" }
-        sourceMethod: { type: string, enum: [VISUAL, JSON, UPLOAD] }
+        sourceMethod: { type: string, enum: [VISUAL, JSON, UPLOAD, AGENT_API] }
         repositoryUrl: { type: [string, "null"], format: uri }
         sourceCommit: { type: [string, "null"], pattern: "^[0-9a-f]{40}$" }
+        agentEvidence:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/Plan6AgentEvidence"
+      additionalProperties: false
+    Plan6AgentEvidence:
+      type: object
+      required: [name, version, objective]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 80 }
+        version: { type: string, minLength: 1, maxLength: 40 }
+        objective: { type: string, minLength: 3, maxLength: 240 }
       additionalProperties: false
     Plan6ValuePoolInput:
       type: object

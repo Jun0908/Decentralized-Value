@@ -3291,6 +3291,122 @@ a.table-row:hover {
 .mission-values small {
   color: #aeb4b7;
 }
+.practice-mission-picker {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(184, 255, 52, 0.28);
+  background: rgba(184, 255, 52, 0.04);
+}
+.practice-mission-picker > header,
+.practice-mission-status,
+.agent-evidence-toggle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.practice-mission-picker > header span,
+.practice-mission-picker > header > b,
+.practice-mission-options span,
+.practice-mission-status p b {
+  color: var(--lime);
+  font: 0.68rem var(--font-mono);
+  letter-spacing: 0.08em;
+}
+.practice-mission-picker h3 {
+  margin: 0.25rem 0 0;
+}
+.practice-mission-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+.practice-mission-options button {
+  min-height: 5.25rem;
+  padding: 0.8rem;
+  text-align: left;
+}
+.practice-mission-options button.secondary-action,
+.practice-mission-options button.secondary-action:hover {
+  border-color: #465056;
+  background: #0a0d0f;
+  color: #f4f1e8;
+}
+.practice-mission-options button span,
+.practice-mission-options button strong {
+  display: block;
+}
+.practice-mission-options button strong {
+  margin-top: 0.35rem;
+  color: var(--foreground);
+}
+.practice-mission-options button.active strong {
+  color: #071100;
+}
+.practice-mission-options button.active span {
+  color: #294300;
+}
+.practice-mission-status {
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--line);
+}
+.practice-mission-status > div,
+.practice-mission-status p {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+}
+.practice-mission-status p {
+  max-width: 24rem;
+  text-align: right;
+}
+.practice-mission-status p.achieved {
+  color: var(--lime);
+}
+.agent-evidence-panel {
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.025);
+}
+.agent-evidence-panel summary {
+  padding: 1rem 1.1rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+.agent-evidence-panel > div {
+  display: grid;
+  gap: 1rem;
+  padding: 0 1.1rem 1.1rem;
+}
+.agent-evidence-toggle {
+  justify-content: flex-start;
+}
+.agent-evidence-toggle span,
+.agent-evidence-summary {
+  display: grid;
+  gap: 0.25rem;
+}
+.agent-evidence-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.55fr) minmax(0, 1.5fr);
+  gap: 0.75rem;
+}
+.agent-evidence-fields label {
+  display: grid;
+  gap: 0.4rem;
+}
+.agent-evidence-summary {
+  margin: 0;
+  padding: 0.65rem;
+  border-left: 2px solid var(--lime);
+  background: rgba(184, 255, 52, 0.04);
+}
+.agent-evidence-summary b {
+  color: var(--lime);
+  font: 0.72rem var(--font-mono);
+}
 .value-pool-market,
 .my-value-result {
   display: grid;
@@ -5222,6 +5338,10 @@ a.table-row:hover {
   .rules-references {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .practice-mission-options,
+  .agent-evidence-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .my-value-result,
   .fund-value-panel > div {
     grid-template-columns: 1fr;
@@ -5321,6 +5441,18 @@ a.table-row:hover {
   .pareto-rule,
   .pareto-conditions {
     grid-template-columns: 1fr;
+  }
+  .practice-mission-options,
+  .agent-evidence-fields {
+    grid-template-columns: 1fr;
+  }
+  .practice-mission-picker > header,
+  .practice-mission-status {
+    display: grid;
+  }
+  .practice-mission-status p {
+    max-width: none;
+    text-align: left;
   }
   .budget-ledger > b {
     display: none;

@@ -41,6 +41,8 @@ Open **72-Hour Disaster Response**. Pause on the first illustration: suppliers a
 
 Choose a preset, change the recovery budget or regional priority, then press **Run practice simulation**. The worst scenario opens automatically and reaches the result in about 15 seconds. Let the replay show:
 
+For a first-time walkthrough, select one optional learning mission—low cost, disaster resilience, regional fairness, or frontier exploration—and point out the **Practice only / no reward effect** label. The mission reports progress but never changes the evaluator or Value Pool allocation.
+
 1. the exact starting loadout and recovery vault;
 2. the broken route and lost inventory;
 3. the replacement suppliers and recovery spend;
@@ -49,6 +51,8 @@ Choose a preset, change the recovery budget or regional priority, then press **R
 Use **Replay** only if the judge asks. Open **Verify committed evaluation evidence** to show the context, committed final-scenario, and result hashes.
 
 Explain that the evaluator executes the submitted Strategy v2 against three public training and four committed instant-final scenarios. It is not selecting a precomputed result.
+
+If the judge asks about Agents, download the Starter Kit and point to `evaluation-contract.json`, `baseline-agent.mjs`, and `agent-submission.example.json`. Human and Agent entries use the same endpoint, context, evaluator, and limits. Agent name/version/objective are stored as provenance, while only measured outcomes affect support.
 
 ### 2:30-3:10 — Show decentralized value
 

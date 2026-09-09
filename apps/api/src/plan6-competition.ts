@@ -1,5 +1,6 @@
 import {
   benchmarkStrategies,
+  compareDisasterResponseEvaluations,
   computeDisasterResponseFrontier,
   defaultDisasterResponseStrategy,
   disasterResponseChallengeId,
@@ -33,14 +34,21 @@ export type Plan6Submission = {
   participantId: Hex;
   challengeId: typeof plan6ChallengeId;
   revision: number;
-  sourceMethod: "VISUAL" | "JSON" | "UPLOAD";
+  sourceMethod: "VISUAL" | "JSON" | "UPLOAD" | "AGENT_API";
   sourceHash: Hex;
   inputHash: Hex;
   repositoryUrl: string | null;
   sourceCommit: string | null;
+  agentEvidence: Plan6AgentEvidence | null;
   artifact: { strategy: DisasterResponseStrategy };
   evaluation: DisasterResponseEvaluation;
   submittedAt: string;
+};
+
+export type Plan6AgentEvidence = {
+  name: string;
+  version: string;
+  objective: string;
 };
 
 export type Plan6FinalEntry = {
@@ -102,6 +110,8 @@ export type Plan6ValuePoolAllocation = {
   credits: number;
   evidenceValue: number;
   evidenceLabel: string;
+  qualificationReason: string;
+  allocationFormula: string;
 };
 
 export type Plan6ValuePoolResult = Plan6ValuePoolManifest & {
@@ -166,11 +176,20 @@ export const disasterResponseStrategySchema = z
 export const plan6SubmissionSchema = z
   .object({
     strategy: disasterResponseStrategySchema,
-    sourceMethod: z.enum(["VISUAL", "JSON", "UPLOAD"]),
+    sourceMethod: z.enum(["VISUAL", "JSON", "UPLOAD", "AGENT_API"]),
     repositoryUrl: z.string().url().startsWith("https://github.com/").nullable().default(null),
     sourceCommit: z
       .string()
       .regex(/^[0-9a-f]{40}$/)
+      .nullable()
+      .default(null),
+    agentEvidence: z
+      .object({
+        name: z.string().trim().min(1).max(80),
+        version: z.string().trim().min(1).max(40),
+        objective: z.string().trim().min(3).max(240),
+      })
+      .strict()
       .nullable()
       .default(null),
   })
@@ -180,6 +199,12 @@ export const plan6SubmissionSchema = z
       context.addIssue({
         code: "custom",
         message: "GitHub repository and commit SHA must be supplied together",
+      });
+    }
+    if (value.sourceMethod === "AGENT_API" && !value.agentEvidence) {
+      context.addIssue({
+        code: "custom",
+        message: "Agent submissions must include agent name, version, and objective",
       });
     }
   });
@@ -324,6 +349,7 @@ export class MemoryPlan6CompetitionStore implements Plan6CompetitionStore {
 export function preparePlan6Submission(
   participant: Plan6Participant,
   raw: z.infer<typeof plan6SubmissionSchema>,
+  previousEvaluation: DisasterResponseEvaluation | null = null,
 ): Omit<Plan6Submission, "submissionId" | "revision" | "submittedAt"> {
   const strategy = raw.strategy as DisasterResponseStrategy;
   const artifact = { strategy };
@@ -331,6 +357,7 @@ export function preparePlan6Submission(
     sourceMethod: raw.sourceMethod,
     repositoryUrl: raw.repositoryUrl,
     sourceCommit: raw.sourceCommit,
+    agentEvidence: raw.agentEvidence,
   };
   return {
     participantId: participant.participantId,
@@ -340,8 +367,12 @@ export function preparePlan6Submission(
     inputHash: keccak256(stringToHex(canonicalProtocolJson(artifact))),
     repositoryUrl: raw.repositoryUrl,
     sourceCommit: raw.sourceCommit,
+    agentEvidence: raw.agentEvidence,
     artifact,
-    evaluation: evaluateDisasterResponseStrategy(strategy),
+    evaluation: compareDisasterResponseEvaluations(
+      evaluateDisasterResponseStrategy(strategy),
+      previousEvaluation,
+    ),
   };
 }
 
@@ -490,6 +521,7 @@ function equalPoolAllocations(
   winners: Plan6LeaderboardRecord[],
   evidenceValue: (record: Plan6LeaderboardRecord) => number,
   evidenceLabel: (record: Plan6LeaderboardRecord) => string,
+  qualificationReason: (record: Plan6LeaderboardRecord) => string,
 ): Plan6ValuePoolAllocation[] {
   const ordered = deterministicRecordOrder(winners);
   if (ordered.length === 0) return [];
@@ -502,6 +534,8 @@ function equalPoolAllocations(
     credits: share + (index < remainder ? 1 : 0),
     evidenceValue: evidenceValue(record),
     evidenceLabel: evidenceLabel(record),
+    qualificationReason: qualificationReason(record),
+    allocationFormula: `${pool.poolCredits} credits / ${ordered.length} exact winner${ordered.length === 1 ? "" : "s"}; deterministic hash order receives any remainder`,
   }));
 }
 
@@ -525,6 +559,8 @@ function proportionalFrontierAllocations(
     credits: Math.floor((pool.poolCredits * weight) / totalWeight),
     evidenceValue: weight,
     evidenceLabel: `${(weight / 10_000).toFixed(2)}% exclusive frontier`,
+    qualificationReason: `Positive exclusive frontier contribution of ${(weight / 10_000).toFixed(2)}%`,
+    allocationFormula: `floor(${pool.poolCredits} × ${weight} / ${totalWeight}); deterministic result-hash order receives any remainder`,
   }));
   let remainder = pool.poolCredits - base.reduce((sum, allocation) => sum + allocation.credits, 0);
   for (const allocation of base) {
@@ -576,6 +612,8 @@ function evaluateValuePool(
         winners,
         ({ evaluation }) => evaluation.totalProcurementCost,
         ({ evaluation }) => `$${evaluation.totalProcurementCost.toLocaleString("en-US")} cost`,
+        ({ evaluation }) =>
+          `Lowest cost among valid entries: $${evaluation.totalProcurementCost.toLocaleString("en-US")}`,
       ),
     };
   }
@@ -593,6 +631,8 @@ function evaluateValuePool(
         ({ evaluation }) => minimumRegionCoverage(evaluation, rule.regionId),
         ({ evaluation }) =>
           `${(minimumRegionCoverage(evaluation, rule.regionId) / 10_000).toFixed(1)}% minimum coverage`,
+        ({ evaluation }) =>
+          `Highest minimum ${rule.regionId} coverage: ${(minimumRegionCoverage(evaluation, rule.regionId) / 10_000).toFixed(1)}%`,
       ),
     };
   }
@@ -608,6 +648,10 @@ function evaluateValuePool(
         metric === "worstCaseDeliveredKits"
           ? `${evaluation.worstCaseDeliveredKits} kits in the worst case`
           : `${(evaluation.regionalFairnessPpm / 10_000).toFixed(1)}% worst-region coverage`,
+      ({ evaluation }) =>
+        metric === "worstCaseDeliveredKits"
+          ? `Highest valid worst-case delivery: ${evaluation.worstCaseDeliveredKits} kits`
+          : `Highest valid worst-region coverage: ${(evaluation.regionalFairnessPpm / 10_000).toFixed(1)}%`,
     ),
   };
 }
@@ -711,6 +755,8 @@ export async function buildPlan6Leaderboard(store: Plan6CompetitionStore) {
             credits: allocation.credits,
             evidenceValue: allocation.evidenceValue,
             evidenceLabel: allocation.evidenceLabel,
+            qualificationReason: allocation.qualificationReason,
+            allocationFormula: allocation.allocationFormula,
           })),
       );
       const rewardPreview = valueAllocations.reduce(
@@ -765,20 +811,123 @@ export function createPlan6StarterKitZip(): Uint8Array {
       JSON.stringify({ strategy: defaultDisasterResponseStrategy }, null, 2),
     ),
     "disaster-response-starter/submission-schema.json": strToU8(
+      JSON.stringify(scenario.strategySchema, null, 2),
+    ),
+    "disaster-response-starter/evaluation-contract.json": strToU8(
       JSON.stringify(
         {
-          required: ["strategy"],
-          strategy: {
-            schemaVersion: "2",
-            supplierIds: scenario.suppliers.map(({ id }) => id as SupplierId),
-            regionPolicies: ["deadline-first", "highest-need", "equalize-coverage"],
-            reserveKits: { min: 0, max: 300 },
-            emergencyBudgetUsd: { min: 0, max: 25_000 },
+          challengeId: scenario.challengeId,
+          evaluatorVersion: scenario.evaluatorVersion,
+          dataVersion: scenario.dataVersion,
+          contextHash: scenario.contextHash,
+          finalScenarioCommitment: scenario.finalScenarioCommitment,
+          trainingScenarios: scenario.trainingScenarios,
+          metrics: scenario.metrics,
+          constraints: scenario.constraints,
+          limits: scenario.limits,
+          practiceEndpoint: "/v1/disaster-response/evaluations",
+          submissionEndpoint: "/v1/challenges/disaster-response/submissions",
+          rewardBasis: "measured-outcomes-only",
+        },
+        null,
+        2,
+      ),
+    ),
+    "disaster-response-starter/agent-submission.example.json": strToU8(
+      JSON.stringify(
+        {
+          strategy: defaultDisasterResponseStrategy,
+          sourceMethod: "AGENT_API",
+          repositoryUrl: null,
+          sourceCommit: null,
+          agentEvidence: {
+            name: "Baseline Priority Agent",
+            version: "1.0.0",
+            objective: "Explore a balanced cost, resilience, and regional fairness trade-off.",
           },
         },
         null,
         2,
       ),
+    ),
+    "disaster-response-starter/policy-artifact-v1.schema.json": strToU8(
+      JSON.stringify(
+        {
+          $schema: "https://json-schema.org/draft/2020-12/schema",
+          title: "Disaster Response Policy Artifact v1 (design only)",
+          description:
+            "A declarative future artifact for post-disruption decisions. The current instant demo does not accept or execute this artifact.",
+          "x-frontier-status": "DESIGN_ONLY_NOT_ACCEPTED",
+          type: "object",
+          additionalProperties: false,
+          required: ["schemaVersion", "name", "rules"],
+          properties: {
+            schemaVersion: { const: "1" },
+            name: { type: "string", minLength: 1, maxLength: 80 },
+            rules: {
+              type: "array",
+              maxItems: 32,
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: ["when", "then"],
+                properties: {
+                  when: {
+                    type: "object",
+                    additionalProperties: false,
+                    properties: {
+                      disabledSupplierId: {
+                        enum: scenario.suppliers.map(({ id }) => id as SupplierId),
+                      },
+                      disabledRouteId: {
+                        enum: [...new Set(scenario.suppliers.map(({ routeId }) => routeId))],
+                      },
+                      minimumRemainingBudgetUsd: { type: "integer", minimum: 0, maximum: 72_000 },
+                    },
+                  },
+                  then: {
+                    type: "object",
+                    additionalProperties: false,
+                    required: ["emergencySupplierOrder", "regionPolicy"],
+                    properties: {
+                      emergencySupplierOrder:
+                        scenario.strategySchema.properties.emergencySupplierOrder,
+                      regionPolicy: scenario.strategySchema.properties.regionPolicy,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        null,
+        2,
+      ),
+    ),
+    "disaster-response-starter/baseline-agent.mjs": strToU8(
+      [
+        'import { readFile } from "node:fs/promises";',
+        "",
+        'const baseUrl = process.argv[2] ?? "http://127.0.0.1:3000";',
+        'const sample = JSON.parse(await readFile(new URL("./sample_strategy.json", import.meta.url), "utf8"));',
+        "const response = await fetch(`${baseUrl}/v1/disaster-response/evaluations`, {",
+        '  method: "POST",',
+        '  headers: { "content-type": "application/json" },',
+        "  body: JSON.stringify(sample.strategy),",
+        "});",
+        "const result = await response.json();",
+        "if (!response.ok) throw new Error(JSON.stringify(result));",
+        "console.log(JSON.stringify({",
+        "  evaluatorVersion: result.evaluatorVersion,",
+        "  contextHash: result.contextHash,",
+        "  resultHash: result.resultHash,",
+        "  outcomes: {",
+        "    totalProcurementCost: result.totalProcurementCost,",
+        "    worstCaseDeliveredKits: result.worstCaseDeliveredKits,",
+        "    regionalFairnessPpm: result.regionalFairnessPpm,",
+        "  },",
+        "}, null, 2));",
+      ].join("\n"),
     ),
     "disaster-response-starter/README.md": strToU8(
       [
@@ -789,7 +938,15 @@ export function createPlan6StarterKitZip(): Uint8Array {
         "Cost, worst-case delivery, and worst-region coverage remain independent metrics.",
         "Independent Value Pools fund different outcomes instead of creating one overall score.",
         "",
-        "Edit `sample_strategy.json`, then upload it in the Frontier workspace.",
+        "## Reproduce a practice evaluation",
+        "",
+        "1. Start the web app with `pnpm dev` from the repository root.",
+        "2. Run `node baseline-agent.mjs http://127.0.0.1:3000` from this directory.",
+        "3. Edit `sample_strategy.json`, rerun the command, and compare the deterministic result hash.",
+        "",
+        "`evaluation-contract.json` publishes the evaluator/data versions, context, metrics, constraints, scenarios, endpoints, and equal limits used by the Human UI and Agent API.",
+        "Use `agent-submission.example.json` as the authenticated submission body. Agent name, version, objective, Strategy JSON, and each saved revision become evidence; only measured outcomes affect allocation.",
+        "`policy-artifact-v1.schema.json` is a design-only future contract. It is not accepted or executed by the current instant demo.",
       ].join("\n"),
     ),
   };

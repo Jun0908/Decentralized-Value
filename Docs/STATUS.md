@@ -25,6 +25,7 @@ This is the only current status document. Historical checklists and numbered pla
 | Plan 7 15-second disaster replay | The evaluator returns exact purchase, loss, recovery, and regional-delivery traces. The worst scenario autoplays as loadout → route failure → reroute → four-region result, with replay, scenario switching, and strategy comparison controls. |
 | Plan 7 Value Pools | Four funders publish distinct manifests and budgets; resilience, efficiency, and fairness select different reference strategies, while frontier credits split proportionally. A logged-in user can add one durable Protect a Region practice pool, and settlement evidence includes the committed pool breakdown. |
 | Plan 7 rules and result clarity | A pre-play rules brief explains the five simulation stages, three independent outcomes, reference strategies, and no-overall-winner model. Parameter controls identify their causal stage; measured results show source scenarios, revision deltas, deterministic failure reasons, trade-off-aware next moves, and pool allocation evidence before hashes. |
+| Plan 7 learning and Agent entry | Four practice-only learning missions guide cost, resilience, fairness, or frontier exploration without changing evaluation. The public scenario and Starter Kit publish the Strategy schema, versions, scenarios, metrics, constraints, equal limits, baseline Agent, reproduction command, and Agent submission example. Agent provenance and deterministic revision differences are persisted; only measured outcomes affect Pool allocation. |
 | Classic fallback | The complete Plan 5 interface and API remain unchanged at `/arenas/emergency-supply-classic` and `/v1/challenges/emergency-supply/*` |
 
 Sepolia evidence: [deployment record](deployments/sepolia-reward-demo.json), [allocation commitment](https://sepolia.etherscan.io/tx/0x96fd7a9d1f4a3bbd2fa7a9ea28d250a16e8eedbaff05b51a4f33e581c3839f2c), and [RewardPaid](https://sepolia.etherscan.io/tx/0xd976a968aefeb66d7e60fba7a9cf64c8711195fc3652aeccc20c7448069ad708).
@@ -46,6 +47,7 @@ Sepolia evidence: [deployment record](deployments/sepolia-reward-demo.json), [al
 
 - World ID or another deployed uniqueness check
 - Arbitrary untrusted source compilation and isolated execution
+- Execution of the design-only Policy Artifact published in the Disaster Response Starter Kit
 - A scheduled hidden-final round with a deadline and entry lock. Plan 6 uses an explicitly labeled instant demo: four final scenarios are committed and revealed as part of the submission response.
 - Deadline scheduler and automatic final-entry lock
 - Multi-runner threshold attestations and dispute/slashing flow

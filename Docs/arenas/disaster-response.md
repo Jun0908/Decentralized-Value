@@ -45,6 +45,18 @@ Every Value Pool has a canonical manifest hash covering its funder label, value 
 
 Each outcome also returns a deterministic `replayTrace` with exact purchase batches, arrival hours, lost shipments, recovery purchases, budget use, and regional deliveries. The UI uses that trace for a 15-second autoplay of the worst scenario; the six other scenarios remain selectable. `replayTrace` is a presentation derivative of the same simulation and is excluded from the canonical JSON used by the existing result hash, preserving compatibility with prior evidence.
 
+Scenario `explanation`, previous-revision `strategyDiff`, and `outcomeDiff` are also deterministic presentation derivatives. They are computed from evaluator inputs and measured outputs, never from free-form model judgment, and are excluded from the canonical result hash to preserve existing evidence compatibility. Value Pool allocations expose `qualificationReason` and `allocationFormula`; allocation still depends only on correctness and measured outcomes.
+
+## Learning missions and AI Agents
+
+Four optional learning missions guide a first run toward lower cost, disaster resilience, regional fairness, or frontier exploration. Mission selection changes guidance only. It does not add a metric weight, affect Value Pool qualification, or award FDT credits.
+
+`GET /v1/disaster-response` publishes the Strategy v2 JSON Schema, evaluator and data versions, training scenarios, metrics, constraints, context hash, and equal limits: 30 practice requests per minute per client, 20 saved revisions per participant, and one selected Final Entry. The downloadable Starter Kit adds the same machine-readable evaluation contract, a runnable baseline Agent, an authenticated Agent submission example, and reproduction commands.
+
+Human and Agent submissions use the same submission endpoint and evaluator. Agent revisions may attach a name, version, and objective as provenance evidence; strategy JSON, result hash, and revision history remain the measured record. Agent prose, attempt count, and declared objective never enter Value Pool allocation.
+
+The Starter Kit also includes a design-only `policy-artifact-v1.schema.json` for future post-disruption decisions. The current instant demo does not accept or execute that artifact or arbitrary participant code. Isolated execution, hidden-final scheduling, deadline locks, deployed uniqueness, and multiple runner attestations remain production-tournament work.
+
 ## API
 
 ```text

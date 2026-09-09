@@ -52,6 +52,8 @@ type Challenge = {
   participantCount: number;
   submissionCount: number;
   maxRevisions: number;
+  maxFinalEntries: number;
+  practiceRunsPerMinute: number;
   storage: string;
   authentication: string;
   settlement: string;
@@ -61,9 +63,10 @@ type Challenge = {
 type Submission = {
   submissionId: string;
   revision: number;
-  sourceMethod: "VISUAL" | "JSON" | "UPLOAD";
+  sourceMethod: "VISUAL" | "JSON" | "UPLOAD" | "AGENT_API";
   inputHash: string;
   artifact: { strategy: DisasterResponseStrategy };
+  agentEvidence: { name: string; version: string; objective: string } | null;
   evaluation: DisasterResponseEvaluation;
   submittedAt: string;
 };
@@ -118,7 +121,43 @@ type EntryValueAllocation = {
   credits: number;
   evidenceValue: number;
   evidenceLabel: string;
+  qualificationReason: string;
+  allocationFormula: string;
 };
+
+type PracticeMissionId = "cost" | "resilience" | "fairness" | "frontier";
+
+const practiceMissions = [
+  {
+    id: "cost",
+    label: "Low cost",
+    title: "Beat Budget Sprint on cost",
+    description: "Spend less than the public cost reference while keeping the strategy valid.",
+  },
+  {
+    id: "resilience",
+    label: "Disaster resilience",
+    title: "Deliver at least 800 kits after failure",
+    description: "Raise the lowest delivery result across all seven scenarios to 800 kits or more.",
+  },
+  {
+    id: "fairness",
+    label: "Regional fairness",
+    title: "Keep every region above 50%",
+    description: "Raise the minimum region coverage across every scenario to at least 50%.",
+  },
+  {
+    id: "frontier",
+    label: "Frontier exploration",
+    title: "Add a new measurable trade-off",
+    description: "Remain non-dominated and create positive exclusive frontier contribution.",
+  },
+] as const satisfies readonly {
+  id: PracticeMissionId;
+  label: string;
+  title: string;
+  description: string;
+}[];
 
 type LeaderboardEntry = {
   id: string;
@@ -214,6 +253,56 @@ function outcomeDelta(
   return signedNumber((current.regionalFairnessPpm - previous.regionalFairnessPpm) / 10_000, " pt");
 }
 
+function practiceMissionProgress(
+  missionId: PracticeMissionId,
+  evaluation: DisasterResponseEvaluation | null,
+  leaderboard: Leaderboard | null,
+) {
+  if (!evaluation) return { achieved: false, message: "Run the simulation to check this mission." };
+  if (!evaluation.correctness)
+    return { achieved: false, message: "The strategy must pass the correctness gate first." };
+  if (missionId === "cost") {
+    const baseline = leaderboard?.entries.find(({ id }) => id === "benchmark-budget");
+    if (!baseline) return { achieved: false, message: "Loading the Budget Sprint reference…" };
+    const delta = baseline.totalProcurementCost - evaluation.totalProcurementCost;
+    return {
+      achieved: delta > 0,
+      message:
+        delta > 0
+          ? `${money(delta)} below Budget Sprint.`
+          : `${money(Math.abs(delta))} above Budget Sprint; lower cost without breaking correctness.`,
+    };
+  }
+  if (missionId === "resilience") {
+    const delta = evaluation.worstCaseDeliveredKits - 800;
+    return {
+      achieved: delta >= 0,
+      message:
+        delta >= 0
+          ? `${evaluation.worstCaseDeliveredKits} kits in the worst scenario.`
+          : `${Math.abs(delta)} more worst-case kits needed.`,
+    };
+  }
+  if (missionId === "fairness") {
+    const delta = evaluation.regionalFairnessPpm - 500_000;
+    return {
+      achieved: delta >= 0,
+      message:
+        delta >= 0
+          ? `${percent(evaluation.regionalFairnessPpm)} worst-region coverage.`
+          : `${(Math.abs(delta) / 10_000).toFixed(1)} points below the 50% practice target.`,
+    };
+  }
+  const achieved =
+    evaluation.pareto.frontier && evaluation.contribution.exclusiveContributionPpm > 0;
+  return {
+    achieved,
+    message: achieved
+      ? `${percent(evaluation.contribution.exclusiveContributionPpm)} exclusive frontier area added.`
+      : "Find a non-dominated result with positive exclusive contribution.",
+  };
+}
+
 export function DisasterResponseCompetition({ initialScenario }: { initialScenario: Scenario }) {
   const account = useFrontierAccount();
   const [challenge, setChallenge] = useState<Challenge | null>(null);
@@ -231,6 +320,13 @@ export function DisasterResponseCompetition({ initialScenario }: { initialScenar
     JSON.stringify({ strategy: initialScenario.defaultStrategy }, null, 2),
   );
   const [sourceMethod, setSourceMethod] = useState<"VISUAL" | "JSON" | "UPLOAD">("VISUAL");
+  const [selectedMission, setSelectedMission] = useState<PracticeMissionId>("resilience");
+  const [agentEvidence, setAgentEvidence] = useState({
+    enabled: false,
+    name: "",
+    version: "1.0.0",
+    objective: "",
+  });
   const [practiceEvaluation, setPracticeEvaluation] = useState<DisasterResponseEvaluation | null>(
     null,
   );
@@ -511,9 +607,16 @@ export function DisasterResponseCompetition({ initialScenario }: { initialScenar
       if (!parsed.strategy) throw new Error("strategy.json must contain a strategy object");
       const payload = await mutate("/v1/challenges/disaster-response/submissions", "POST", {
         strategy: parsed.strategy,
-        sourceMethod,
+        sourceMethod: agentEvidence.enabled ? "AGENT_API" : sourceMethod,
         repositoryUrl: null,
         sourceCommit: null,
+        agentEvidence: agentEvidence.enabled
+          ? {
+              name: agentEvidence.name,
+              version: agentEvidence.version,
+              objective: agentEvidence.objective,
+            }
+          : null,
       });
       setSubmissions((current) => [...current, payload.submission]);
       setPracticeEvaluation(payload.submission.evaluation);
@@ -625,6 +728,17 @@ export function DisasterResponseCompetition({ initialScenario }: { initialScenar
   const totalPositiveContributionPpm =
     leaderboard?.entries.reduce((total, entry) => total + Math.max(0, entry.contributionPpm), 0) ??
     0;
+  const selectedPracticeMission = practiceMissions.find(({ id }) => id === selectedMission)!;
+  const selectedMissionProgress = practiceMissionProgress(
+    selectedMission,
+    previewEvaluation,
+    leaderboard,
+  );
+  const agentEvidenceValid =
+    !agentEvidence.enabled ||
+    (agentEvidence.name.trim().length > 0 &&
+      agentEvidence.version.trim().length > 0 &&
+      agentEvidence.objective.trim().length >= 3);
 
   return (
     <div className="competition-shell disaster-competition">
@@ -767,6 +881,44 @@ export function DisasterResponseCompetition({ initialScenario }: { initialScenar
             <strong>A community can add another reason</strong>
             <small>The same evidence can unlock a new reward.</small>
           </article>
+        </div>
+        <div className="practice-mission-picker" aria-labelledby="practice-mission-title">
+          <header>
+            <div>
+              <span>OPTIONAL LEARNING GUIDE · NO REWARD EFFECT</span>
+              <h3 id="practice-mission-title">Choose what you want to learn first.</h3>
+            </div>
+            <b>PRACTICE ONLY</b>
+          </header>
+          <div className="practice-mission-options" role="radiogroup" aria-label="Practice mission">
+            {practiceMissions.map((mission) => (
+              <button
+                aria-checked={selectedMission === mission.id}
+                className={selectedMission === mission.id ? "active" : "secondary-action"}
+                key={mission.id}
+                onClick={() => setSelectedMission(mission.id)}
+                role="radio"
+                type="button"
+              >
+                <span>{mission.label}</span>
+                <strong>{mission.title}</strong>
+              </button>
+            ))}
+          </div>
+          <div className="practice-mission-status" aria-live="polite">
+            <div>
+              <strong>{selectedPracticeMission.title}</strong>
+              <span>{selectedPracticeMission.description}</span>
+            </div>
+            <p className={selectedMissionProgress.achieved ? "achieved" : "in-progress"}>
+              <b>{selectedMissionProgress.achieved ? "MISSION COMPLETE" : "IN PROGRESS"}</b>
+              {selectedMissionProgress.message}
+            </p>
+          </div>
+          <small>
+            This selection only changes guidance. It adds no evaluator weight, FDT, Value Pool
+            preference, or leaderboard advantage.
+          </small>
         </div>
       </section>
 
@@ -1333,12 +1485,76 @@ export function DisasterResponseCompetition({ initialScenario }: { initialScenar
           ) : null}
         </section>
 
+        <details className="agent-evidence-panel">
+          <summary>Attach AI Agent evidence</summary>
+          <div>
+            <label className="agent-evidence-toggle">
+              <input
+                checked={agentEvidence.enabled}
+                onChange={(event) =>
+                  setAgentEvidence((current) => ({ ...current, enabled: event.target.checked }))
+                }
+                type="checkbox"
+              />
+              <span>
+                <strong>This strategy was generated by an AI Agent</strong>
+                <small>
+                  Evidence is stored with the revision. Agent identity, prose, and attempt count do
+                  not affect measurement or Pool allocation.
+                </small>
+              </span>
+            </label>
+            {agentEvidence.enabled ? (
+              <div className="agent-evidence-fields">
+                <label>
+                  Agent name
+                  <input
+                    maxLength={80}
+                    onChange={(event) =>
+                      setAgentEvidence((current) => ({ ...current, name: event.target.value }))
+                    }
+                    required
+                    value={agentEvidence.name}
+                  />
+                </label>
+                <label>
+                  Agent version
+                  <input
+                    maxLength={40}
+                    onChange={(event) =>
+                      setAgentEvidence((current) => ({ ...current, version: event.target.value }))
+                    }
+                    required
+                    value={agentEvidence.version}
+                  />
+                </label>
+                <label>
+                  Strategy objective
+                  <input
+                    maxLength={240}
+                    onChange={(event) =>
+                      setAgentEvidence((current) => ({ ...current, objective: event.target.value }))
+                    }
+                    placeholder="What trade-off was the Agent trying to add?"
+                    required
+                    value={agentEvidence.objective}
+                  />
+                </label>
+              </div>
+            ) : null}
+          </div>
+        </details>
+
         <div className="strategy-submit-bar">
           <div>
             <strong>Test before you submit</strong>
             <span>
               Practice and final use the same deterministic evaluator. The instant demo reveals its
-              committed final scenarios.
+              committed final scenarios. Every client receives the same limit of{" "}
+              {challenge?.practiceRunsPerMinute ?? 30}
+              practice requests per minute, {challenge?.maxRevisions ?? 20} saved revisions, and{" "}
+              {challenge?.maxFinalEntries ?? 1}
+              selected Final Entry.
             </span>
           </div>
           <div>
@@ -1356,7 +1572,10 @@ export function DisasterResponseCompetition({ initialScenario }: { initialScenar
             >
               Run simulation / シミュレーション実行
             </button>
-            <button disabled={!participant || pending === "submit"} onClick={() => void submit()}>
+            <button
+              disabled={!participant || pending === "submit" || !agentEvidenceValid}
+              onClick={() => void submit()}
+            >
               {pending === "submit" ? "Evaluating final…" : "Submit strategy"}
             </button>
           </div>
@@ -1623,6 +1842,14 @@ export function DisasterResponseCompetition({ initialScenario }: { initialScenar
                       {entry.valueAllocations.map(({ poolName }) => poolName).join(" · ")}
                     </p>
                   ) : null}
+                  {submission.agentEvidence ? (
+                    <p className="agent-evidence-summary">
+                      <b>
+                        AGENT · {submission.agentEvidence.name} {submission.agentEvidence.version}
+                      </b>
+                      <span>{submission.agentEvidence.objective}</span>
+                    </p>
+                  ) : null}
                   <code>{submission.evaluation.resultHash}</code>
                   <button
                     className={
@@ -1715,6 +1942,9 @@ export function DisasterResponseCompetition({ initialScenario }: { initialScenar
                         <b>Your evidence:</b> {allocation.evidenceLabel}
                       </p>
                       <p>
+                        <b>Why qualified:</b> {allocation.qualificationReason}
+                      </p>
+                      <p>
                         <b>Compared with:</b>{" "}
                         {leaderboard?.entries.filter(({ correctness }) => correctness).length ?? 0}{" "}
                         valid reference and Final Entry strategies
@@ -1734,10 +1964,7 @@ export function DisasterResponseCompetition({ initialScenario }: { initialScenar
                           </small>
                         </>
                       ) : (
-                        <small>
-                          This Pool applied its rule independently. It can support this strategy
-                          even when another Pool selects a different one.
-                        </small>
+                        <code>{allocation.allocationFormula}</code>
                       )}
                     </article>
                   );

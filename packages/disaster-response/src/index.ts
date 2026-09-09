@@ -12,6 +12,13 @@ import { keccak256, stringToHex, type Hex } from "viem";
 
 export const disasterResponseChallengeId = "disaster-response-v2" as const;
 export const disasterResponsePoolCredits = 10_000;
+export const disasterResponseEvaluatorVersion = "disaster-response-evaluator-v2" as const;
+export const disasterResponseDataVersion = "disaster-network-2026-09-v2" as const;
+export const disasterResponseLimits = {
+  practiceRunsPerMinute: 30,
+  maxRevisions: 20,
+  maxFinalEntries: 1,
+} as const;
 
 export type SupplierId = "harbor-aid" | "northstar" | "inland-works" | "local-grid" | "airbridge";
 export type RegionPolicy = "deadline-first" | "highest-need" | "equalize-coverage";
@@ -24,6 +31,18 @@ export type DisasterResponseStrategy = {
   regionPolicy: RegionPolicy;
   reserveKits: number;
   emergencyBudgetUsd: number;
+};
+
+export type DisasterResponseStrategyDiff = {
+  field: keyof Omit<DisasterResponseStrategy, "schemaVersion">;
+  before: string;
+  after: string;
+};
+
+export type DisasterResponseOutcomeDiff = {
+  totalProcurementCost: number;
+  worstCaseDeliveredKits: number;
+  regionalFairnessPpm: number;
 };
 
 export type DisasterSupplier = {
@@ -121,6 +140,7 @@ export type DisasterScenarioOutcome = {
   regionOutcomes: RegionOutcome[];
   timeline: ResponseTimelineEvent[];
   replayTrace: DisasterReplayTrace;
+  explanation: string[];
 };
 
 export type DisasterResponsePoint = {
@@ -135,7 +155,7 @@ export type DisasterResponseEvaluation = {
   schemaVersion: "2";
   arenaId: typeof disasterResponseChallengeId;
   dataVersion: string;
-  evaluatorVersion: "disaster-response-evaluator-v2";
+  evaluatorVersion: typeof disasterResponseEvaluatorVersion;
   contextHash: Hex;
   finalScenarioCommitment: Hex;
   manifestHash: Hex;
@@ -154,6 +174,8 @@ export type DisasterResponseEvaluation = {
     improvesOver: DisasterResponsePoint[];
   };
   contribution: ContributionEvidence;
+  strategyDiff: DisasterResponseStrategyDiff[];
+  outcomeDiff: DisasterResponseOutcomeDiff | null;
 };
 
 export const disasterSuppliers = [
@@ -409,6 +431,46 @@ export const disasterResponseMetrics = [
   },
 ] as const satisfies readonly OutcomeMetric[];
 
+export const disasterResponseStrategyJsonSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://frontier.example/schemas/disaster-response-strategy-v2.json",
+  title: "Frontier Disaster Response Strategy v2",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schemaVersion",
+    "name",
+    "primarySupplierOrder",
+    "emergencySupplierOrder",
+    "regionPolicy",
+    "reserveKits",
+    "emergencyBudgetUsd",
+  ],
+  properties: {
+    schemaVersion: { const: "2" },
+    name: { type: "string", minLength: 1, maxLength: 80 },
+    primarySupplierOrder: {
+      type: "array",
+      minItems: 5,
+      maxItems: 5,
+      uniqueItems: true,
+      items: { enum: disasterSuppliers.map(({ id }) => id) },
+    },
+    emergencySupplierOrder: {
+      type: "array",
+      minItems: 5,
+      maxItems: 5,
+      uniqueItems: true,
+      items: { enum: disasterSuppliers.map(({ id }) => id) },
+    },
+    regionPolicy: {
+      enum: ["deadline-first", "highest-need", "equalize-coverage"],
+    },
+    reserveKits: { type: "integer", minimum: 0, maximum: 300 },
+    emergencyBudgetUsd: { type: "integer", minimum: 0, maximum: 25_000 },
+  },
+} as const;
+
 function canonicalJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
   if (value !== null && typeof value === "object") {
@@ -424,7 +486,13 @@ function canonicalResultJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonicalResultJson).join(",")}]`;
   if (value !== null && typeof value === "object") {
     const entries = Object.entries(value as Record<string, unknown>)
-      .filter(([key]) => key !== "replayTrace")
+      .filter(
+        ([key]) =>
+          key !== "replayTrace" &&
+          key !== "explanation" &&
+          key !== "strategyDiff" &&
+          key !== "outcomeDiff",
+      )
       .sort(([left], [right]) => left.localeCompare(right));
     return `{${entries.map(([key, item]) => `${JSON.stringify(key)}:${canonicalResultJson(item)}`).join(",")}}`;
   }
@@ -432,12 +500,11 @@ function canonicalResultJson(value: unknown): string {
 }
 
 const finalScenarioCommitment = keccak256(stringToHex(canonicalJson(finalScenarios)));
-const dataVersion = "disaster-network-2026-09-v2";
 export const disasterResponseContextHash = keccak256(
   stringToHex(
     canonicalJson({
       arenaId: disasterResponseChallengeId,
-      dataVersion,
+      dataVersion: disasterResponseDataVersion,
       suppliers: disasterSuppliers,
       regions: disasterRegions,
       trainingScenarios: publicTrainingScenarios,
@@ -469,7 +536,7 @@ export const disasterResponseManifest = parseChallengeManifest({
   contexts: [
     {
       id: "public-training",
-      version: dataVersion,
+      version: disasterResponseDataVersion,
       name: "Public training scenarios",
       description: "Network, demand, and three published disruption scenarios.",
       datasetHash: disasterResponseContextHash,
@@ -485,7 +552,7 @@ export const disasterResponseManifest = parseChallengeManifest({
     sourceVisibility: "PUBLIC",
     opensAt: null,
     closesAt: null,
-    maxRevisions: 20,
+    maxRevisions: disasterResponseLimits.maxRevisions,
   },
   reviewEndsAt: null,
   reward: { kind: "PREVIEW", poolCredits: disasterResponsePoolCredits },
@@ -718,6 +785,14 @@ function simulateScenario(strategy: DisasterResponseStrategy, scenario: Disaster
       lostAtHour: lost ? firstEventHour : null,
     };
   };
+  const recoveredKits = recovery.purchases.reduce((sum, { kits }) => sum + kits, 0);
+  const lowestRegion = [...dispatched.regionOutcomes].sort(
+    (left, right) =>
+      left.coveragePpm - right.coveragePpm || left.regionId.localeCompare(right.regionId),
+  )[0]!;
+  const disruptionExplanation = scenario.events.length
+    ? `${scenario.events.map(({ label }) => label).join("; ")}. ${lostKits} kits were lost before delivery.`
+    : "No supplier or route failed in this scenario, so no in-transit kits were lost.";
   return {
     scenarioId: scenario.id,
     scenarioName: scenario.name,
@@ -728,6 +803,11 @@ function simulateScenario(strategy: DisasterResponseStrategy, scenario: Disaster
     lostKits,
     regionOutcomes: dispatched.regionOutcomes,
     timeline: dispatched.timeline,
+    explanation: [
+      disruptionExplanation,
+      `${recoveredKits} recovery kits were purchased for $${recovery.spent.toLocaleString("en-US")} from routes that remained available.`,
+      `${lowestRegion.regionName} set the scenario floor at ${(lowestRegion.coveragePpm / 10_000).toFixed(1)}% coverage.`,
+    ],
     replayTrace: {
       initialBudgetUsd: initialBudget,
       emergencyBudgetUsd: strategy.emergencyBudgetUsd,
@@ -820,8 +900,8 @@ export function evaluateDisasterResponseStrategy(
   const resultWithoutHash = {
     schemaVersion: "2" as const,
     arenaId: disasterResponseChallengeId,
-    dataVersion,
-    evaluatorVersion: "disaster-response-evaluator-v2" as const,
+    dataVersion: disasterResponseDataVersion,
+    evaluatorVersion: disasterResponseEvaluatorVersion,
     contextHash: disasterResponseContextHash,
     finalScenarioCommitment,
     manifestHash: disasterResponseManifestHash,
@@ -835,6 +915,8 @@ export function evaluateDisasterResponseStrategy(
       improvesOver,
     },
     contribution,
+    strategyDiff: [],
+    outcomeDiff: null,
   };
   return {
     ...resultWithoutHash,
@@ -842,17 +924,51 @@ export function evaluateDisasterResponseStrategy(
   };
 }
 
+function strategyFieldValue(value: DisasterResponseStrategy[keyof DisasterResponseStrategy]) {
+  return Array.isArray(value) ? value.join(" > ") : String(value);
+}
+
+export function compareDisasterResponseEvaluations(
+  current: DisasterResponseEvaluation,
+  previous: DisasterResponseEvaluation | null,
+): DisasterResponseEvaluation {
+  if (!previous) return current;
+  const fields = [
+    "name",
+    "primarySupplierOrder",
+    "emergencySupplierOrder",
+    "regionPolicy",
+    "reserveKits",
+    "emergencyBudgetUsd",
+  ] as const;
+  return {
+    ...current,
+    strategyDiff: fields.flatMap((field) => {
+      const before = strategyFieldValue(previous.strategy[field]);
+      const after = strategyFieldValue(current.strategy[field]);
+      return before === after ? [] : [{ field, before, after }];
+    }),
+    outcomeDiff: {
+      totalProcurementCost: current.totalProcurementCost - previous.totalProcurementCost,
+      worstCaseDeliveredKits: current.worstCaseDeliveredKits - previous.worstCaseDeliveredKits,
+      regionalFairnessPpm: current.regionalFairnessPpm - previous.regionalFairnessPpm,
+    },
+  };
+}
+
 export function publicDisasterResponseScenario() {
   return {
     challengeId: disasterResponseChallengeId,
     name: "72-Hour Disaster Response",
-    dataVersion,
+    dataVersion: disasterResponseDataVersion,
+    evaluatorVersion: disasterResponseEvaluatorVersion,
     durationHours: 72,
     maxBudgetUsd: 72_000,
     suppliers: disasterSuppliers,
     regions: disasterRegions,
     trainingScenarios: publicTrainingScenarios,
     metrics: disasterResponseMetrics,
+    strategySchema: disasterResponseStrategyJsonSchema,
     benchmarks: benchmarkStrategies.map(({ id, name, approach }) => ({ id, name, approach })),
     defaultStrategy: defaultDisasterResponseStrategy,
     contextHash: disasterResponseContextHash,
@@ -860,6 +976,8 @@ export function publicDisasterResponseScenario() {
     manifest: disasterResponseManifest,
     manifestHash: disasterResponseManifestHash,
     finalScenarioCount: finalScenarios.length,
+    limits: disasterResponseLimits,
+    constraints: disasterResponseManifest.hardConstraints,
     disclosure:
       "This demo reveals committed final scenarios immediately after submission; a scheduled tournament would reveal them only after the deadline.",
   } as const;

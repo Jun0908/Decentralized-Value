@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   benchmarkStrategies,
+  compareDisasterResponseEvaluations,
   defaultDisasterResponseStrategy,
   disasterResponseContextHash,
   evaluateDisasterResponseStrategy,
@@ -49,12 +50,32 @@ describe("72-Hour Disaster Response evaluator", () => {
       { supplierId: "local-grid", kits: 230 },
     ]);
     expect(portFailure.replayTrace.recoverySpentUsd).toBe(18_000);
+    expect(portFailure.explanation).toHaveLength(3);
+    expect(portFailure.explanation.join(" ")).toMatch(/520 kits were lost/i);
     expect(portFailure.replayTrace.deliveries.reduce((sum, { kits }) => sum + kits, 0)).toBe(
       portFailure.deliveredKits,
     );
     expect(result.resultHash).toBe(
       "0xb27f182924df4a304e4d5d25fe1dfa55e9fdfcc2c52c1823811aa141867e71db",
     );
+  });
+
+  it("derives revision differences without changing either committed result hash", () => {
+    const previous = evaluateDisasterResponseStrategy(defaultDisasterResponseStrategy);
+    const current = evaluateDisasterResponseStrategy({
+      ...defaultDisasterResponseStrategy,
+      name: "More recovery cash",
+      emergencyBudgetUsd: defaultDisasterResponseStrategy.emergencyBudgetUsd + 1_000,
+    });
+    const compared = compareDisasterResponseEvaluations(current, previous);
+
+    expect(compared.resultHash).toBe(current.resultHash);
+    expect(compared.strategyDiff.map(({ field }) => field)).toEqual(["name", "emergencyBudgetUsd"]);
+    expect(compared.outcomeDiff).toEqual({
+      totalProcurementCost: current.totalProcurementCost - previous.totalProcurementCost,
+      worstCaseDeliveredKits: current.worstCaseDeliveredKits - previous.worstCaseDeliveredKits,
+      regionalFairnessPpm: current.regionalFairnessPpm - previous.regionalFairnessPpm,
+    });
   });
 
   it("rejects malformed supplier priorities", () => {

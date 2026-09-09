@@ -72,6 +72,8 @@ Measures calldata gas and decoder execution gas while requiring the Solidity dec
 
 Builds a response strategy across five suppliers, four routes and four regions, then replays seven disruption scenarios. Independent Value Pools reward the cheapest valid strategy, strongest worst-case delivery, fairest regional coverage and positive frontier contribution without declaring an overall winner.
 
+The arena also includes four practice-only learning missions and a machine-readable AI Agent path. Its Starter Kit publishes the Strategy schema, evaluator contract, public scenarios, equal usage limits, baseline Agent and reproduction command. Human and Agent entries are measured by the same evaluator; Agent metadata and effort never affect rewards.
+
 [Build a response strategy](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/emergency-supply)
 
 ### Community Microgrid Dispatch
@@ -98,7 +100,7 @@ Working today:
 - deterministic correctness, metric and Pareto evaluation;
 - editable Disaster Response and Microgrid simulations;
 - independent Value Pool manifests, deterministic allocations, and a community Protect a Region practice pool;
-- `79` automated TypeScript tests in the local build evidence;
+- `84` automated TypeScript tests in the local build evidence;
 - a publicly inspectable Sepolia reward-path demonstration.
 
 The public evaluators and Sepolia reward demonstration are real but currently separate. A funded public tournament, durable participant storage, World ID uniqueness, hidden final workloads and scheduled final settlement are not deployed.
