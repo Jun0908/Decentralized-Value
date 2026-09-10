@@ -37,7 +37,13 @@ export const defaultWalletPolicy: WalletPolicy = {
   startingBudget: 500,
   maxPaymentPerTransaction: 150,
   maxAutonomousSpendPerMatch: 600,
-  allowedPurposes: ["CATCH_LIMIT", "CONSERVATION_BUYOUT", "MUTUAL_AID", "CONSERVATION_FUND"],
+  allowedPurposes: [
+    "CATCH_LIMIT",
+    "CONSERVATION_BUYOUT",
+    "MUTUAL_AID",
+    "CONSERVATION_FUND",
+    "SOUNDING_EXCHANGE",
+  ],
   allowArbitraryTransfer: false,
 };
 
@@ -513,6 +519,56 @@ export function brokerAgent(
           (pact) => pact.status === "ACTIVE" && pact.counterparties.includes(boatId),
         );
       const reserve = observation.zones.find((zone) => zone.reserve);
+
+      // Buy eyes before buying restraint.
+      //
+      // What is worth paying for is not an unseen ground — nobody can sell you
+      // a reading of water they have not worked either — but a *banded* one.
+      // Watching a rival land fish tells this boat roughly what was under them;
+      // the rival knows exactly. Upgrading that estimate to the real number is
+      // the only thing a counterparty can sell that they alone possess, and it
+      // is worth most on the ground the fleet is actually competing over.
+      const newestSource = (zoneId: string) => {
+        const readings = observation.soundings.filter((entry) => entry.zoneId === zoneId);
+        if (readings.length === 0) return null;
+        return readings.reduce((best, entry) => (entry.round > best.round ? entry : best)).source;
+      };
+      const lastRound = observation.history[observation.history.length - 1];
+      const bandedZone = observation.zones.find(
+        (zone) => !zone.reserve && newestSource(zone.id) === "OBSERVED",
+      );
+      const witness = bandedZone
+        ? observation.others.find(
+            (other) =>
+              other.active &&
+              !bound(other.id) &&
+              lastRound?.others.some(
+                (entry) => entry.boatId === other.id && entry.zoneId === bandedZone.id,
+              ),
+          )
+        : undefined;
+
+      if (
+        bandedZone &&
+        witness &&
+        budget > 0 &&
+        observation.roundsRemaining >= 2 &&
+        observation.wallet.policy.allowedPurposes.includes("SOUNDING_EXCHANGE")
+      ) {
+        // A reading is worth a fraction of what a stand-down costs: it changes
+        // where you fish, not whether anyone fishes.
+        const fee = Math.max(4, Math.min(budget, Math.round(policyCap * 0.15)));
+        proposals.push({
+          id: proposalId(observation, `read-${bandedZone.id}`),
+          round: observation.round,
+          proposer: id,
+          counterparties: [witness.id],
+          terms: { kind: "SOUNDING_EXCHANGE", zoneId: bandedZone.id },
+          payment: fee,
+          durationRounds: Math.min(3, observation.roundsRemaining),
+          reasonCode: "BANDED_READING",
+        });
+      }
 
       // Open the pool early, while every boat still has cash to subscribe and
       // enough rounds remain for the subscriptions to add up to something.

@@ -2700,3 +2700,128 @@ const oceanAdapter: ArenaAdapter = {
 - `SOUNDING_EXCHANGE` は型と契約検証は入れたが、**スクリプトのエージェントがまだ提案しない**。測深記録を売買する駆け引きは実装の続きが要る
 - LLM 判定（`judge-ocean-commons.ts`）は新ルールで未実行。プロンプトは書き換え済み
 - 賞金の節（他アリーナの 07 VALUE ALLOCATIONS / 09 ETHEREUM SETTLEMENT）は未実装。競技として成立していない段階で価値配分を見せるのは早い
+
+## 58. フロントエンドを他アリーナと同じ水準にする
+
+### 58.1 いま何が足りないのか
+
+§57 で作ったページは、独自の `ocean-*` クラスで一から組んだ。動きはするが、**他のアリーナと見た目も構造も揃っていない。** 72-Hour Disaster Response を読み直すと、既存アリーナは共通の CSS 語彙を共有していた。
+
+| 共通クラス | 役割 | `globals.css` に定義 |
+| --- | --- | --- |
+| `competition-shell` | ページ全体の枠 | あり |
+| `competition-nav` | 節を渡り歩く固定ナビ | あり |
+| `competition-build` | 戦略を組む作業台 | あり |
+| `competition-scoreboard` | 3 軸の着地点 | あり |
+| `competition-leaderboard` | 基準戦略との比較表 | あり |
+| `competition-revisions` | 提出の履歴 | あり |
+| `competition-settlement` | 決済の証拠 | あり |
+| `lever-explanation` | 「この操作が何を動かすか」 | あり |
+| `live-preview-metrics` | 触ると即座に変わる数値 | あり |
+| `evidence-chain` | ハッシュの連鎖 | あり |
+
+**これらを使えば、既存アリーナと同じ見た目が実装なしで手に入る。** 独自クラスで組んだのは判断ミスだった。
+
+### 58.2 やること
+
+**A. 共通語彙へ載せ替える**
+
+`ocean-workbench` を `competition-shell ocean-competition` に。節は `competition-*` を使い、Ocean 固有の見た目だけ `ocean-*` で上書きする。リプレイ台（`ocean-map` とその中身）は据え置き — ここは Ocean 固有で、他に同等物がない。
+
+**B. 固定ナビを付ける**
+
+参照アリーナは `Mission / Rules / Value pools / Build strategy / Disaster replay / Allocations` の帯を上部に固定している。Ocean は `Mission / Rules / Three values / Write a mission / Voyage replay / Landscape`。長いページで現在地が分かるようにする。
+
+**C. 節番号を振り、順序を揃える**
+
+参照アリーナは `01 · THE MISSION` から `09 · ETHEREUM SETTLEMENT` まで通し番号。Ocean も同じ体裁にする。
+
+**D. 基準戦略との比較表（`competition-leaderboard`）**
+
+3 つの方針を同じ seed で走らせ、3 軸を並べる。**どれも全部では勝てない**ことが一目で分かる表にする。これが「合算しない」という主張の実演になる。
+
+**E. 解の地形（frontier）**
+
+3 つの方針＋自分の着地点を 2 軸の散布図に落とし、Pareto Frontier に残るものを強調する。`packages/shared` の `computeOutcomeFrontier` が既にある。
+
+**F. 価値配分の節（`value-allocations`）**
+
+3 つの価値それぞれが「どの方針を支持するか」を示す。報酬プールは `0 FDT` のプレースホルダ。**競技として未証明なので金額は出さない**（§56.4）。
+
+**G. 操作が何を動かすか（`lever-explanation` / `live-preview-metrics`）**
+
+方針を選ぶと、走らせる前に「この選択は BUY / RESTRAINT のどこに効くか」を出す。参照アリーナの `Affects DELIVER.` と同じ役割。
+
+**H. リプレイ台の仕上げ**
+
+- ラウンド間で船が滑らかに移動する（現在は瞬間移動）
+- 契約が結ばれた瞬間に帯が伸びる
+- 網が上がる動き
+- モバイルで潰れないこと
+
+**I. 決済の証拠（`competition-settlement` / `evidence-chain`）**
+
+manifest hash、シナリオ hash、transcript hash を鎖として見せる。他アリーナと同じ体裁。
+
+**J. レスポンシブと検証**
+
+360px 幅まで確認。Playwright で他アリーナと並べて撮り、見劣りしないか確認する。
+
+### 58.3 やらないこと
+
+**パラメータ調整はしない。** §56 の停止規則は生きている。第 3 軸が端にあることも、`SOUNDING_EXCHANGE` が発火しないことも、UI の問題ではないので今夜は触らない。§57.6 の残件として置いておく。
+
+## 59. 再開用 — いまの状態と、次にやること
+
+**2026-09-11 深夜。context 上限で中断。リセット後はここから読めば続けられる。**
+
+### 59.1 いまの状態
+
+`/arenas/ocean-commons` は動いている。型エラー 0、HTTP 200、テスト 40 件 PASS。
+
+直前に §58 の「共通語彙へ載せ替える」を実施した：
+
+- `ocean-commons-workbench.tsx` を全面書き換え。`competition-shell` / `competition-scoreboard` / `competition-nav` / `competition-build` / `competition-leaderboard` / `value-allocations` / `competition-settlement` / `lever-explanation` / `live-preview-metrics` / `evidence-chain` を使用
+- 節を 01〜07 の通し番号に。固定ナビを追加
+- 3 方針を**同じ seed で全部走らせて比較表にする**実装を追加（`onFrontier` で Pareto 判定）
+- 価値配分の節を追加（報酬は `0 FDT` 固定）
+- `globals.css` の末尾に新クラスの定義を追記
+
+**未確認：この載せ替え後のスクリーンショットをまだ撮っていない。** 見た目が他アリーナと揃ったかは目視できていない。**リセット後の最初の作業はこれ。**
+
+### 59.2 次にやること（優先順）
+
+1. **スクリーンショットで確認する。** `/arenas/ocean-commons` と `/arenas/emergency-supply` を同じ幅で撮って並べ、見劣りする箇所を潰す。特に `competition-nav` の固定表示、`competition-scoreboard` の並び、`leaderboard-row` の桁揃え
+2. **モバイル（360px / 768px）で確認。** リプレイ台が潰れないか、比較表が読めるか
+3. **リプレイ台の仕上げ**（§58.2-H）。船の移動は CSS transition を入れたが未確認。契約の帯が伸びる動き、網が上がる動きは未実装
+4. **`competition-revisions` 相当**（試した方針の履歴）を足すか判断する。他アリーナにはある
+5. **`SOUNDING_EXCHANGE` を発火させる**（§57.6）。型と検証は入っているが、スクリプトのエージェントが提案しないので**隠された海の目玉である情報取引がまだ一度も起きていない**。`agents.ts` の `brokerAgent` あたりに、測深記録が古い漁場があるとき交換を提案する枝を足す
+6. 第 3 軸が端にある問題（§56.2、§59.3）
+
+### 59.3 第 3 軸について分かったこと（重要・未記録だった）
+
+3 方針を実測した結果：
+
+| 方針 | 残燃料 | 諦めた漁獲 | restraint |
+| --- | --- | --- | --- |
+| Fill the hold (effort 1.0) | 0 | **0** | 0% |
+| Work the season (0.6) | **0** | 19〜76 | 0〜109% |
+| Hold back (0.2) | 265/227/138 | 172〜228 | 8〜76% |
+
+**effort 0.6 でも燃料を使い切る。** 総漁獲を決めているのは燃料予算であって effort ではなく、effort は「使う速さ」しか変えていない。したがって現在の restraint は実質「**燃料を余らせたか**」しか測っていない。
+
+これは §50.5 で退役させた stewardship 軸（＝何もしない船が満点）と**同じ失敗を別の形で繰り返している**。
+
+直すなら、抑制を「どれだけ獲らないか」ではなく **「どこで・いつ獲るか」**の問題にする必要がある。燃料は使い切ったうえで、痩せた漁場を避ける・保護区に近づかない、という選択が「諦めた漁獲」として数えられる形。いまは effort を下げる以外に諦める手段がない。
+
+**ただしこれは設計変更なので、UI が仕上がってから着手する。**
+
+### 59.4 触ってはいけないもの
+
+Codex が並行作業中。`packages/rescue-room`、`apps/api`、`apps/web/src/components/rescue-room-workbench.tsx`、`Docs/STATUS.md`、`design-qa.md`、`openapi/`。
+
+**`globals.css` は Codex も未コミットの変更を持っている。** コミットするときは自分の追記分だけを staging に載せること（前回は `git hash-object -w` + `git update-index --cacheinfo` で分離した）。
+
+### 59.5 コミット状況
+
+`6908264 feat: rebuild Ocean Commons around a sea nobody can see` まで済み。**§58 の載せ替えは未コミット。Push は一度もしていない。**

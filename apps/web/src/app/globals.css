@@ -8860,3 +8860,171 @@ a.table-row:hover {
 .ocean-competition > section[id] {
   scroll-margin-top: 4.5rem;
 }
+
+/* Ocean Commons, moved onto the shared `competition-*` vocabulary. The colour
+   tokens were scoped to a wrapper that no longer exists, so they are re-scoped
+   here; the rules above still style the voyage stage itself. */
+.ocean-competition {
+  --ocean-deep: #071a26;
+  --ocean-shelf: #0d3247;
+  --ocean-bond-limit: #c7ff45;
+  --ocean-bond-buyout: #ff7849;
+  --ocean-bond-aid: #6fd3ff;
+  --ocean-bond-fund: #d59bff;
+  --ocean-bond-sounding: #ffd166;
+  display: grid;
+  gap: 1.75rem;
+}
+.ocean-story,
+.ocean-rules-section,
+.ocean-values,
+.ocean-replay-section {
+  border-top: 1px solid var(--line);
+  padding-top: 1.75rem;
+  display: grid;
+  gap: 1rem;
+}
+.ocean-story h2,
+.ocean-values h2,
+.ocean-replay-section h2 {
+  margin: 0;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  line-height: 1.15;
+}
+.ocean-story > p {
+  margin: 0;
+  max-width: 68ch;
+  color: var(--muted);
+}
+.ocean-story-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem;
+}
+.ocean-story-facts article {
+  border: 1px solid var(--line);
+  padding: 0.85rem;
+}
+.ocean-story-facts span {
+  display: block;
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.ocean-story-facts small {
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  font-size: 0.66rem;
+}
+
+/* Five columns of numbers need a floor width or they wrap into mush. */
+.ocean-leaderboard .leaderboard-row {
+  grid-template-columns: minmax(11rem, 2fr) repeat(3, minmax(5.5rem, 1fr)) minmax(9rem, 1.4fr);
+}
+.ocean-leaderboard .leaderboard-row.mine {
+  border-left: 2px solid var(--lime);
+}
+.ocean-leaderboard .leaderboard-row small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.ocean-competition .mono {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
+/* Hulls glide between grounds rather than teleporting, so a viewer can follow
+   one boat from round to round. */
+.ocean-hull {
+  transition: transform 420ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.ocean-fuel-fill {
+  transition: width 420ms ease;
+}
+.ocean-fog {
+  transition: opacity 320ms ease;
+}
+.ocean-approaches button:hover {
+  border-color: #4a5257;
+}
+.ocean-scrub button:hover {
+  border-color: #4a5257;
+  color: var(--ink);
+}
+.ocean-stage-controls button:hover {
+  border-color: var(--lime);
+  color: var(--lime);
+}
+
+@media (max-width: 720px) {
+  .ocean-reading-key {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .ocean-leaderboard .leaderboard-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.3rem 0.8rem;
+  }
+  .ocean-leaderboard .leaderboard-head {
+    display: none;
+  }
+  .ocean-stage-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ocean-hull,
+  .ocean-fog,
+  .ocean-fuel-fill {
+    transition: none;
+  }
+}
+
+
+/* The nav is sticky, so an anchored section must leave room for it or the
+   eyebrow and heading land underneath the bar the reader just clicked. */
+.ocean-competition > section[id] {
+  scroll-margin-top: 4.5rem;
+}
+
+/* Explanatory prose sits in grid children that otherwise refuse to shrink. */
+.ocean-competition .lever-explanation,
+.ocean-competition .leaderboard-row > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 720px) {
+  /* A five-column table cannot survive this width. Stack it, and carry the
+     column headings down onto each value — without them the numbers are three
+     anonymous figures in a list. */
+  .ocean-leaderboard .leaderboard-row {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
+  .ocean-leaderboard .leaderboard-row.leaderboard-head {
+    display: none;
+  }
+  .ocean-leaderboard .leaderboard-row > span::before {
+    color: var(--muted);
+  }
+  .ocean-leaderboard .leaderboard-row > span:nth-child(2)::before {
+    content: "Livelihood: ";
+  }
+  .ocean-leaderboard .leaderboard-row > span:nth-child(3)::before {
+    content: "Restraint: ";
+  }
+  .ocean-leaderboard .leaderboard-row > span:nth-child(4)::before {
+    content: "Cooperation: ";
+  }
+  .ocean-leaderboard .leaderboard-row > span:last-child {
+    margin-top: 0.3rem;
+    color: var(--lime);
+  }
+  .ocean-leaderboard .leaderboard-row.dominated > span:last-child {
+    color: var(--muted);
+  }
+}

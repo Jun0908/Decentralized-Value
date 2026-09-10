@@ -365,6 +365,86 @@ describe("wallet policy", async () => {
   });
 });
 
+describe("sounding exchange", async () => {
+  it("is offered for a ground this boat has only watched, to the boat that worked it", async () => {
+    // Only a banded reading is worth upgrading: nobody can sell a reading of
+    // water they never worked either, so an unseen ground has no seller.
+    const seeds = Array.from({ length: 25 }, (_, index) => `ocean-practice-v1:${index}`);
+    const deals = [];
+    for (const seed of seeds) {
+      const scenario = generateScenario(seed, { vary: true });
+      const [a, b, c, d, e] = scenario.boats;
+      const log = await runMatch(scenario, [
+        brokerAgent(a!.id, a!.name, scenario),
+        brokerAgent(b!.id, b!.name, scenario),
+        greedyAgent(c!.id, c!.name, scenario),
+        opportunistAgent(d!.id, d!.name, scenario),
+        cautiousAgent(e!.id, e!.name, scenario),
+      ]);
+      deals.push(
+        ...log.acceptedProposals.filter((proposal) => proposal.terms.kind === "SOUNDING_EXCHANGE"),
+      );
+    }
+
+    // The contract existed for a while without any agent ever offering it,
+    // which left the whole point of a dark sea untested.
+    expect(deals.length).toBeGreaterThan(0);
+    for (const deal of deals) {
+      expect(deal.counterparties).toHaveLength(1);
+      expect(deal.counterparties[0]).not.toBe(deal.proposer);
+      expect(deal.payment).toBeGreaterThan(0);
+    }
+  });
+
+  it("never hands a boat an exact reading it did not earn or buy", async () => {
+    const scenario = generateScenario("sounding-precision", { vary: true });
+    const [a, b, c, d, e] = scenario.boats;
+
+    // Watch one boat's observations from the inside. A SHARED reading may only
+    // reach a boat that is actually party to a sounding contract; otherwise the
+    // dark sea leaks precision it never sold.
+    const seen: { round: number; shared: string[] }[] = [];
+    const watched = cautiousAgent(e!.id, e!.name, scenario);
+    const spy: OceanAgent = {
+      id: watched.id,
+      name: watched.name,
+      negotiate(observation) {
+        seen.push({
+          round: observation.round,
+          shared: observation.soundings
+            .filter((sounding) => sounding.source === "SHARED")
+            .map((sounding) => sounding.zoneId),
+        });
+        return watched.negotiate(observation);
+      },
+      act: (observation) => watched.act(observation),
+    };
+
+    const log = await runMatch(scenario, [
+      brokerAgent(a!.id, a!.name, scenario),
+      brokerAgent(b!.id, b!.name, scenario),
+      greedyAgent(c!.id, c!.name, scenario),
+      opportunistAgent(d!.id, d!.name, scenario),
+      spy,
+    ]);
+
+    const partnered = new Set(
+      log.acceptedProposals
+        .filter(
+          (proposal) =>
+            proposal.terms.kind === "SOUNDING_EXCHANGE" &&
+            (proposal.proposer === e!.id || proposal.counterparties.includes(e!.id)),
+        )
+        .map((proposal) => proposal.id),
+    );
+
+    expect(seen.length).toBeGreaterThan(0);
+    for (const round of seen) {
+      if (partnered.size === 0) expect(round.shared).toHaveLength(0);
+    }
+  });
+});
+
 describe("restraint axis", async () => {
   it("scores zero for a boat that gave up nothing", async () => {
     const scenario = generateScenario("gave-nothing", { vary: true });
