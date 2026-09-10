@@ -13,6 +13,7 @@ import {
 import { createInitialState, transition } from "./engine";
 import {
   evaluateMatch,
+  scoreCooperation,
   hashResult,
   hashTranscript,
   oceanFrontier,
@@ -362,15 +363,63 @@ describe("wallet policy", () => {
   });
 });
 
+describe("cooperation axis", () => {
+  it("credits a boat only for what its own contracts changed", () => {
+    const scenario = generateScenario("attribution", { vary: true });
+    const broker = scenario.boats[0]!.id;
+
+    const full = evaluateMatch(runMatch(scenario, mixedFleet(scenario)));
+    const without = evaluateMatch(
+      runMatch(scenario, mixedFleet(scenario), { excludeContractsFor: broker }),
+    );
+    const score = scoreCooperation(full, without, broker);
+
+    // Excluding the broker must remove its pacts and nothing else.
+    expect(without.contracts.accepted).toBeLessThan(full.contracts.accepted);
+    expect(score.spent).toBeGreaterThan(0);
+    expect(score.efficacy).toBeCloseTo((score.stewardshipDelta * 1000) / score.spent, 6);
+  });
+
+  it("credits the payer, not the boat that was paid to stand down", () => {
+    const scenario = generateScenario("hostage", { vary: true });
+    const paid = scenario.boats[1]!.id;
+    const full = evaluateMatch(runMatch(scenario, mixedFleet(scenario)));
+    const without = evaluateMatch(
+      runMatch(scenario, mixedFleet(scenario), { excludeContractsFor: paid }),
+    );
+
+    // A boat that only ever received money has spent nothing, so however much
+    // stopping it helped the sea, the credit belongs to whoever bought it out.
+    const receiver = { ...full, boats: full.boats.map((boat) =>
+      boat.boatId === paid ? { ...boat, paidOut: 0, received: 200 } : boat) };
+
+    expect(scoreCooperation(receiver, without, paid).efficacy).toBe(0);
+  });
+
+  it("scores a boat that never contracted at zero, not at infinity", () => {
+    const scenario = generateScenario("abstainer", { vary: true });
+    const loner = scenario.boats[1]!.id;
+    const full = evaluateMatch(runMatch(scenario, mixedFleet(scenario)));
+    const without = evaluateMatch(
+      runMatch(scenario, mixedFleet(scenario), { excludeContractsFor: loner }),
+    );
+
+    const score = scoreCooperation({ ...full, boats: full.boats.map((b) =>
+      b.boatId === loner ? { ...b, paidOut: 0, received: 0 } : b) }, without, loner);
+
+    expect(score.efficacy).toBe(0);
+  });
+});
+
 describe("outcomes", () => {
   it("keeps the three outcomes separate and never aggregates them", () => {
     const scenario = generateScenario("outcomes", { vary: true });
     const outcomes = evaluateMatch(runMatch(scenario, mixedFleet(scenario)));
-    const point = toOutcomePoint("mixed", "Mixed fleet", outcomes);
+    const point = toOutcomePoint("mixed", "Mixed fleet", outcomes, 0.1);
 
     expect(Object.keys(point.values).sort()).toEqual([
+      "cooperation",
       "livelihood",
-      "resilience",
       "stewardship",
     ]);
     expect(point.values).not.toHaveProperty("total");
@@ -395,7 +444,7 @@ describe("outcomes", () => {
     const points = ["a", "b", "c"].map((tag, index) => {
       const agents = mixedFleet(scenario);
       const log = runMatch(scenario, agents, { enableNegotiation: index !== 1 });
-      return toOutcomePoint(tag, tag, evaluateMatch(log));
+      return toOutcomePoint(tag, tag, evaluateMatch(log), index * 0.05);
     });
 
     const forward = oceanFrontier(points).map((point) => point.id);

@@ -24,6 +24,16 @@ import type { BoatId, FishingAction, OceanState, Proposal } from "./types";
 // --- outcome metrics ------------------------------------------------------
 
 /**
+ * The three axes never combine. Livelihood asks whether this boat could keep
+ * fishing, stewardship whether the sea survived, and cooperation what this
+ * boat's agreements actually bought with the money that passed through them.
+ *
+ * Cooperation replaced a small-fleet resilience axis that could not tell two
+ * policies apart inside 20 matches, and that ranked greed above restraint
+ * however it was defined — in this world cash buys safety and fishing buys
+ * cash, so caution always looked fragile. It is kept in the evidence below,
+ * simply no longer scored.
+ *
  * Stewardship is measured at the *lowest* point of the match, not the end, so
  * that draining the sea and letting it rebound in the final rounds does not
  * read as good stewardship.
@@ -53,12 +63,12 @@ export const oceanMetrics = [
     upperBound: 1,
   },
   {
-    key: "resilience",
-    name: "Small fleet resilience",
+    key: "cooperation",
+    name: "Cooperation efficacy",
     direction: "MAXIMIZE",
-    unit: "share of starting capital",
-    lowerBound: 0,
-    upperBound: 2,
+    unit: "stewardship points per 1000 DemoUSD",
+    lowerBound: -0.5,
+    upperBound: 0.5,
   },
 ] as const satisfies readonly OutcomeMetric[];
 
@@ -229,7 +239,48 @@ export function evaluateMatch(log: MatchLog): MatchOutcomes {
   };
 }
 
-// --- cooperation efficacy, measured against a counterfactual --------------
+/**
+ * What one boat's agreements were worth, per DemoUSD it spent on them.
+ *
+ * The counterfactual removes only this boat's contracts and replays the same
+ * weather, fleet and seed. Dividing by what it paid makes this a rate rather
+ * than a budget: the boat that protected more sea for the same money scores
+ * above the one that merely had more to spend. A boat that never paid scores
+ * zero — not punished for abstaining, simply not credited.
+ *
+ * Only the payer is credited. Scoring both sides made the heaviest extractor
+ * the best cooperator in the fleet, because buying it out moved the most fish
+ * and it was the most expensive boat to stop. That rewards being maximally
+ * destructive until somebody pays you to stop — a hostage, not a partner. The
+ * boat that takes the money is already paid for its restraint in cash, and the
+ * restraint itself already shows up in stewardship; crediting it here as well
+ * would count the same act three times.
+ */
+export type CooperationScore = {
+  /** Stewardship with this boat's contracts, minus stewardship without them. */
+  stewardshipDelta: number;
+  /** Escrow and fund contributions this boat paid out. */
+  spent: number;
+  /** The axis value: stewardship points per 1000 DemoUSD spent. */
+  efficacy: number;
+};
+
+export function scoreCooperation(
+  full: MatchOutcomes,
+  without: MatchOutcomes,
+  boatId: BoatId,
+): CooperationScore {
+  const self = full.boats.find((boat) => boat.boatId === boatId);
+  const spent = stable(self?.paidOut ?? 0);
+  const stewardshipDelta = stable(full.stewardship - without.stewardship);
+  return {
+    stewardshipDelta,
+    spent,
+    efficacy: spent <= 0 ? 0 : stable((stewardshipDelta * 1000) / spent),
+  };
+}
+
+// --- fleet-wide cooperation efficacy, measured against a counterfactual ----
 
 export type CooperationEfficacy = {
   /** Money actually moved between agents under contract. */
@@ -273,6 +324,7 @@ export function toOutcomePoint(
   id: string,
   name: string,
   outcomes: MatchOutcomes,
+  cooperation: number,
   options: { correctness?: boolean; baseline?: boolean } = {},
 ): OutcomePoint {
   return {
@@ -283,7 +335,7 @@ export function toOutcomePoint(
     values: {
       livelihood: outcomes.livelihood,
       stewardship: outcomes.stewardship,
-      resilience: outcomes.resilience,
+      cooperation,
     },
   };
 }

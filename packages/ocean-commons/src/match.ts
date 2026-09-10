@@ -4,7 +4,7 @@ import { createInitialState, transition } from "./engine";
 import { acceptProposal, type ValidationError } from "./negotiation";
 import { stable } from "./rng";
 import type { OceanScenario } from "./scenario";
-import type { FishingAction, OceanState, Proposal, RoundRecord } from "./types";
+import type { BoatId, FishingAction, OceanState, Proposal, RoundRecord } from "./types";
 
 /**
  * Runs a full match: negotiate, then fish, then let the engine resolve the
@@ -34,6 +34,14 @@ export type MatchOptions = {
   wallets?: Record<string, WalletPolicy>;
   /** Set false to measure the same fleet with the contract layer disabled. */
   enableNegotiation?: boolean;
+  /**
+   * Runs the match as if this boat had never contracted with anyone: its own
+   * offers are never made and it refuses every offer put to it. Everything
+   * else — weather, fleet, the other boats' policies — is untouched, so the
+   * difference against the full run is what this boat's agreements caused.
+   * This is the counterfactual behind the cooperation axis.
+   */
+  excludeContractsFor?: BoatId;
 };
 
 function publicViews(
@@ -123,6 +131,7 @@ export function runMatch(
     if (enableNegotiation) {
       for (const proposer of agents) {
         if (!state.boats[proposer.id]?.active) continue;
+        if (proposer.id === options.excludeContractsFor) continue;
         const proposerWallet = walletFor(proposer.id);
         const { proposals } = proposer.negotiate(
           buildObservation(
@@ -157,6 +166,7 @@ export function runMatch(
           const accepted = targets
             .filter((agent) => {
               if (!state.boats[agent.id]?.active) return false;
+              if (agent.id === options.excludeContractsFor) return false;
               const wallet = walletFor(agent.id);
               const { responses } = agent.negotiate(
                 buildObservation(
