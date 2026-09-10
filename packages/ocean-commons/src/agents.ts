@@ -625,3 +625,124 @@ export function reciprocatorAgent(id: BoatId, name: string, scenario: OceanScena
     },
   };
 }
+
+/**
+ * Fishes one ground and stays there.
+ *
+ * Every other baseline computes the same "best zone" from the same public
+ * numbers, so the fleet moves as one school: it hammers a ground, moves on,
+ * and the ground recovers before anyone comes back. Nothing is ever fished
+ * hard enough to fail. A boat with a home ground keeps pressure on one patch,
+ * which is what real effort looks like and what a commons needs in order to
+ * be at risk at all.
+ */
+export function territorialAgent(
+  id: BoatId,
+  name: string,
+  scenario: OceanScenario,
+  homeZoneId: string,
+): OceanAgent {
+  return {
+    id,
+    name,
+    negotiate(observation) {
+      return {
+        proposals: [],
+        responses: observation.incomingProposals.map((proposal) => ({
+          type: "ACCEPT" as const,
+          proposalId: proposal.id,
+        })),
+      };
+    },
+    act(observation) {
+      const shim = observationStateShim(observation);
+      if (standDownRequired(shim, id)) return idle(observation);
+      const home = observation.zones.find((zone) => zone.id === homeZoneId);
+      const closed = closedZones(shim, id);
+
+      if (home && !closed.has(home.id) && !tooRough(home, observation.weather, observation.self)) {
+        const stock = observation.stocks[home.id] ?? 0;
+        const cap = capInForce(shim, id, home.id);
+        let effort = observation.self.effortCapacity;
+        if (cap !== null) {
+          effort = Math.min(effort, effortForCatch(home, stock, observation.weather, cap));
+        }
+        effort = Math.max(0, Math.floor(effort * 100) / 100);
+        const profit = expectedProfit(
+          home,
+          stock,
+          observation.weather,
+          effort,
+          observation.price,
+          observation.self,
+          scenario,
+        );
+        // Only abandons the home ground when working it actually loses money.
+        if (effort > 0 && profit > 0) return { boatId: id, zoneId: home.id, effort };
+      }
+
+      const fallback = bestZone(observation, scenario, { allowReserve: false });
+      if (!fallback) return idle(observation);
+      return { boatId: id, zoneId: fallback.zone.id, effort: fallback.effort };
+    },
+  };
+}
+
+/**
+ * Goes where the rest of the fleet is not.
+ *
+ * Discounts each ground by how many boats worked it last round, so it peels
+ * away from the school rather than joining it. Between this and the
+ * territorial policy the fleet stops arriving everywhere at once.
+ */
+export function crowdAverseAgent(id: BoatId, name: string, scenario: OceanScenario): OceanAgent {
+  return {
+    id,
+    name,
+    negotiate(observation) {
+      return {
+        proposals: [],
+        responses: observation.incomingProposals.map((proposal) => ({
+          type: "ACCEPT" as const,
+          proposalId: proposal.id,
+        })),
+      };
+    },
+    act(observation) {
+      const shim = observationStateShim(observation);
+      if (standDownRequired(shim, id)) return idle(observation);
+      const closed = closedZones(shim, id);
+      const last = observation.history[observation.history.length - 1];
+      const crowd = (zoneId: string) =>
+        last?.entries.filter((entry) => entry.zoneId === zoneId && entry.appliedEffort > 0).length ??
+        0;
+
+      let best: { zoneId: string; effort: number; score: number } | null = null;
+      for (const zone of observation.zones) {
+        if (zone.reserve || closed.has(zone.id)) continue;
+        if (tooRough(zone, observation.weather, observation.self)) continue;
+        const stock = observation.stocks[zone.id] ?? 0;
+        const cap = capInForce(shim, id, zone.id);
+        let effort = observation.self.effortCapacity;
+        if (cap !== null) {
+          effort = Math.min(effort, effortForCatch(zone, stock, observation.weather, cap));
+        }
+        effort = Math.max(0, Math.floor(effort * 100) / 100);
+        if (effort <= 0) continue;
+        const profit = expectedProfit(
+          zone,
+          stock,
+          observation.weather,
+          effort,
+          observation.price,
+          observation.self,
+          scenario,
+        );
+        const score = profit / (1 + crowd(zone.id));
+        if (!best || score > best.score) best = { zoneId: zone.id, effort, score };
+      }
+      if (!best) return idle(observation);
+      return { boatId: id, zoneId: best.zoneId, effort: best.effort };
+    },
+  };
+}

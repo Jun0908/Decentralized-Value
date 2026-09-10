@@ -11,6 +11,7 @@
 import {
   brokerAgent,
   cautiousAgent,
+  crowdAverseAgent,
   createRng,
   defaultWalletPolicy,
   evaluateMatch,
@@ -21,6 +22,7 @@ import {
   opportunistAgent,
   reciprocatorAgent,
   replayTranscript,
+  territorialAgent,
   runMatch,
   toOutcomePoint,
   toTranscript,
@@ -35,7 +37,16 @@ const ROUNDS = Number(process.argv[3] ?? 12);
 
 // --- lineups --------------------------------------------------------------
 
-type PolicyName = "greedy" | "cautious" | "broker" | "opportunist" | "reciprocator" | "random";
+type PolicyName =
+  | "greedy"
+  | "cautious"
+  | "broker"
+  | "opportunist"
+  | "reciprocator"
+  | "random"
+  | "territorial-coastal"
+  | "territorial-offshore"
+  | "crowd-averse";
 
 function randomAgent(id: string, name: string, scenario: OceanScenario, seed: string): OceanAgent {
   const rng = createRng(`${seed}:${id}`);
@@ -82,6 +93,12 @@ function build(
       return reciprocatorAgent(id, name, scenario);
     case "random":
       return randomAgent(id, name, scenario, seed);
+    case "territorial-coastal":
+      return territorialAgent(id, name, scenario, "coastal");
+    case "territorial-offshore":
+      return territorialAgent(id, name, scenario, "offshore");
+    case "crowd-averse":
+      return crowdAverseAgent(id, name, scenario);
   }
 }
 
@@ -91,6 +108,16 @@ function build(
  * A broker sits in the background on purpose. Without one, no lineup except
  * `focal-broker` would ever form a catch limit, and the with/without-contract
  * comparison would be measuring runs where the treatment was never applied.
+ *
+ * The background is deliberately left homogeneous even though a heterogeneous
+ * one depletes the sea far more (coastal bottoms out at 0.57 of capacity under
+ * a territorial fleet against 0.87 here). Swapping it in raises the skill share
+ * of livelihood from 31% to 44% and finally puts restraint above greed on
+ * resilience — but it drops the pact effect on stewardship from 5.7% to 1.6%,
+ * because territorial boats hold their ground whoever is paid to stop. Neither
+ * fleet is the right answer: the arena's character depends on what the other
+ * agents do, which is a question scripted baselines cannot settle. The diverse
+ * fleets below are kept as reference points for that comparison.
  */
 const BACKGROUND: PolicyName[] = ["broker", "greedy", "opportunist", "reciprocator"];
 
@@ -127,6 +154,27 @@ function lineups(): Lineup[] {
     ...small,
     { id: "all-greedy", policies: Array(5).fill("greedy") as PolicyName[] },
     { id: "all-cautious", policies: Array(5).fill("cautious") as PolicyName[] },
+    {
+      id: "all-territorial",
+      policies: [
+        "territorial-coastal",
+        "territorial-offshore",
+        "territorial-coastal",
+        "territorial-offshore",
+        "territorial-coastal",
+      ],
+    },
+    { id: "all-crowd-averse", policies: Array(5).fill("crowd-averse") as PolicyName[] },
+    {
+      id: "diverse-mixed",
+      policies: [
+        "territorial-coastal",
+        "greedy",
+        "crowd-averse",
+        "territorial-offshore",
+        "broker",
+      ],
+    },
   ];
 }
 
