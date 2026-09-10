@@ -2,6 +2,19 @@ import benchmark from "../../../benchmarks/evm-orderbook/results/latest.json";
 import { strFromU8, unzipSync } from "fflate";
 import { describe, expect, it, vi } from "vitest";
 import {
+  createRescuePracticeSession,
+  finalizeRescueCommanderPracticeEvaluation,
+  rescueCommanderStarterPlaybook,
+  rescuePublicViewHash,
+  rescueRoomCommanderEpisodeTimeoutMs,
+  rescueRoomCommanderMaximumModelTurns,
+  rescueRoomCommanderModel,
+  rescueRoomCommanderModelSettings,
+  rescueRoomCommanderPromptVersion,
+  rescueRoomCommanderRuntimeVersion,
+  type RescueCommanderRuntimeEvidence,
+} from "@frontier/rescue-room";
+import {
   createApi,
   createDemoApi,
   MemoryPlan5CompetitionStore,
@@ -81,6 +94,119 @@ describe("Frontier API contracts", () => {
     expect(scenario.manifest.lifecycle).toBe("PRACTICE");
     expect(scenario.manifestHash).toMatch(/^0x[0-9a-f]{64}$/);
     expect(evaluation.resultHash).toMatch(/^0x[0-9a-f]{64}$/);
+  });
+
+  it("runs a deterministic Rescue Room Practice Episode without exposing truth beforehand", async () => {
+    const api = createApi(benchmark);
+    const scenarioResponse = await api.fetch(request("/v1/rescue-room"));
+    const scenario = await scenarioResponse.json();
+    const publicEpisodes = JSON.stringify(scenario.episodes);
+    const init = {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        policyId: "simple-adaptive",
+        episodeId: scenario.episodes[0].id,
+      }),
+    };
+    const firstResponse = await api.fetch(request("/v1/rescue-room/evaluations", init));
+    const first = await firstResponse.json();
+    const second = await (await api.fetch(request("/v1/rescue-room/evaluations", init))).json();
+
+    expect(scenario.state).toBe("simulated");
+    expect(scenario.paymentState).toBe("game-credits");
+    expect(scenario.episodes).toHaveLength(35);
+    expect(publicEpisodes).not.toContain("incidentFamily");
+    expect(firstResponse.status).toBe(200);
+    expect(first.state).toBe("simulated");
+    expect(first.paymentState).toBe("game-credits");
+    expect(first.outcome.transcript.length).toBeGreaterThan(0);
+    expect(first.episode.revealedAfterRun.incidentFamily).toBeTruthy();
+    expect(first.evaluationHash).toBe(second.evaluationHash);
+  });
+
+  it("runs a structured AI Commander adapter and returns replay evidence", async () => {
+    const scenarioApi = createApi(benchmark);
+    const scenario = await (await scenarioApi.fetch(request("/v1/rescue-room"))).json();
+    const episodeId = scenario.episodes[0].id as string;
+    const commander = vi.fn(async () => {
+      const session = createRescuePracticeSession(episodeId, rescueCommanderStarterPlaybook);
+      const view = session.getPublicView();
+      const action = { type: "CLOSE_INCIDENT" as const };
+      const step = session.takeAction(action);
+      const outcome = session.finish();
+      const runtime: RescueCommanderRuntimeEvidence = {
+        runtimeVersion: rescueRoomCommanderRuntimeVersion,
+        promptVersion: rescueRoomCommanderPromptVersion,
+        sdk: { name: "@openai/agents", version: "test" },
+        configuredModel: rescueRoomCommanderModel,
+        modelSettings: rescueRoomCommanderModelSettings,
+        maximumModelTurns: rescueRoomCommanderMaximumModelTurns,
+        episodeTimeoutMs: rescueRoomCommanderEpisodeTimeoutMs,
+        startedAt: "2026-09-10T00:00:00.000Z",
+        completedAt: "2026-09-10T00:00:01.000Z",
+        responseIds: ["response-test"],
+        requestIds: ["request-test"],
+        resolvedModels: [rescueRoomCommanderModel],
+        usage: { requests: 1, inputTokens: 10, outputTokens: 5, totalTokens: 15 },
+      };
+      return finalizeRescueCommanderPracticeEvaluation({
+        playbook: rescueCommanderStarterPlaybook,
+        episodeId,
+        outcome,
+        decisions: [
+          {
+            action,
+            decision: 1,
+            gameMinute: view.gameMinute,
+            publicViewHash: rescuePublicViewHash(view),
+            reasonCode: "close-alert",
+            confidencePpm: 400_000,
+            accepted: step.accepted,
+            invalidReason: step.invalidReason,
+          },
+        ],
+        runtime,
+      });
+    });
+    const api = createApi(benchmark, undefined, undefined, undefined, undefined, { commander });
+    const response = await api.fetch(
+      request("/v1/rescue-room/commander-evaluations", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ episodeId, playbook: rescueCommanderStarterPlaybook }),
+      }),
+    );
+    const evaluation = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(evaluation.inferenceState).toBe("openai-api");
+    expect(evaluation.replay.matchesRecordedOutcome).toBe(true);
+    expect(evaluation.rewardEligibility.eligible).toBe(false);
+    expect(commander).toHaveBeenCalledOnce();
+  });
+
+  it("publishes a hidden-state-safe Rescue Room Starter Kit", async () => {
+    const api = createApi(benchmark);
+    const response = await api.fetch(request("/v1/rescue-room/starter-kit"));
+    const archive = unzipSync(new Uint8Array(await response.arrayBuffer()));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe("application/zip");
+    expect(Object.keys(archive).sort()).toEqual(
+      expect.arrayContaining([
+        "rescue-room-starter/README.md",
+        "rescue-room-starter/playbook.schema.json",
+        "rescue-room-starter/public-practice-alerts.json",
+        "rescue-room-starter/request.example.json",
+        "rescue-room-starter/runtime-contract.json",
+        "rescue-room-starter/service-agents.json",
+        "rescue-room-starter/starter-playbook.json",
+      ]),
+    );
+    const publicAlerts = strFromU8(archive["rescue-room-starter/public-practice-alerts.json"]!);
+    expect(publicAlerts).not.toContain("incidentFamily");
+    expect(publicAlerts).not.toContain("validPatchId");
   });
 
   it("rejects malformed emergency allocation payloads", async () => {

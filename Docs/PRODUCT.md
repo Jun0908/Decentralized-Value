@@ -48,10 +48,13 @@ In the current Disaster Response practice arena, Human and AI Agent submissions 
 | 72-Hour Disaster Response | Minimize 72-hour cost while maximizing worst-case delivery and worst-region coverage | Primary social competition with strategy, disaster replay, independent Value Pools, community value creation, and demo settlement |
 | Community Microgrid Dispatch | Minimize cost and carbon while maximizing worst-case delivered energy | Three-axis extensibility proof |
 | Secret Gate | Prove synthetic group membership once per scope; observe proof latency and memory separately | Real client-side Semaphore reference application; competition remains gated by benchmark stability |
+| Rescue Room | Minimize total user loss and response spend while maximizing served protocol demand | Deterministic incident world with costly information, a curated Service market, Reference policies, and a fixed-runtime AI Commander Controlled Practice |
 
 Detailed active specifications are under `Docs/arenas/`. The arena registry adds shared presentation and routing; a genuinely new problem shape still requires an evaluator adapter and deterministic tests.
 
 The original five-number Emergency Supply Allocation remains available as a Classic fallback. It is not the primary arena and has its own independent API and storage namespace.
+
+Rescue Room offers both published deterministic Reference Commander policies and a local participant Playbook path powered by a fixed OpenAI Agents SDK runtime. Its 35-Episode Practice pack reveals hidden incident state only after each run. Action, Service Order, game-credit reserve/release/refund, Evidence Receipt, state transition, and outcome records are replayable. LLM reruns are not assumed deterministic: the recorded Action sequence is the reproducible evaluator input. Hidden Final entries and onchain Service payments remain later phases.
 
 ## Fairness model
 

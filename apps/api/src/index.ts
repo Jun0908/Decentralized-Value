@@ -19,6 +19,12 @@ import {
   publicDisasterResponseScenario,
 } from "@frontier/disaster-response";
 import { evaluateMicrogridDispatch, publicMicrogridScenario } from "@frontier/microgrid-dispatch";
+import {
+  evaluateRescuePracticeEpisode,
+  publicRescueRoomScenario,
+  rescueCommanderPlaybookSchema,
+  rescuePracticePolicyIds,
+} from "@frontier/rescue-room";
 import { publicSecretGateScenario } from "@frontier/secret-gate";
 import type { EnsRunnerDirectory } from "@frontier/ens-adapter";
 import { z } from "zod";
@@ -48,9 +54,17 @@ import {
   type Plan6CompetitionStore,
   type Plan6Reward,
 } from "./plan6-competition";
+import {
+  RescueCommanderConfigurationError,
+  runOpenAiRescueRoomCommander,
+  type RescueRoomCommanderExecutor,
+} from "./rescue-room-agent";
+import { createRescueRoomStarterKitZip } from "./rescue-room-competition";
 
 export * from "./plan5-competition";
 export * from "./plan6-competition";
+export * from "./rescue-room-agent";
+export * from "./rescue-room-competition";
 
 const evaluationSchema = z.object({ artifactId: bytes32Schema });
 const supplyEvaluationSchema = z
@@ -74,6 +88,18 @@ const disputeSchema = z.object({
 const microgridEvaluationSchema = z
   .object({
     allocations: z.record(z.string(), z.number().int().nonnegative().max(1_000_000)),
+  })
+  .strict();
+const rescueRoomEvaluationSchema = z
+  .object({
+    policyId: z.enum(rescuePracticePolicyIds),
+    episodeId: z.string().min(1),
+  })
+  .strict();
+const rescueRoomCommanderEvaluationSchema = z
+  .object({
+    episodeId: z.string().min(1),
+    playbook: rescueCommanderPlaybookSchema,
   })
   .strict();
 const sandboxRegistrationSchema = z
@@ -131,6 +157,10 @@ export type Plan6Options = {
   settlement?: Plan6Settlement;
 };
 
+export type RescueRoomOptions = {
+  commander?: RescueRoomCommanderExecutor;
+};
+
 class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -183,6 +213,7 @@ async function body(request: Request): Promise<unknown> {
 
 export class FrontierApi {
   private readonly limiter = new SlidingWindowLimiter();
+  private readonly rescueCommanderLimiter = new SlidingWindowLimiter(3, 10 * 60_000);
   readonly competition = new CompetitionSandboxStore();
   constructor(
     readonly store: FrontierStore,
@@ -190,6 +221,7 @@ export class FrontierApi {
     private readonly runnerDirectory?: EnsRunnerDirectory,
     private readonly plan5: Plan5Options = {},
     private readonly plan6: Plan6Options = {},
+    private readonly rescueRoom: RescueRoomOptions = {},
   ) {}
 
   async fetch(request: Request): Promise<Response> {
@@ -343,6 +375,7 @@ export class FrontierApi {
           publicEmergencySupplyScenario(),
           await publicCalldataCompressionScenario(),
           publicMicrogridScenario(),
+          publicRescueRoomScenario(),
           publicSecretGateScenario(),
           this.challenge(),
         ],
@@ -364,6 +397,28 @@ export class FrontierApi {
       return json(await publicCalldataCompressionScenario(contextId));
     }
     if (path === "/v1/microgrid-dispatch") return json(publicMicrogridScenario());
+    if (path === "/v1/rescue-room/starter-kit") {
+      const archive = createRescueRoomStarterKitZip();
+      const archiveBody = archive.buffer.slice(
+        archive.byteOffset,
+        archive.byteOffset + archive.byteLength,
+      ) as ArrayBuffer;
+      return new Response(archiveBody, {
+        headers: {
+          "cache-control": "public, max-age=3600",
+          "content-disposition": 'attachment; filename="rescue-room-starter.zip"',
+          "content-type": "application/zip",
+        },
+      });
+    }
+    if (path === "/v1/rescue-room") {
+      return json({
+        ...publicRescueRoomScenario(),
+        commanderAvailable: Boolean(
+          this.rescueRoom.commander ?? process.env.OPENAI_API_KEY?.trim(),
+        ),
+      });
+    }
     const sandboxSubmissionsMatch = path.match(
       /^\/v2\/sandbox\/participants\/(0x[0-9a-f]{64})\/submissions$/,
     );
@@ -739,6 +794,56 @@ export class FrontierApi {
       const parsed = microgridEvaluationSchema.parse(await body(request));
       return json({ state: "measured", ...evaluateMicrogridDispatch(parsed.allocations) }, 200);
     }
+    if (path === "/v1/rescue-room/commander-evaluations") {
+      const client = request.headers.get("x-forwarded-for") ?? "local";
+      if (!this.rescueCommanderLimiter.accept(client)) {
+        throw new ApiError(
+          429,
+          "COMMANDER_RATE_LIMITED",
+          "At most three AI Commander runs are allowed per client every ten minutes",
+        );
+      }
+      const parsed = rescueRoomCommanderEvaluationSchema.parse(await body(request));
+      const scenario = publicRescueRoomScenario();
+      if (!scenario.episodes.some(({ id }) => id === parsed.episodeId)) {
+        throw new ApiError(400, "UNKNOWN_PRACTICE_EPISODE", "Unknown Rescue Room practice Episode");
+      }
+      const commander = this.rescueRoom.commander ?? runOpenAiRescueRoomCommander;
+      try {
+        return json(
+          {
+            state: "simulated",
+            inferenceState: "openai-api",
+            paymentState: "game-credits",
+            ...(await commander(parsed)),
+          },
+          200,
+        );
+      } catch (cause) {
+        if (cause instanceof RescueCommanderConfigurationError) {
+          throw new ApiError(503, "COMMANDER_UNCONFIGURED", cause.message);
+        }
+        if (cause instanceof Error && cause.name === "AbortError") {
+          throw new ApiError(504, "COMMANDER_TIMEOUT", "AI Commander Episode timed out");
+        }
+        throw new ApiError(502, "COMMANDER_EXECUTION_FAILED", "AI Commander execution failed");
+      }
+    }
+    if (path === "/v1/rescue-room/evaluations") {
+      const parsed = rescueRoomEvaluationSchema.parse(await body(request));
+      const scenario = publicRescueRoomScenario();
+      if (!scenario.episodes.some(({ id }) => id === parsed.episodeId)) {
+        throw new ApiError(400, "UNKNOWN_PRACTICE_EPISODE", "Unknown Rescue Room practice Episode");
+      }
+      return json(
+        {
+          state: "simulated",
+          paymentState: "game-credits",
+          ...evaluateRescuePracticeEpisode(parsed.policyId, parsed.episodeId),
+        },
+        200,
+      );
+    }
     if (
       path === "/v2/participants/world-id/context" ||
       path === "/v2/participants/world-id/verify"
@@ -972,6 +1077,7 @@ export function createApi(
   runnerDirectory?: EnsRunnerDirectory,
   plan5?: Plan5Options,
   plan6?: Plan6Options,
+  rescueRoom?: RescueRoomOptions,
 ): FrontierApi {
   return new FrontierApi(
     new FrontierStore(benchmarkRecordSchema.parse(benchmark)),
@@ -979,6 +1085,7 @@ export function createApi(
     runnerDirectory,
     plan5,
     plan6,
+    rescueRoom,
   );
 }
 
@@ -992,6 +1099,7 @@ export function createDemoApi(
   runnerDirectory?: EnsRunnerDirectory,
   plan5?: Plan5Options,
   plan6?: Plan6Options,
+  rescueRoom?: RescueRoomOptions,
 ): FrontierApi {
   const store = new FrontierStore(benchmarkRecordSchema.parse(benchmark));
   const dispatcher: EvaluationDispatcher = {
@@ -1007,5 +1115,5 @@ export function createDemoApi(
     },
   };
 
-  return new FrontierApi(store, dispatcher, runnerDirectory, plan5, plan6);
+  return new FrontierApi(store, dispatcher, runnerDirectory, plan5, plan6, rescueRoom);
 }

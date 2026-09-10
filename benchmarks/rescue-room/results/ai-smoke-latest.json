@@ -1,0 +1,811 @@
+{
+  "schemaVersion": "rescue-ai-practice-evaluation-v0",
+  "arenaId": "rescue-room-v0",
+  "contextId": "public-practice-pack-v0",
+  "contextHash": "0x536c175a7fb35593181bfb0b4d096ce3ca522236b9b5cd40fb6a7df5e475011a",
+  "commanderContextHash": "0xc57705984f0c9989e5bbc2a1afa60750644df868826e4a0ad9dda4416c17f4d4",
+  "manifestHash": "0xa7583494e6dffc89faf97e0ed8a80367b20b9dd2ca4931864bba6c7b760850e4",
+  "playbook": {
+    "schemaVersion": "rescue-commander-playbook-v0",
+    "name": "Evidence-aware Commander",
+    "instructions": "Treat the initial alert as uncertain. Buy targeted evidence when it can change the intervention, prefer module-level containment over a full pause, verify risky patches, and preserve enough budget to recover from a misleading finding.",
+    "allowedServiceIds": [
+      "accounting-audit",
+      "patch-builder",
+      "patch-verifier",
+      "pulse-monitor",
+      "second-opinion",
+      "trace-audit"
+    ],
+    "allowedProtocolActions": [
+      "APPLY_PATCH",
+      "CLOSE_INCIDENT",
+      "PAUSE_MODULE",
+      "PAUSE_PROTOCOL",
+      "RESUME_MODULE",
+      "RESUME_PROTOCOL",
+      "WAIT"
+    ],
+    "maxServicePriceCredits": 30
+  },
+  "playbookHash": "0x29be36baf456f411ab22b3c20abe6f30e602e59f12235664cd4c6e5b1a57c374",
+  "runtime": {
+    "runtimeVersion": "rescue-commander-runtime-v1",
+    "promptVersion": "rescue-commander-prompt-v1",
+    "sdk": {
+      "name": "@openai/agents",
+      "version": "0.17.2"
+    },
+    "configuredModel": "gpt-5.6-luna",
+    "modelSettings": {
+      "reasoningEffort": "none",
+      "textVerbosity": "low",
+      "parallelToolCalls": false,
+      "store": false,
+      "maximumOutputTokens": 400,
+      "modelTimeoutMs": 20000
+    },
+    "maximumModelTurns": 12,
+    "episodeTimeoutMs": 90000,
+    "startedAt": "2026-09-10T05:48:15.709Z",
+    "completedAt": "2026-09-10T05:48:37.480Z",
+    "responseIds": [
+      "resp_06202391291e83a6016aa244a18d1887d09e5a55cffbee36e8",
+      "resp_0bf63028dcd292c7016aa244a3793c87d0bb4c8fafa8c3276f",
+      "resp_0671710cedb5a275016aa244a51ce087d0bc0333ae5419684a",
+      "resp_00ee44c04359c08c016aa244a78f0887d08473e3c3d645524b",
+      "resp_0177b17b06751ce7016aa244a96c5487d09a55f809bd22ab91",
+      "resp_089cedf57b0db1ea016aa244ad4a8887d0911b1efba0506e53",
+      "resp_0a9596728a7df530016aa244aefd1087d0971e1932707a7484",
+      "resp_0fef51fbca424f53016aa244b0d90887d0b3cac8946e5b115d",
+      "resp_0ed287ff61c5b182016aa244b292c087d0b7c8c2330f91a215",
+      "resp_096568c7a4986864016aa244b4c90487d0ab1082fc20d84ae7"
+    ],
+    "requestIds": [
+      "req_aa745631c32b47308d015c1ca4af5142",
+      "req_a746a023d52c427abc0ae169abfa6ad2",
+      "req_f09dc0a9125e4e93a867f7725a8ce656",
+      "req_568c6965487d4170bde1fafde1fe9065",
+      "req_44ac5cd890c94603b0e4072025b7e2ee",
+      "req_240308c0f89b4fed9d5b0b55cdc4ddf4",
+      "req_6ba4eb1a18b34443b0772e0363fc0640",
+      "req_2534748aacac4c0a865144954e557887",
+      "req_3462d4a6f3c949d2979a4f6517318a90",
+      "req_a146185924b74f1a9e3c5ca95d12c557"
+    ],
+    "resolvedModels": [
+      "gpt-5.6-luna"
+    ],
+    "usage": {
+      "requests": 10,
+      "inputTokens": 15907,
+      "outputTokens": 410,
+      "totalTokens": 16317
+    }
+  },
+  "runtimeHash": "0xea3d95ff6b40a0e9ff469567bd089df0e384b24bcfd080201a4127ca37d16900",
+  "decisions": [
+    {
+      "action": {
+        "type": "BUY_SERVICE",
+        "serviceId": "pulse-monitor",
+        "targetModule": null,
+        "targetReceiptId": null
+      },
+      "reasonCode": "triage-uncertain-alert",
+      "confidencePpm": 950000,
+      "decision": 1,
+      "gameMinute": 0,
+      "publicViewHash": "0x7fc4137c49953b9d769d6345e4a65ed5d3b7008ec375188cd568d6b37c69583c",
+      "accepted": true,
+      "invalidReason": null
+    },
+    {
+      "action": {
+        "type": "WAIT",
+        "minutes": 1
+      },
+      "reasonCode": "await-initial-scan",
+      "confidencePpm": 980000,
+      "decision": 2,
+      "gameMinute": 1,
+      "publicViewHash": "0xf91dc8a13ae88a5c331e1eeb71276d22afc962d9ef8ec5475b518b9717bde3de",
+      "accepted": true,
+      "invalidReason": null
+    },
+    {
+      "action": {
+        "type": "BUY_SERVICE",
+        "serviceId": "accounting-audit",
+        "targetModule": "withdrawals",
+        "targetReceiptId": "receipt-order-1"
+      },
+      "reasonCode": "verify-accounting-drift",
+      "confidencePpm": 740000,
+      "decision": 3,
+      "gameMinute": 2,
+      "publicViewHash": "0xd03a0a222ed5540368b5d21e7f82dbd6ea240b35ec06ed36edf5a2ab6f4ee1f5",
+      "accepted": true,
+      "invalidReason": null
+    },
+    {
+      "action": {
+        "type": "WAIT",
+        "minutes": 6
+      },
+      "reasonCode": "await-accounting-audit",
+      "confidencePpm": 700000,
+      "decision": 4,
+      "gameMinute": 3,
+      "publicViewHash": "0xd6b410d0dc1d893b5311c30d5d95b559c6267d0edb395f98e2791f82d960b48a",
+      "accepted": true,
+      "invalidReason": null
+    },
+    {
+      "action": {
+        "type": "BUY_SERVICE",
+        "serviceId": "second-opinion",
+        "targetModule": "oracle",
+        "targetReceiptId": "receipt-order-2"
+      },
+      "reasonCode": "resolve-conflicting-findings",
+      "confidencePpm": 780000,
+      "decision": 5,
+      "gameMinute": 9,
+      "publicViewHash": "0x4af9a3963a7a6299c9073bf93921e53085e73f637631643bc57eebba763947cc",
+      "accepted": true,
+      "invalidReason": null
+    },
+    {
+      "action": {
+        "type": "WAIT",
+        "minutes": 3
+      },
+      "reasonCode": "await-independent-opinion",
+      "confidencePpm": 780000,
+      "decision": 6,
+      "gameMinute": 10,
+      "publicViewHash": "0x23ba97c74c237b236379cbd2b576597cd9e44ba839770ddb40913d8e877325fc",
+      "accepted": true,
+      "invalidReason": null
+    },
+    {
+      "action": {
+        "type": "BUY_SERVICE",
+        "serviceId": "patch-builder",
+        "targetModule": "withdrawals",
+        "targetReceiptId": "receipt-order-3"
+      },
+      "reasonCode": "build-targeted-patch",
+      "confidencePpm": 650000,
+      "decision": 7,
+      "gameMinute": 13,
+      "publicViewHash": "0xf74f934602c59bb93c2d3bd5f831fe59b8bf856e1cd0ebdfb68bfc260708235d",
+      "accepted": true,
+      "invalidReason": null
+    },
+    {
+      "action": {
+        "type": "WAIT",
+        "minutes": 4
+      },
+      "reasonCode": "await-patch-build",
+      "confidencePpm": 700000,
+      "decision": 8,
+      "gameMinute": 14,
+      "publicViewHash": "0x701c57c1f74889340c78b630b91035eacc0bd7728c4efc17957ebb5c118dab9f",
+      "accepted": true,
+      "invalidReason": null
+    },
+    {
+      "action": {
+        "type": "WAIT",
+        "minutes": 3
+      },
+      "reasonCode": "await-patch-build",
+      "confidencePpm": 700000,
+      "decision": 9,
+      "gameMinute": 18,
+      "publicViewHash": "0x1167b2a6d43b620daa9c3f2c7e63616219c7f270dfe1abfe1b1db39ff58205ff",
+      "accepted": true,
+      "invalidReason": null
+    },
+    {
+      "action": {
+        "type": "CLOSE_INCIDENT"
+      },
+      "reasonCode": "likely-false-positive",
+      "confidencePpm": 820000,
+      "decision": 10,
+      "gameMinute": 21,
+      "publicViewHash": "0xe8e6e5aa5f01d31d1ad02a4ed29b0673bc94e9bece266f7c03b50363629fb79e",
+      "accepted": true,
+      "invalidReason": null
+    }
+  ],
+  "scoringBoundary": {
+    "included": [
+      "totalUserLossUsd",
+      "servedProtocolDemandPpm",
+      "netResponseSpendCredits"
+    ],
+    "excluded": [
+      "playbook prose",
+      "reasonCode",
+      "confidencePpm",
+      "model token usage",
+      "model request count"
+    ]
+  },
+  "episode": {
+    "id": "episode-fabafc1906b4",
+    "initialHeadline": "Unusual withdrawal and address activity detected",
+    "revealedAfterRun": {
+      "incidentFamily": "false-positive",
+      "incidentName": "False positive",
+      "severity": 1,
+      "affectedModule": "borrowing",
+      "validPatchId": "no-patch"
+    }
+  },
+  "outcome": {
+    "episodeId": "episode-fabafc1906b4",
+    "episodeHash": "0x1d3e493a6733935ee56c9ef412cd9e1d316987d3fe7410494cabd78dde3f9093",
+    "correctness": true,
+    "invalidReason": null,
+    "userLossUsd": 0,
+    "servedProtocolDemandPpm": 1000000,
+    "netResponseSpendCredits": 63,
+    "incidentResolved": true,
+    "finalMinute": 60,
+    "actionCount": 10,
+    "servicePurchaseCount": 4,
+    "transcript": [
+      {
+        "sequence": 0,
+        "gameMinute": 0,
+        "type": "OBSERVATION",
+        "data": {
+          "observation": {
+            "id": "initial-alert",
+            "gameMinute": 0,
+            "source": "PROTOCOL",
+            "headline": "Unusual withdrawal and address activity detected",
+            "facts": [
+              "Withdrawal volume increased",
+              "Several new addresses appeared",
+              "Cause unknown"
+            ]
+          }
+        }
+      },
+      {
+        "sequence": 1,
+        "gameMinute": 0,
+        "type": "ACTION",
+        "data": {
+          "action": {
+            "type": "BUY_SERVICE",
+            "serviceId": "pulse-monitor",
+            "targetModule": null,
+            "targetReceiptId": null
+          }
+        }
+      },
+      {
+        "sequence": 2,
+        "gameMinute": 0,
+        "type": "PAYMENT_RESERVED",
+        "data": {
+          "orderId": "order-1",
+          "serviceId": "pulse-monitor",
+          "credits": 5,
+          "dueAtMinute": 2
+        }
+      },
+      {
+        "sequence": 3,
+        "gameMinute": 1,
+        "type": "STATE_TRANSITION",
+        "data": {
+          "fromMinute": 0,
+          "toMinute": 1,
+          "userLossDeltaUsd": 0,
+          "servedDemandDelta": 102,
+          "totalDemandDelta": 102,
+          "pausedModules": [],
+          "incidentResolved": false
+        }
+      },
+      {
+        "sequence": 4,
+        "gameMinute": 1,
+        "type": "ACTION",
+        "data": {
+          "action": {
+            "type": "WAIT",
+            "minutes": 1
+          }
+        }
+      },
+      {
+        "sequence": 5,
+        "gameMinute": 2,
+        "type": "PAYMENT_RELEASED",
+        "data": {
+          "orderId": "order-1",
+          "serviceId": "pulse-monitor",
+          "credits": 5
+        }
+      },
+      {
+        "sequence": 6,
+        "gameMinute": 2,
+        "type": "SERVICE_RECEIPT",
+        "data": {
+          "receipt": {
+            "receiptId": "receipt-order-1",
+            "orderId": "order-1",
+            "serviceId": "pulse-monitor",
+            "task": "SCAN_ACTIVITY",
+            "deliveredAtMinute": 2,
+            "classification": "accounting-drift",
+            "likelyAffectedModule": "withdrawals",
+            "severity": 1,
+            "confidencePpm": 520000,
+            "patchId": null,
+            "patchValid": null,
+            "summary": "Pulse Monitor classified the event as accounting-drift.",
+            "receiptHash": "0x254f785c0930636a8c389020733e078b60f7ce88d3183a6185b46f28e8e4586d"
+          }
+        }
+      },
+      {
+        "sequence": 7,
+        "gameMinute": 2,
+        "type": "OBSERVATION",
+        "data": {
+          "observation": {
+            "id": "observation-receipt-order-1",
+            "gameMinute": 2,
+            "source": "SERVICE",
+            "headline": "Pulse Monitor classified the event as accounting-drift.",
+            "facts": [
+              "Service: pulse-monitor",
+              "Confidence: 520000 ppm",
+              "Receipt: 0x254f785c0930636a8c389020733e078b60f7ce88d3183a6185b46f28e8e4586d"
+            ]
+          }
+        }
+      },
+      {
+        "sequence": 8,
+        "gameMinute": 2,
+        "type": "STATE_TRANSITION",
+        "data": {
+          "fromMinute": 1,
+          "toMinute": 2,
+          "userLossDeltaUsd": 0,
+          "servedDemandDelta": 102,
+          "totalDemandDelta": 102,
+          "pausedModules": [],
+          "incidentResolved": false
+        }
+      },
+      {
+        "sequence": 9,
+        "gameMinute": 2,
+        "type": "ACTION",
+        "data": {
+          "action": {
+            "type": "BUY_SERVICE",
+            "serviceId": "accounting-audit",
+            "targetModule": "withdrawals",
+            "targetReceiptId": "receipt-order-1"
+          }
+        }
+      },
+      {
+        "sequence": 10,
+        "gameMinute": 2,
+        "type": "PAYMENT_RESERVED",
+        "data": {
+          "orderId": "order-2",
+          "serviceId": "accounting-audit",
+          "credits": 18,
+          "dueAtMinute": 9
+        }
+      },
+      {
+        "sequence": 11,
+        "gameMinute": 3,
+        "type": "STATE_TRANSITION",
+        "data": {
+          "fromMinute": 2,
+          "toMinute": 3,
+          "userLossDeltaUsd": 0,
+          "servedDemandDelta": 102,
+          "totalDemandDelta": 102,
+          "pausedModules": [],
+          "incidentResolved": false
+        }
+      },
+      {
+        "sequence": 12,
+        "gameMinute": 3,
+        "type": "ACTION",
+        "data": {
+          "action": {
+            "type": "WAIT",
+            "minutes": 6
+          }
+        }
+      },
+      {
+        "sequence": 13,
+        "gameMinute": 9,
+        "type": "PAYMENT_RELEASED",
+        "data": {
+          "orderId": "order-2",
+          "serviceId": "accounting-audit",
+          "credits": 18
+        }
+      },
+      {
+        "sequence": 14,
+        "gameMinute": 9,
+        "type": "SERVICE_RECEIPT",
+        "data": {
+          "receipt": {
+            "receiptId": "receipt-order-2",
+            "orderId": "order-2",
+            "serviceId": "accounting-audit",
+            "task": "CHECK_ACCOUNTING",
+            "deliveredAtMinute": 9,
+            "classification": "external-dependency",
+            "likelyAffectedModule": "oracle",
+            "severity": 1,
+            "confidencePpm": 520000,
+            "patchId": null,
+            "patchValid": null,
+            "summary": "Accounting Audit classified the event as external-dependency.",
+            "receiptHash": "0x4acef03ad354bb366aee2815b39701c48bc6c9e0d41c8baa0ca9af7a530781f1"
+          }
+        }
+      },
+      {
+        "sequence": 15,
+        "gameMinute": 9,
+        "type": "OBSERVATION",
+        "data": {
+          "observation": {
+            "id": "observation-receipt-order-2",
+            "gameMinute": 9,
+            "source": "SERVICE",
+            "headline": "Accounting Audit classified the event as external-dependency.",
+            "facts": [
+              "Service: accounting-audit",
+              "Confidence: 520000 ppm",
+              "Receipt: 0x4acef03ad354bb366aee2815b39701c48bc6c9e0d41c8baa0ca9af7a530781f1"
+            ]
+          }
+        }
+      },
+      {
+        "sequence": 16,
+        "gameMinute": 9,
+        "type": "STATE_TRANSITION",
+        "data": {
+          "fromMinute": 3,
+          "toMinute": 9,
+          "userLossDeltaUsd": 0,
+          "servedDemandDelta": 612,
+          "totalDemandDelta": 612,
+          "pausedModules": [],
+          "incidentResolved": false
+        }
+      },
+      {
+        "sequence": 17,
+        "gameMinute": 9,
+        "type": "ACTION",
+        "data": {
+          "action": {
+            "type": "BUY_SERVICE",
+            "serviceId": "second-opinion",
+            "targetModule": "oracle",
+            "targetReceiptId": "receipt-order-2"
+          }
+        }
+      },
+      {
+        "sequence": 18,
+        "gameMinute": 9,
+        "type": "PAYMENT_RESERVED",
+        "data": {
+          "orderId": "order-3",
+          "serviceId": "second-opinion",
+          "credits": 12,
+          "dueAtMinute": 13
+        }
+      },
+      {
+        "sequence": 19,
+        "gameMinute": 10,
+        "type": "STATE_TRANSITION",
+        "data": {
+          "fromMinute": 9,
+          "toMinute": 10,
+          "userLossDeltaUsd": 0,
+          "servedDemandDelta": 102,
+          "totalDemandDelta": 102,
+          "pausedModules": [],
+          "incidentResolved": false
+        }
+      },
+      {
+        "sequence": 20,
+        "gameMinute": 10,
+        "type": "ACTION",
+        "data": {
+          "action": {
+            "type": "WAIT",
+            "minutes": 3
+          }
+        }
+      },
+      {
+        "sequence": 21,
+        "gameMinute": 13,
+        "type": "PAYMENT_RELEASED",
+        "data": {
+          "orderId": "order-3",
+          "serviceId": "second-opinion",
+          "credits": 12
+        }
+      },
+      {
+        "sequence": 22,
+        "gameMinute": 13,
+        "type": "SERVICE_RECEIPT",
+        "data": {
+          "receipt": {
+            "receiptId": "receipt-order-3",
+            "orderId": "order-3",
+            "serviceId": "second-opinion",
+            "task": "SECOND_OPINION",
+            "deliveredAtMinute": 13,
+            "classification": "accounting-drift",
+            "likelyAffectedModule": "withdrawals",
+            "severity": 1,
+            "confidencePpm": 520000,
+            "patchId": null,
+            "patchValid": null,
+            "summary": "Second Opinion classified the event as accounting-drift.",
+            "receiptHash": "0xc28d0953570a4329c6f51c36edd868fc51d80171ab778997fb918b4a8108a18f"
+          }
+        }
+      },
+      {
+        "sequence": 23,
+        "gameMinute": 13,
+        "type": "OBSERVATION",
+        "data": {
+          "observation": {
+            "id": "observation-receipt-order-3",
+            "gameMinute": 13,
+            "source": "SERVICE",
+            "headline": "Second Opinion classified the event as accounting-drift.",
+            "facts": [
+              "Service: second-opinion",
+              "Confidence: 520000 ppm",
+              "Receipt: 0xc28d0953570a4329c6f51c36edd868fc51d80171ab778997fb918b4a8108a18f"
+            ]
+          }
+        }
+      },
+      {
+        "sequence": 24,
+        "gameMinute": 13,
+        "type": "STATE_TRANSITION",
+        "data": {
+          "fromMinute": 10,
+          "toMinute": 13,
+          "userLossDeltaUsd": 0,
+          "servedDemandDelta": 306,
+          "totalDemandDelta": 306,
+          "pausedModules": [],
+          "incidentResolved": false
+        }
+      },
+      {
+        "sequence": 25,
+        "gameMinute": 13,
+        "type": "ACTION",
+        "data": {
+          "action": {
+            "type": "BUY_SERVICE",
+            "serviceId": "patch-builder",
+            "targetModule": "withdrawals",
+            "targetReceiptId": "receipt-order-3"
+          }
+        }
+      },
+      {
+        "sequence": 26,
+        "gameMinute": 13,
+        "type": "PAYMENT_RESERVED",
+        "data": {
+          "orderId": "order-4",
+          "serviceId": "patch-builder",
+          "credits": 28,
+          "dueAtMinute": 21
+        }
+      },
+      {
+        "sequence": 27,
+        "gameMinute": 14,
+        "type": "STATE_TRANSITION",
+        "data": {
+          "fromMinute": 13,
+          "toMinute": 14,
+          "userLossDeltaUsd": 0,
+          "servedDemandDelta": 102,
+          "totalDemandDelta": 102,
+          "pausedModules": [],
+          "incidentResolved": false
+        }
+      },
+      {
+        "sequence": 28,
+        "gameMinute": 14,
+        "type": "ACTION",
+        "data": {
+          "action": {
+            "type": "WAIT",
+            "minutes": 4
+          }
+        }
+      },
+      {
+        "sequence": 29,
+        "gameMinute": 18,
+        "type": "STATE_TRANSITION",
+        "data": {
+          "fromMinute": 14,
+          "toMinute": 18,
+          "userLossDeltaUsd": 0,
+          "servedDemandDelta": 408,
+          "totalDemandDelta": 408,
+          "pausedModules": [],
+          "incidentResolved": false
+        }
+      },
+      {
+        "sequence": 30,
+        "gameMinute": 18,
+        "type": "ACTION",
+        "data": {
+          "action": {
+            "type": "WAIT",
+            "minutes": 3
+          }
+        }
+      },
+      {
+        "sequence": 31,
+        "gameMinute": 21,
+        "type": "PAYMENT_RELEASED",
+        "data": {
+          "orderId": "order-4",
+          "serviceId": "patch-builder",
+          "credits": 28
+        }
+      },
+      {
+        "sequence": 32,
+        "gameMinute": 21,
+        "type": "SERVICE_RECEIPT",
+        "data": {
+          "receipt": {
+            "receiptId": "receipt-order-4",
+            "orderId": "order-4",
+            "serviceId": "patch-builder",
+            "task": "BUILD_PATCH",
+            "deliveredAtMinute": 21,
+            "classification": "false-positive",
+            "likelyAffectedModule": "borrowing",
+            "severity": 1,
+            "confidencePpm": 820000,
+            "patchId": "no-patch",
+            "patchValid": null,
+            "summary": "Patch Builder delivered no-patch for borrowing.",
+            "receiptHash": "0xcc86dd181ea0ef040ac4f79d990be6d7f4b4a88182ce602bbe99d2fc406c4719"
+          }
+        }
+      },
+      {
+        "sequence": 33,
+        "gameMinute": 21,
+        "type": "OBSERVATION",
+        "data": {
+          "observation": {
+            "id": "observation-receipt-order-4",
+            "gameMinute": 21,
+            "source": "SERVICE",
+            "headline": "Patch Builder delivered no-patch for borrowing.",
+            "facts": [
+              "Service: patch-builder",
+              "Confidence: 820000 ppm",
+              "Receipt: 0xcc86dd181ea0ef040ac4f79d990be6d7f4b4a88182ce602bbe99d2fc406c4719"
+            ]
+          }
+        }
+      },
+      {
+        "sequence": 34,
+        "gameMinute": 21,
+        "type": "STATE_TRANSITION",
+        "data": {
+          "fromMinute": 18,
+          "toMinute": 21,
+          "userLossDeltaUsd": 0,
+          "servedDemandDelta": 306,
+          "totalDemandDelta": 306,
+          "pausedModules": [],
+          "incidentResolved": false
+        }
+      },
+      {
+        "sequence": 35,
+        "gameMinute": 21,
+        "type": "ACTION",
+        "data": {
+          "action": {
+            "type": "CLOSE_INCIDENT"
+          }
+        }
+      },
+      {
+        "sequence": 36,
+        "gameMinute": 60,
+        "type": "STATE_TRANSITION",
+        "data": {
+          "fromMinute": 21,
+          "toMinute": 60,
+          "userLossDeltaUsd": 0,
+          "servedDemandDelta": 3978,
+          "totalDemandDelta": 3978,
+          "pausedModules": [],
+          "incidentResolved": true
+        }
+      },
+      {
+        "sequence": 37,
+        "gameMinute": 60,
+        "type": "EPISODE_END",
+        "data": {
+          "correctness": true,
+          "userLossUsd": 0,
+          "servedDemandUnits": 6120,
+          "totalDemandUnits": 6120,
+          "netResponseSpendCredits": 63,
+          "incidentResolved": true
+        }
+      }
+    ],
+    "transcriptHash": "0xce71fb73cec0e0f83478ba5f59644be3e9f77c78f84c2e87535613f85db70c5b",
+    "resultHash": "0xb304bf30a7b9e23f3b28bc12b32092d3e66b9deb3f543b70f1d2eb321e3039c1"
+  },
+  "replay": {
+    "deterministic": true,
+    "actionCount": 10,
+    "resultHash": "0xb304bf30a7b9e23f3b28bc12b32092d3e66b9deb3f543b70f1d2eb321e3039c1",
+    "matchesRecordedOutcome": true
+  },
+  "rewardEligibility": {
+    "eligible": false,
+    "reason": "Controlled Practice only; hidden multi-Episode Final is not implemented."
+  },
+  "evaluationHash": "0x7e71dfc3997689757f6c0e6943383f64822318243c046b9455cfdfe4f1b39af4"
+}
