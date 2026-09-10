@@ -66,6 +66,8 @@ export type VoyageBond = {
   escrowRemaining: number;
   /** A broken promise; the line snaps. */
   broken: boolean;
+  /** Struck this round. The moment a deal is made is worth showing. */
+  fresh: boolean;
 };
 
 export type VoyageRound = {
@@ -227,6 +229,7 @@ export function toVoyage(log: MatchLog, viewpoint: BoatId | null = null): Voyage
         to: party,
         escrowRemaining: stable(broken ? 0 : remaining),
         broken,
+        fresh: proposal.round === record.round,
       }));
     });
 

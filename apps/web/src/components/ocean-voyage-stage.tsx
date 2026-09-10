@@ -76,7 +76,7 @@ function Hull({ boat, x, y }: { boat: VoyageBoat; x: number; y: number }) {
       <line x1="0" y1="0" x2="0" y2="-11" className="ocean-hull-mast" />
       <path d="M0 -10 L7 -2 L0 -2 Z" className="ocean-hull-sail" />
       {boat.catch > 0 ? (
-        <g className="ocean-hull-net">
+        <g className="ocean-hull-net" key={`net-${boat.catch}`}>
           <path d="M6 4 Q11 8 8 12" className="ocean-net-line" />
           <circle cx="9" cy="13" r="3.4" className="ocean-net-bag" />
           <text x="9" y="14.6" className="ocean-net-count">
@@ -262,8 +262,10 @@ export function OceanVoyageStage({ voyage }: { voyage: Voyage }) {
           const lift = 8 + Math.min(10, bond.escrowRemaining / 20);
           return (
             <path
-              key={`${bond.pactId}-${bond.to}`}
-              className={bond.broken ? "ocean-bond broken" : "ocean-bond"}
+              key={`${bond.pactId}-${bond.to}-${bond.fresh ? "new" : "held"}`}
+              className={`ocean-bond${bond.broken ? " broken" : ""}${
+                bond.fresh ? " fresh" : ""
+              }`}
               stroke={BOND_COLOR[bond.kind] ?? "var(--ocean-bond-limit)"}
               strokeWidth={bond.broken ? 0.7 : Math.max(0.5, Math.min(2.2, bond.escrowRemaining / 60))}
               d={`M${a.x} ${a.y} Q${(a.x + b.x) / 2} ${Math.min(a.y, b.y) - lift} ${b.x} ${b.y}`}

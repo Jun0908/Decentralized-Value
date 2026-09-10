@@ -174,6 +174,11 @@ export function OceanCommonsWorkbench({
   const [seed, setSeed] = useState(SEEDS[0]!);
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState(true);
+  // Every season already sailed this visit. Seeing your own runs side by side
+  // is what turns three buttons into an experiment.
+  const [tried, setTried] = useState<
+    { key: string; approach: string; seed: string; rounds: number; scores: Scores }[]
+  >([]);
 
   const run = useCallback(async () => {
     setBusy(true);
@@ -213,6 +218,21 @@ export function OceanCommonsWorkbench({
       fuelLeft: log.finalState.boats[seat.id]?.fuelRemaining ?? 0,
       contracts: full.contracts.accepted,
       scenarioSeed: scenario.seed,
+    });
+    const mine = board.find((entry) => entry.id === approach)!;
+    setTried((history) => {
+      const key = `${approach}@${seed}`;
+      if (history.some((entry) => entry.key === key)) return history;
+      return [
+        ...history,
+        {
+          key,
+          approach: chosen.label,
+          seed: seed.replace("ocean-practice-v1:", "season "),
+          rounds: log.rounds.length,
+          scores: mine,
+        },
+      ];
     });
     setBusy(false);
   }, [approach, seed]);
@@ -567,10 +587,44 @@ export function OceanCommonsWorkbench({
         </p>
       </section>
 
+      <section className="competition-revisions ocean-revisions">
+        <div className="section-title">
+          <div>
+            <p className="eyebrow">07 · WHAT YOU HAVE TRIED</p>
+            <h2>Your seasons so far.</h2>
+          </div>
+          <span>{tried.length} sailed</span>
+        </div>
+        {tried.length > 0 ? (
+          <ol className="ocean-tried">
+            {tried.map((entry) => (
+              <li key={entry.key}>
+                <div>
+                  <strong>{entry.approach}</strong>
+                  <small>
+                    {entry.seed} · {entry.rounds} rounds
+                  </small>
+                </div>
+                <span>{cash(entry.scores.livelihood)}</span>
+                <span>{pct(entry.scores.restraint)}</span>
+                <span>{entry.scores.cooperation.toFixed(3)}</span>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p className="empty-state">Nothing sailed yet.</p>
+        )}
+        <p className="lever-explanation">
+          Nothing here is saved beyond this visit. Change the approach or the season above and the
+          run is added to this list, so you can see whether an approach holds up across seasons or
+          only won the one you happened to look at.
+        </p>
+      </section>
+
       <section className="competition-settlement ocean-settlement">
         <div className="section-title">
           <div>
-            <p className="eyebrow">07 · EVIDENCE</p>
+            <p className="eyebrow">08 · EVIDENCE</p>
             <h2>Every season here replays to the same result.</h2>
           </div>
           <span>Evidence L0</span>
