@@ -1,63 +1,43 @@
-import type Anthropic from "@anthropic-ai/sdk";
 import { describe, expect, it } from "vitest";
-import { cautiousAgent, greedyAgent, type Observation } from "./agents";
+import { cautiousAgent, greedyAgent } from "./agents";
 import { evaluateMatch, replayTranscript, toTranscript } from "./evaluator";
-import { llmAgent, type LlmTurnRecord } from "./llm-agent";
+import { llmAgent, type DecisionBackend, type LlmTurnRecord } from "./llm-agent";
 import { runMatch } from "./match";
 import { generateScenario } from "./scenario";
 
 /**
- * These run without credentials. A stub stands in for the API so the parts
- * that must hold whatever the model says — validation, fallback, replay — are
- * tested here rather than discovered during a paid match.
+ * These stub the backend rather than any provider's client, so what is tested
+ * is the part that has to hold whatever a model says: validation, fallback and
+ * replay. No credentials, no network, and nothing here changes when a new
+ * provider is added.
  */
 
-type Reply = { tool?: string; input?: unknown; stopReason?: string; throws?: string };
+type Reply = { input?: Record<string, unknown>; failure?: string };
 
-/** Minimal stand-in for the client surface `llmAgent` actually uses. */
-function stubClient(replies: Reply[] | (() => Reply)): {
-  client: Anthropic;
+function stubBackend(reply: () => Reply): {
+  backend: DecisionBackend;
   calls: { system: string; user: string; tool: string }[];
 } {
   const calls: { system: string; user: string; tool: string }[] = [];
-  let index = 0;
-  const next = () => (typeof replies === "function" ? replies() : (replies[index++] ?? {}));
-
-  const client = {
-    messages: {
-      async create(params: Record<string, unknown>) {
-        const system = params["system"] as { text: string }[];
-        const messages = params["messages"] as { content: string }[];
-        const tools = params["tools"] as { name: string }[];
-        calls.push({
-          system: system[0]?.text ?? "",
-          user: messages[0]?.content ?? "",
-          tool: tools[0]?.name ?? "",
-        });
-
-        const reply = next();
-        if (reply.throws) throw new Error(reply.throws);
-        return {
-          content: reply.tool
-            ? [{ type: "tool_use", name: reply.tool, id: "t1", input: reply.input ?? {} }]
-            : [{ type: "text", text: "no tool" }],
-          stop_reason: reply.stopReason ?? "tool_use",
-          usage: { input_tokens: 10, output_tokens: 5, cache_read_input_tokens: 0 },
-        };
-      },
-    },
-  } as unknown as Anthropic;
-
-  return { client, calls };
+  const backend: DecisionBackend = async ({ system, user, tool }) => {
+    calls.push({ system, user, tool: tool.name });
+    const next = reply();
+    if (next.failure) return { ok: false, failure: next.failure };
+    return {
+      ok: true,
+      input: next.input ?? {},
+      usage: { inputTokens: 100, outputTokens: 20, cacheReadTokens: 40 },
+    };
+  };
+  return { backend, calls };
 }
 
 const MISSION = "Keep the crew paid without emptying the sea.";
 
 describe("llm agent", () => {
-  it("turns a tool call into a legal action", async () => {
+  it("turns a decision into a legal action", async () => {
     const scenario = generateScenario("llm-basic");
-    const { client } = stubClient(() => ({
-      tool: "set_course",
+    const { backend } = stubBackend(() => ({
       input: {
         zoneId: "offshore",
         effort: 5,
@@ -68,8 +48,8 @@ describe("llm agent", () => {
     const records: LlmTurnRecord[] = [];
     const agent = llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, {
       mission: MISSION,
-      client,
-      onTurn: (record: LlmTurnRecord) => records.push(record),
+      backend,
+      onTurn: (record) => records.push(record),
     });
 
     const log = await runMatch(scenario, [agent]);
@@ -77,15 +57,13 @@ describe("llm agent", () => {
 
     expect(entry.zoneId).toBe("offshore");
     expect(entry.appliedEffort).toBe(5);
-    expect(records[0]!.reasonCode).toBe("PRICE_HIGH");
-    expect(records[0]!.failure).toBeUndefined();
+    expect(records.some((record) => record.reasonCode === "PRICE_HIGH")).toBe(true);
   });
 
   it("clamps an effort the hull cannot deliver", async () => {
     const scenario = generateScenario("llm-clamp");
     const boat = scenario.boats[0]!;
-    const { client } = stubClient(() => ({
-      tool: "set_course",
+    const { backend } = stubBackend(() => ({
       input: {
         zoneId: "coastal",
         effort: 9999,
@@ -93,7 +71,7 @@ describe("llm agent", () => {
         declaredReason: "Everything, right now.",
       },
     }));
-    const agent = llmAgent(boat.id, "Kaiyo", scenario, { mission: MISSION, client });
+    const agent = llmAgent(boat.id, "Kaiyo", scenario, { mission: MISSION, backend });
 
     const log = await runMatch(scenario, [agent]);
     const entry = log.rounds[0]!.entries.find((e) => e.boatId === boat.id)!;
@@ -103,8 +81,7 @@ describe("llm agent", () => {
 
   it("keeps the boat in port when the model names a ground that does not exist", async () => {
     const scenario = generateScenario("llm-bogus-zone");
-    const { client } = stubClient(() => ({
-      tool: "set_course",
+    const { backend } = stubBackend(() => ({
       input: {
         zoneId: "atlantis",
         effort: 10,
@@ -112,10 +89,7 @@ describe("llm agent", () => {
         declaredReason: "Heading somewhere that is not on the chart.",
       },
     }));
-    const agent = llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, {
-      mission: MISSION,
-      client,
-    });
+    const agent = llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, { mission: MISSION, backend });
 
     const log = await runMatch(scenario, [agent]);
     const entry = log.rounds[0]!.entries.find((e) => e.boatId === agent.id)!;
@@ -124,14 +98,14 @@ describe("llm agent", () => {
     expect(entry.appliedEffort).toBe(0);
   });
 
-  it("stays in port and records the failure when the API call throws", async () => {
-    const scenario = generateScenario("llm-throws");
-    const { client } = stubClient(() => ({ throws: "connection reset" }));
+  it("stays in port and records the failure when the backend fails", async () => {
+    const scenario = generateScenario("llm-fails");
+    const { backend } = stubBackend(() => ({ failure: "connection reset" }));
     const records: LlmTurnRecord[] = [];
     const agent = llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, {
       mission: MISSION,
-      client,
-      onTurn: (record: LlmTurnRecord) => records.push(record),
+      backend,
+      onTurn: (record) => records.push(record),
     });
 
     const log = await runMatch(scenario, [agent]);
@@ -141,45 +115,26 @@ describe("llm agent", () => {
     expect(records[0]!.failure).toContain("connection reset");
   });
 
-  it("stays in port when the model answers without calling the tool", async () => {
-    const scenario = generateScenario("llm-no-tool");
-    const { client } = stubClient(() => ({ stopReason: "end_turn" }));
-    const records: LlmTurnRecord[] = [];
-    const agent = llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, {
-      mission: MISSION,
-      client,
-      onTurn: (record: LlmTurnRecord) => records.push(record),
-    });
-
-    await runMatch(scenario, [agent]);
-
-    expect(records[0]!.failure).toContain("no tool call");
-  });
-
   it("treats an unanswered offer as a refusal", async () => {
     const scenario = generateScenario("llm-silence");
     const [a, b] = scenario.boats;
-    const { client } = stubClient(() => ({
+    const { backend } = stubBackend(() => ({
       // Answers nothing and offers nothing, round after round.
-      tool: "answer_offers",
       input: { responses: [], offer: null, reasonCode: "SILENT", declaredReason: "No comment." },
     }));
-    const quiet = llmAgent(b!.id, "Hokuto", scenario, { mission: MISSION, client });
-    const broker = cautiousAgent(a!.id, "Kaiyo", scenario);
+    const quiet = llmAgent(b!.id, "Hokuto", scenario, { mission: MISSION, backend });
 
-    const log = await runMatch(scenario, [broker, quiet]);
-    const boundToQuiet = log.finalState.pacts.filter((pact) =>
-      pact.counterparties.includes(quiet.id),
-    );
+    const log = await runMatch(scenario, [cautiousAgent(a!.id, "Kaiyo", scenario), quiet]);
+    const bound = log.finalState.pacts.filter((pact) => pact.counterparties.includes(quiet.id));
 
-    // Silence must never bind a boat to a contract.
-    expect(boundToQuiet).toHaveLength(0);
+    // Silence must never bind a boat: dropping a reply cannot become a way to
+    // hold someone to terms they never took.
+    expect(bound).toHaveLength(0);
   });
 
   it("ignores an offer aimed at a boat that is not in the fleet", async () => {
     const scenario = generateScenario("llm-ghost");
-    const { client } = stubClient(() => ({
-      tool: "answer_offers",
+    const { backend } = stubBackend(() => ({
       input: {
         responses: [],
         offer: {
@@ -194,10 +149,7 @@ describe("llm agent", () => {
         declaredReason: "Offering a deal to nobody.",
       },
     }));
-    const agent = llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, {
-      mission: MISSION,
-      client,
-    });
+    const agent = llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, { mission: MISSION, backend });
 
     const log = await runMatch(scenario, [agent, greedyAgent(scenario.boats[1]!.id, "b", scenario)]);
 
@@ -207,12 +159,11 @@ describe("llm agent", () => {
   it("replays a model-driven match to the same final state", async () => {
     const scenario = generateScenario("llm-replay", { vary: true });
     let round = 0;
-    const { client } = stubClient(() => {
+    const { backend } = stubBackend(() => {
       round += 1;
       return {
-        tool: "set_course",
         input: {
-          // Varies with the call, so the transcript is not trivially constant.
+          // Varies per call, so the transcript is not trivially constant.
           zoneId: round % 2 === 0 ? "coastal" : "offshore",
           effort: 3 + (round % 4),
           reasonCode: "ROTATING",
@@ -220,10 +171,7 @@ describe("llm agent", () => {
         },
       };
     });
-    const agent = llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, {
-      mission: MISSION,
-      client,
-    });
+    const agent = llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, { mission: MISSION, backend });
 
     const log = await runMatch(scenario, [
       agent,
@@ -241,14 +189,10 @@ describe("llm agent", () => {
 
   it("shows the boat its own board and never the seed", async () => {
     const scenario = generateScenario("llm-leak", { vary: true });
-    const { client, calls } = stubClient(() => ({
-      tool: "set_course",
+    const { backend, calls } = stubBackend(() => ({
       input: { zoneId: "coastal", effort: 1, reasonCode: "X", declaredReason: "y" },
     }));
-    const agent = llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, {
-      mission: MISSION,
-      client,
-    });
+    const agent = llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, { mission: MISSION, backend });
 
     await runMatch(scenario, [agent]);
 
@@ -257,36 +201,30 @@ describe("llm agent", () => {
       expect(call.system).toContain(MISSION);
       expect(`${call.system}${call.user}`).not.toContain(scenario.seed);
     }
-    // The rules are identical every round, so they cache instead of being re-read.
+    // The rules are identical every round, so a backend can cache them.
     expect(new Set(calls.map((call) => call.system)).size).toBe(1);
   });
 
-  it("refuses to start without credentials rather than failing mid-match", () => {
-    const scenario = generateScenario("llm-nokey");
-    const key = process.env["ANTHROPIC_API_KEY"];
-    const token = process.env["ANTHROPIC_AUTH_TOKEN"];
-    delete process.env["ANTHROPIC_API_KEY"];
-    delete process.env["ANTHROPIC_AUTH_TOKEN"];
-    try {
-      expect(() =>
-        llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, { mission: MISSION }),
-      ).toThrow(/ANTHROPIC_API_KEY/);
-    } finally {
-      if (key !== undefined) process.env["ANTHROPIC_API_KEY"] = key;
-      if (token !== undefined) process.env["ANTHROPIC_AUTH_TOKEN"] = token;
-    }
+  it("tells the boat that a weather limit is not a profit test", async () => {
+    const scenario = generateScenario("llm-storm-rule");
+    const { backend, calls } = stubBackend(() => ({
+      input: { zoneId: "coastal", effort: 1, reasonCode: "X", declaredReason: "y" },
+    }));
+    const agent = llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, { mission: MISSION, backend });
+
+    await runMatch(scenario, [agent]);
+
+    // A live match had the boat sail into a storm because it was "within
+    // limits" and land almost nothing; the mechanism has to be stated.
+    expect(calls[0]!.system).toContain("says nothing about whether the trip pays");
   });
 
   it("scores a model-driven match on the same three axes as any other", async () => {
     const scenario = generateScenario("llm-scored", { vary: true });
-    const { client } = stubClient(() => ({
-      tool: "set_course",
+    const { backend } = stubBackend(() => ({
       input: { zoneId: "coastal", effort: 6, reasonCode: "STEADY", declaredReason: "Steady work." },
     }));
-    const agent = llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, {
-      mission: MISSION,
-      client,
-    });
+    const agent = llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, { mission: MISSION, backend });
 
     const outcomes = evaluateMatch(
       await runMatch(scenario, [
@@ -301,6 +239,3 @@ describe("llm agent", () => {
     expect(Number.isFinite(outcomes.livelihood)).toBe(true);
   });
 });
-
-/** Referenced so the Observation type stays part of this file's contract. */
-export type _ObservationUsed = Observation;

@@ -1,10 +1,13 @@
-import Anthropic from "@anthropic-ai/sdk";
 import type { NegotiationOutput, Observation, OceanAgent } from "./agents";
 import type { OceanScenario } from "./scenario";
 import type { BoatId, FishingAction, Proposal, ProposalResponse } from "./types";
 
 /**
  * A boat run by a language model.
+ *
+ * Which model, and over which wire, is a backend's business — see
+ * `openaiBackend`. Everything here is provider-neutral, so adding another one
+ * means writing a transport, not a second agent.
  *
  * The model never touches the world. It answers two questions each round —
  * what to offer, and where to fish — and the engine resolves everything else.
@@ -63,69 +66,6 @@ export type DecisionBackend = (request: {
   user: string;
   tool: DecisionTool;
 }) => Promise<DecisionResult>;
-
-const CLAUDE_MODEL = "claude-opus-5";
-
-export type AnthropicBackendOptions = {
-  client?: Anthropic;
-  model?: string;
-  effort?: "low" | "medium" | "high" | "xhigh" | "max";
-};
-
-/** Claude. The default when no other backend is supplied. */
-export function anthropicBackend(options: AnthropicBackendOptions = {}): DecisionBackend {
-  const client =
-    options.client ??
-    (() => {
-      if (!process.env["ANTHROPIC_API_KEY"] && !process.env["ANTHROPIC_AUTH_TOKEN"]) {
-        throw new Error(
-          "anthropicBackend needs Claude credentials: set ANTHROPIC_API_KEY, or pass a " +
-            "configured client. Scripted baselines run without any.",
-        );
-      }
-      return new Anthropic();
-    })();
-  const model = options.model ?? CLAUDE_MODEL;
-  const effort = options.effort ?? "medium";
-
-  return async ({ system, user, tool }) => {
-    try {
-      const response = await client.messages.create({
-        model,
-        max_tokens: 16000,
-        output_config: { effort },
-        // The rules never change during a match, so they cache; the board goes
-        // after the breakpoint because it changes every round.
-        system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
-        tools: [
-          {
-            name: tool.name,
-            description: tool.description,
-            strict: true,
-            input_schema: tool.schema as Anthropic.Tool["input_schema"],
-          },
-        ],
-        tool_choice: { type: "tool", name: tool.name },
-        messages: [{ role: "user", content: user }],
-      });
-
-      const usage: DecisionUsage = {
-        inputTokens: response.usage.input_tokens,
-        outputTokens: response.usage.output_tokens,
-        cacheReadTokens: response.usage.cache_read_input_tokens ?? 0,
-      };
-      const call = response.content.find(
-        (block): block is Anthropic.ToolUseBlock => block.type === "tool_use",
-      );
-      if (!call) {
-        return { ok: false, failure: `no tool call (stop_reason ${response.stop_reason})` };
-      }
-      return { ok: true, input: call.input as Record<string, unknown>, usage };
-    } catch (error) {
-      return { ok: false, failure: error instanceof Error ? error.message : String(error) };
-    }
-  };
-}
 
 // --- what the boat is told -------------------------------------------------
 
@@ -306,12 +246,8 @@ export type LlmAgentOptions = {
    * writes. Not a per-round order: the model decides each round itself.
    */
   mission: string;
-  /** Which model answers. Defaults to Claude; see `openaiBackend` for the other. */
-  backend?: DecisionBackend;
-  model?: string;
-  effort?: "low" | "medium" | "high" | "xhigh" | "max";
-  /** Injectable so a test can drive the agent without reaching the network. */
-  client?: Anthropic;
+  /** Which model answers, and over which wire. See `openaiBackend`. */
+  backend: DecisionBackend;
   /** Receives one record per decision, for the replay panel and for audit. */
   onTurn?: (record: LlmTurnRecord) => void;
 };
@@ -326,16 +262,7 @@ export function llmAgent(
   scenario: OceanScenario,
   options: LlmAgentOptions,
 ): OceanAgent {
-  // Built here rather than on first use: a fleet that dies on round 4 for want
-  // of a key has already wasted the rounds before it.
-  const backend =
-    options.backend ??
-    anthropicBackend({
-      ...(options.client ? { client: options.client } : {}),
-      ...(options.model ? { model: options.model } : {}),
-      ...(options.effort ? { effort: options.effort } : {}),
-    });
-
+  const backend = options.backend;
   const system = systemPrompt(scenario, options.mission);
 
   async function decide<T>(

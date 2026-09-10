@@ -1,5 +1,5 @@
 /**
- * Plan 10, Phase 1a — one match with a Claude-backed boat in the fleet.
+ * Plan 10, Phase 1a — one match with a model-backed boat in the fleet.
  *
  * This is the experiment Phase 0 could not run. Every hand-written baseline is
  * a fixed rule, so sweeping a parameter grid always found something at least as
@@ -10,12 +10,10 @@
  * the one sentence it gave for doing it, what money moved, and what the sea did
  * in response. The model's reasoning is never shown or scored.
  *
- *   OPENAI_API_KEY=...    npx tsx scripts/play-ocean-commons.ts [seed] [rounds]
- *   ANTHROPIC_API_KEY=... OCEAN_PROVIDER=anthropic npx tsx scripts/play-ocean-commons.ts
+ *   OPENAI_API_KEY=... npx tsx scripts/play-ocean-commons.ts [seed] [rounds]
  */
 
 import {
-  anthropicBackend,
   brokerAgent,
   cautiousAgent,
   evaluateMatch,
@@ -44,7 +42,6 @@ You may pay other boats to hold back, and you may take their money to hold back
 yourself, when the arithmetic favours it. Judge each offer on what it is worth,
 not on whether cooperating sounds virtuous.`;
 
-const PROVIDER = process.env["OCEAN_PROVIDER"] ?? "openai";
 const scenario = generateScenario(SEED, { vary: true, rounds: ROUNDS });
 const [focal, b, c, d, e] = scenario.boats;
 
@@ -52,7 +49,7 @@ const turns: LlmTurnRecord[] = [];
 const fleet: OceanAgent[] = [
   llmAgent(focal!.id, focal!.name, scenario, {
     mission: MISSION,
-    backend: PROVIDER === "anthropic" ? anthropicBackend({ effort: "medium" }) : openaiBackend(),
+    backend: openaiBackend(),
     onTurn: (record) => turns.push(record),
   }),
   brokerAgent(b!.id, b!.name, scenario),
@@ -62,7 +59,7 @@ const fleet: OceanAgent[] = [
 ];
 
 console.log(`Ocean Commons — seed ${SEED}, ${ROUNDS} rounds`);
-const RUNNER = PROVIDER === "anthropic" ? "Claude" : (process.env["OPENAI_MODEL"] ?? "gpt-5");
+const RUNNER = process.env["OPENAI_MODEL"] ?? "gpt-5";
 console.log(`${focal!.name} is run by ${RUNNER}; the other four are scripted baselines.\n`);
 
 const started = Date.now();
