@@ -60,7 +60,8 @@ const fleet: OceanAgent[] = [
 ];
 
 console.log(`Ocean Commons — seed ${SEED}, ${ROUNDS} rounds`);
-console.log(`${focal!.name} is run by Claude; the other four are scripted baselines.\n`);
+const RUNNER = PROVIDER === "anthropic" ? "Claude" : (process.env["OPENAI_MODEL"] ?? "gpt-5");
+console.log(`${focal!.name} is run by ${RUNNER}; the other four are scripted baselines.\n`);
 
 const started = Date.now();
 const log = await runMatch(scenario, fleet);
