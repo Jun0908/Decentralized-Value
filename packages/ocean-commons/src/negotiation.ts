@@ -50,7 +50,7 @@ export function validateProposal(
     errors.push({ code: "INVALID_DURATION", detail: String(proposal.durationRounds) });
   }
   // The whole point of escrow: an agent cannot promise money it does not hold.
-  if (proposer && proposal.payment > proposer.cash) {
+  if (proposer && proposal.fundedBy !== "CONSERVATION_FUND" && proposal.payment > proposer.cash) {
     errors.push({
       code: "INSUFFICIENT_FUNDS",
       detail: `needs ${proposal.payment}, holds ${stable(proposer.cash)}`,
@@ -77,6 +77,34 @@ export function validateProposal(
       detail: String(proposal.terms.contributionPerRound),
     });
   }
+  if (proposal.terms.kind === "CONSERVATION_FUND" && proposal.terms.contributionPerRound < 0) {
+    errors.push({
+      code: "INVALID_CONTRIBUTION",
+      detail: String(proposal.terms.contributionPerRound),
+    });
+  }
+
+  // A fund-financed offer spends the pool, so the pool has to exist, the
+  // proposer has to be in it, and its own ceiling still applies.
+  if (proposal.fundedBy === "CONSERVATION_FUND") {
+    const fund = state.conservationFund;
+    if (!fund) {
+      errors.push({ code: "NO_CONSERVATION_FUND", detail: proposal.id });
+    } else {
+      if (!fund.members.includes(proposal.proposer)) {
+        errors.push({ code: "NOT_A_FUND_MEMBER", detail: proposal.proposer });
+      }
+      if (proposal.payment > fund.balance) {
+        errors.push({
+          code: "FUND_INSUFFICIENT",
+          detail: `needs ${proposal.payment}, fund holds ${stable(fund.balance)}`,
+        });
+      }
+      if (proposal.payment > fund.standDownCap) {
+        errors.push({ code: "OVER_FUND_CAP", detail: String(proposal.payment) });
+      }
+    }
+  }
   return errors;
 }
 
@@ -94,6 +122,8 @@ export function acceptProposal(
 
   const proposer = state.boats[proposal.proposer]!;
 
+  const fundFinanced = proposal.fundedBy === "CONSERVATION_FUND";
+
   if (proposal.terms.kind === "MUTUAL_AID") {
     // A fund is joined, not escrowed: contributions flow in every round.
     const members = [proposal.proposer, ...proposal.counterparties];
@@ -103,22 +133,36 @@ export function acceptProposal(
       contributionPerRound: proposal.terms.contributionPerRound,
       payoutCap: proposal.terms.payoutCap,
     };
+  } else if (proposal.terms.kind === "CONSERVATION_FUND") {
+    const members = [proposal.proposer, ...proposal.counterparties];
+    state.conservationFund = {
+      balance: state.conservationFund?.balance ?? 0,
+      members: [...new Set([...(state.conservationFund?.members ?? []), ...members])],
+      contributionPerRound: proposal.terms.contributionPerRound,
+      standDownCap: proposal.terms.standDownCap,
+    };
+  } else if (fundFinanced) {
+    state.conservationFund!.balance = stable(
+      state.conservationFund!.balance - proposal.payment,
+    );
   } else {
     proposer.cash = stable(proposer.cash - proposal.payment);
   }
 
+  const pooled =
+    proposal.terms.kind === "MUTUAL_AID" || proposal.terms.kind === "CONSERVATION_FUND";
   const pact: ActivePact = {
     id: proposal.id,
     terms: proposal.terms,
     proposer: proposal.proposer,
+    fundFinanced,
     counterparties: [...proposal.counterparties],
     startRound: proposal.round,
     endRound: proposal.round + proposal.durationRounds - 1,
-    escrowRemaining: proposal.terms.kind === "MUTUAL_AID" ? 0 : proposal.payment,
-    perRoundRelease:
-      proposal.terms.kind === "MUTUAL_AID"
-        ? 0
-        : stable(proposal.payment / (proposal.durationRounds * proposal.counterparties.length)),
+    escrowRemaining: pooled ? 0 : proposal.payment,
+    perRoundRelease: pooled
+      ? 0
+      : stable(proposal.payment / (proposal.durationRounds * proposal.counterparties.length)),
     status: "ACTIVE",
   };
   state.pacts.push(pact);
@@ -192,7 +236,7 @@ export function settleRound(
 
   for (const pact of state.pacts) {
     if (!isLive(pact, state.round)) continue;
-    if (pact.terms.kind === "MUTUAL_AID") continue;
+    if (pact.terms.kind === "MUTUAL_AID" || pact.terms.kind === "CONSERVATION_FUND") continue;
 
     const terms = pact.terms;
     const offenders = pact.counterparties.filter((boatId) => {
@@ -212,12 +256,19 @@ export function settleRound(
       breached.push(pact.id);
       for (const boatId of offenders) state.boats[boatId]!.breaches += 1;
       if (pact.escrowRemaining > 0) {
-        const proposer = state.boats[pact.proposer]!;
-        proposer.cash = stable(proposer.cash + pact.escrowRemaining);
+        // Money returns to whoever put it up, pool included.
+        if (pact.fundFinanced && state.conservationFund) {
+          state.conservationFund.balance = stable(
+            state.conservationFund.balance + pact.escrowRemaining,
+          );
+        } else {
+          const proposer = state.boats[pact.proposer]!;
+          proposer.cash = stable(proposer.cash + pact.escrowRemaining);
+        }
         releases.push({
           pactId: pact.id,
-          from: pact.proposer,
-          to: pact.proposer,
+          from: pact.fundFinanced ? "conservation-fund" : pact.proposer,
+          to: pact.fundFinanced ? "conservation-fund" : pact.proposer,
           amount: pact.escrowRemaining,
           type: "REFUND",
         });
@@ -230,12 +281,20 @@ export function settleRound(
       const amount = Math.min(pact.perRoundRelease, pact.escrowRemaining);
       if (amount <= 0) continue;
       const payee = state.boats[boatId]!;
-      const proposer = state.boats[pact.proposer]!;
       payee.cash = stable(payee.cash + amount);
       payee.totalReceived = stable(payee.totalReceived + amount);
-      proposer.totalPaidOut = stable(proposer.totalPaidOut + amount);
+      if (!pact.fundFinanced) {
+        const proposer = state.boats[pact.proposer]!;
+        proposer.totalPaidOut = stable(proposer.totalPaidOut + amount);
+      }
       pact.escrowRemaining = stable(pact.escrowRemaining - amount);
-      releases.push({ pactId: pact.id, from: pact.proposer, to: boatId, amount, type: "RELEASE" });
+      releases.push({
+        pactId: pact.id,
+        from: pact.fundFinanced ? "conservation-fund" : pact.proposer,
+        to: boatId,
+        amount,
+        type: "RELEASE",
+      });
     }
 
     if (state.round === pact.endRound) pact.status = "COMPLETED";

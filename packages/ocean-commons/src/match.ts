@@ -88,6 +88,7 @@ function buildObservation(
     others: publicViews(state, scenario, history[history.length - 1], boatId),
     activePacts: state.pacts,
     fund: state.fund,
+    conservationFund: state.conservationFund,
     incomingProposals: incoming,
     history,
   };
@@ -205,9 +206,13 @@ export function runMatch(
         });
         continue;
       }
-      spendByBoat[proposal.proposer] = stable(
-        (spendByBoat[proposal.proposer] ?? 0) + proposal.payment,
-      );
+      // A fund-financed deal spends the pool, not this boat's own mandate.
+      // The mandate governed the subscription when it joined.
+      if (proposal.fundedBy !== "CONSERVATION_FUND") {
+        spendByBoat[proposal.proposer] = stable(
+          (spendByBoat[proposal.proposer] ?? 0) + proposal.payment,
+        );
+      }
       acceptedProposals.push(settledProposal);
     }
 
@@ -246,6 +251,9 @@ function walletViolation(
   spent: number,
 ): string | null {
   if (!wallet.allowedPurposes.includes(proposal.terms.kind)) return "PURPOSE_NOT_ALLOWED";
+  // Personal spend limits apply to a boat's own money. Pool money is governed
+  // by the fund's own ceiling, which every member agreed to when it joined.
+  if (proposal.fundedBy === "CONSERVATION_FUND") return null;
   if (proposal.payment > wallet.maxPaymentPerTransaction) return "OVER_PER_TX_LIMIT";
   if (spent + proposal.payment > wallet.maxAutonomousSpendPerMatch) return "OVER_MATCH_BUDGET";
   return null;

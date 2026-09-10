@@ -86,7 +86,11 @@ export type FishingAction = {
  * Structured contracts. Agents never settle in free text — a contract is a
  * typed object whose compliance the engine checks against actual catches.
  */
-export type PactKind = "CATCH_LIMIT" | "CONSERVATION_BUYOUT" | "MUTUAL_AID";
+export type PactKind =
+  | "CATCH_LIMIT"
+  | "CONSERVATION_BUYOUT"
+  | "MUTUAL_AID"
+  | "CONSERVATION_FUND";
 
 export type CatchLimitTerms = {
   kind: "CATCH_LIMIT";
@@ -115,7 +119,26 @@ export type MutualAidTerms = {
   payoutCap: number;
 };
 
-export type PactTerms = CatchLimitTerms | ConservationBuyoutTerms | MutualAidTerms;
+/**
+ * A pooled war chest for buying restraint.
+ *
+ * One boat's wallet can idle roughly one rival for a few rounds, which is a
+ * few percent of the fleet's effort — too little to turn a commons around.
+ * A fund is the same contract mechanics at a scale that can.
+ */
+export type ConservationFundTerms = {
+  kind: "CONSERVATION_FUND";
+  /** Paid in by every member, every round. */
+  contributionPerRound: number;
+  /** Ceiling on what the fund may commit to any single stand-down. */
+  standDownCap: number;
+};
+
+export type PactTerms =
+  | CatchLimitTerms
+  | ConservationBuyoutTerms
+  | MutualAidTerms
+  | ConservationFundTerms;
 
 export type Proposal = {
   id: PactId;
@@ -130,6 +153,12 @@ export type Proposal = {
   durationRounds: number;
   /** Short machine-readable motive, kept as provenance only. Never scored. */
   reasonCode: string;
+  /**
+   * Where the escrow comes from. A fund-financed offer draws on the pool
+   * rather than the proposer's own cash, which is the whole point of pooling:
+   * no single boat has to carry the cost of protecting water everyone fishes.
+   */
+  fundedBy?: "SELF" | "CONSERVATION_FUND";
 };
 
 export type ProposalResponse =
@@ -142,6 +171,8 @@ export type ActivePact = {
   id: PactId;
   terms: PactTerms;
   proposer: BoatId;
+  /** Set when the conservation fund, not the proposer, put up the escrow. */
+  fundFinanced: boolean;
   counterparties: BoatId[];
   startRound: number;
   endRound: number;
@@ -158,12 +189,20 @@ export type MutualAidFund = {
   payoutCap: number;
 };
 
+export type ConservationFund = {
+  balance: number;
+  members: BoatId[];
+  contributionPerRound: number;
+  standDownCap: number;
+};
+
 export type OceanState = {
   round: number;
   stocks: Record<ZoneId, number>;
   boats: Record<BoatId, BoatState>;
   pacts: ActivePact[];
   fund: MutualAidFund | null;
+  conservationFund: ConservationFund | null;
   /** Current market price per fish, moved by total landings. */
   price: number;
 };
@@ -203,8 +242,9 @@ export type BoatRoundEntry = {
 
 export type EscrowRelease = {
   pactId: PactId;
-  from: BoatId;
-  to: BoatId;
+  /** The payer, or "conservation-fund" when the pool financed the deal. */
+  from: BoatId | "conservation-fund";
+  to: BoatId | "conservation-fund";
   amount: number;
   /** RELEASE pays the obligated boat; REFUND returns funds on breach. */
   type: "RELEASE" | "REFUND";

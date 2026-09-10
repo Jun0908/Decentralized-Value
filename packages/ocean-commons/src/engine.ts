@@ -40,7 +40,15 @@ export function createInitialState(scenario: OceanScenario): OceanState {
     };
   }
 
-  return { round: 1, stocks, boats, pacts: [], fund: null, price: scenario.price.basePrice };
+  return {
+    round: 1,
+    stocks,
+    boats,
+    pacts: [],
+    fund: null,
+    conservationFund: null,
+    price: scenario.price.basePrice,
+  };
 }
 
 /** How much a storm suppresses fishing in a zone. Never below 10%. */
@@ -234,6 +242,23 @@ export function transition(
       boatState.cash = stable(boatState.cash + payout);
       state.fund.balance = stable(state.fund.balance - payout);
       aidPayouts.push({ to: boatId, amount: payout, reason: "REPAIR" });
+    }
+  }
+
+  // 6b. Conservation fund members pay their subscription every round. Unlike
+  // mutual aid this pool never pays its own members — it buys other boats out
+  // of the water, which is why it can act at a scale one wallet cannot.
+  if (state.conservationFund) {
+    for (const boatId of state.conservationFund.members) {
+      const boatState = state.boats[boatId];
+      if (!boatState?.active) continue;
+      const contribution = Math.min(
+        state.conservationFund.contributionPerRound,
+        Math.max(0, boatState.cash),
+      );
+      boatState.cash = stable(boatState.cash - contribution);
+      boatState.totalPaidOut = stable(boatState.totalPaidOut + contribution);
+      state.conservationFund.balance = stable(state.conservationFund.balance + contribution);
     }
   }
 

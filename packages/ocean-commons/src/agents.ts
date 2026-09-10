@@ -36,7 +36,7 @@ export const defaultWalletPolicy: WalletPolicy = {
   startingBudget: 500,
   maxPaymentPerTransaction: 150,
   maxAutonomousSpendPerMatch: 600,
-  allowedPurposes: ["CATCH_LIMIT", "CONSERVATION_BUYOUT", "MUTUAL_AID"],
+  allowedPurposes: ["CATCH_LIMIT", "CONSERVATION_BUYOUT", "MUTUAL_AID", "CONSERVATION_FUND"],
   allowArbitraryTransfer: false,
 };
 
@@ -67,6 +67,7 @@ export type Observation = {
   others: PublicBoatView[];
   activePacts: OceanState["pacts"];
   fund: OceanState["fund"];
+  conservationFund: OceanState["conservationFund"];
   incomingProposals: Proposal[];
   history: readonly RoundRecord[];
 };
@@ -175,6 +176,7 @@ function observationStateShim(observation: Observation): OceanState {
     boats: {},
     pacts: observation.activePacts,
     fund: observation.fund,
+    conservationFund: observation.conservationFund,
     price: observation.price,
   };
 }
@@ -239,11 +241,17 @@ export function standDownOffer(
   });
   if (!nearCollapse) return null;
 
-  const budget = Math.min(
-    policy.maxPaymentPerTransaction,
-    observation.wallet.remaining,
-    Math.max(0, observation.self.cash - observation.self.upkeepPerRound * 2),
-  );
+  // Spend the pool when there is one. It is deeper than any single wallet, and
+  // using it does not force the buyer to wreck its own season to save the sea.
+  const pool = observation.conservationFund;
+  const inPool = pool?.members.includes(observation.self.id) ?? false;
+  const budget = inPool && pool
+    ? Math.min(pool.standDownCap, pool.balance)
+    : Math.min(
+        policy.maxPaymentPerTransaction,
+        observation.wallet.remaining,
+        Math.max(0, observation.self.cash - observation.self.upkeepPerRound * 2),
+      );
   const rounds = Math.min(options.rounds ?? 3, observation.roundsRemaining);
   const multiplier = options.priceMultiplier ?? 1;
   const isBound = (boatId: BoatId) =>
@@ -272,6 +280,7 @@ export function standDownOffer(
     payment: affordable.price,
     durationRounds: rounds,
     reasonCode: "NEAR_COLLAPSE",
+    fundedBy: inPool ? "CONSERVATION_FUND" : "SELF",
   };
 }
 
@@ -377,8 +386,9 @@ export function brokerAgent(
       }));
 
       const proposals: Proposal[] = [];
+      const policyCap = observation.wallet.policy.maxPaymentPerTransaction;
       const budget = Math.min(
-        observation.wallet.policy.maxPaymentPerTransaction,
+        policyCap,
         observation.wallet.remaining,
         Math.max(0, observation.self.cash - observation.self.upkeepPerRound * 2),
       );
@@ -396,6 +406,32 @@ export function brokerAgent(
           (pact) => pact.status === "ACTIVE" && pact.counterparties.includes(boatId),
         );
       const reserve = observation.zones.find((zone) => zone.reserve);
+
+      // Open the pool early, while every boat still has cash to subscribe and
+      // enough rounds remain for the subscriptions to add up to something.
+      if (
+        !observation.conservationFund &&
+        observation.round <= 3 &&
+        observation.roundsRemaining >= 6 &&
+        observation.wallet.policy.allowedPurposes.includes("CONSERVATION_FUND")
+      ) {
+        proposals.push({
+          id: proposalId(observation, "fund"),
+          round: observation.round,
+          proposer: id,
+          counterparties: observation.others
+            .filter((other) => other.active)
+            .map((other) => other.id),
+          terms: {
+            kind: "CONSERVATION_FUND",
+            contributionPerRound: 28,
+            standDownCap: Math.round(policyCap * 2.5),
+          },
+          payment: 0,
+          durationRounds: observation.roundsRemaining,
+          reasonCode: "POOL_RESTRAINT",
+        });
+      }
 
       const standDown = standDownOffer(observation, id, { priceMultiplier });
 

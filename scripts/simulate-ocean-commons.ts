@@ -182,7 +182,7 @@ type Row = {
   lineup: string;
   withContracts: MatchOutcomes;
   withoutContracts: MatchOutcomes;
-  doubled: { breached: number; binding: number };
+  escrowCurve: { multiplier: number; breached: number; binding: number }[];
   deterministic: boolean;
   replayMatches: boolean;
 };
@@ -222,9 +222,20 @@ for (let index = 0; index < SEEDS; index += 1) {
     const without = runMatch(scenario, agentsFor(lineup, scenario, seed), {
       enableNegotiation: false,
     });
-    // Same world, same policies — only the money behind each promise doubles.
-    const doubled = runMatch(scenario, agentsFor(lineup, scenario, seed, 2), {
-      wallets: doubledWallets(scenario),
+    // Same world, same policies — only the money behind each promise changes.
+    // Sweeping below 1x as well as above gives the dose-response curve room to
+    // show itself; a thick escrow can suppress defection so completely that a
+    // further doubling has nothing left to move.
+    const escrowCurve = [0.5, 2].map((multiplier) => {
+      const run = runMatch(scenario, agentsFor(lineup, scenario, seed, multiplier), {
+        wallets: multiplier > 1 ? doubledWallets(scenario) : {},
+      });
+      const outcome = evaluateMatch(run);
+      return {
+        multiplier,
+        breached: outcome.contracts.breached,
+        binding: outcome.contracts.bindingAccepted,
+      };
     });
 
     rows.push({
@@ -232,10 +243,7 @@ for (let index = 0; index < SEEDS; index += 1) {
       lineup: lineup.id,
       withContracts: outcomes,
       withoutContracts: evaluateMatch(without),
-      doubled: {
-        breached: evaluateMatch(doubled).contracts.breached,
-        binding: evaluateMatch(doubled).contracts.bindingAccepted,
-      },
+      escrowCurve,
       deterministic,
       replayMatches,
     });
@@ -295,8 +303,20 @@ const livelihoodCostShare =
 // many deals existed to defect on.
 const breachesBase = rows.reduce((sum, row) => sum + row.withContracts.contracts.breached, 0);
 const bindingBase = rows.reduce((sum, row) => sum + row.withContracts.contracts.bindingAccepted, 0);
-const breachesDoubled = rows.reduce((sum, row) => sum + row.doubled.breached, 0);
-const bindingDoubled = rows.reduce((sum, row) => sum + row.doubled.binding, 0);
+const at = (multiplier: number) => {
+  const breached = rows.reduce(
+    (sum, row) => sum + (row.escrowCurve.find((e) => e.multiplier === multiplier)?.breached ?? 0),
+    0,
+  );
+  const binding = rows.reduce(
+    (sum, row) => sum + (row.escrowCurve.find((e) => e.multiplier === multiplier)?.binding ?? 0),
+    0,
+  );
+  return { breached, binding, rate: binding === 0 ? 0 : breached / binding };
+};
+const half = at(0.5);
+const breachesDoubled = at(2).breached;
+const bindingDoubled = at(2).binding;
 const rateBase = bindingBase === 0 ? 0 : breachesBase / bindingBase;
 const rateDoubled = bindingDoubled === 0 ? 0 : breachesDoubled / bindingDoubled;
 const breachReduction = rateBase === 0 ? 0 : (rateBase - rateDoubled) / rateBase;
@@ -350,7 +370,11 @@ for (const check of checks) {
 
 console.log(`\n--- 補足統計 ---`);
 console.log(`Stewardship 中央値   契約あり ${stewardshipWith.toFixed(1)} / 契約なし ${stewardshipWithout.toFixed(1)}  (制約付き契約が成立した ${treated.length}/${rows.length} 件で比較)`);
-console.log(`違反率               通常Escrow ${(rateBase * 100).toFixed(1)}% (${breachesBase}/${bindingBase}) / 倍額Escrow ${(rateDoubled * 100).toFixed(1)}% (${breachesDoubled}/${bindingDoubled})`);
+console.log(
+  `Escrow-違反率曲線    0.5x ${(half.rate * 100).toFixed(1)}% (${half.breached}/${half.binding})` +
+    `  ->  1x ${(rateBase * 100).toFixed(1)}% (${breachesBase}/${bindingBase})` +
+    `  ->  2x ${(rateDoubled * 100).toFixed(1)}% (${breachesDoubled}/${bindingDoubled})`,
+);
 console.log(`Zone選択比率        `, Object.fromEntries(
   Object.entries(zoneTotals).map(([zone, count]) => [zone, `${((count / zoneSum) * 100).toFixed(1)}%`]),
 ));
