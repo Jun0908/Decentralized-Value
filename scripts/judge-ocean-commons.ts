@@ -7,11 +7,15 @@
  *
  * ── PRE-REGISTERED, BEFORE ANY MATCH WAS RUN ─────────────────────────────
  *
- * Opponents. One fixed setting per axis, each chosen on practice seeds 0-29
- * and confirmed on unseen seeds 30-59 (ranks 1st, 2nd and 1st of 60):
- *   livelihood    e1   storm-only cheap
- *   stewardship   e0.2 storm-only cheap
- *   cooperation   e1   always     cheap
+ * Re-registered after the storm season and the hidden season end changed the
+ * game (Plan10 §44); the champions below were re-derived under the new rules,
+ * again before any match here was run.
+ *
+ * Opponents. One fixed setting per axis, each chosen on practice seeds 0-39
+ * and confirmed on unseen seeds 40-79 (ranks 2nd, 1st and 2nd of 60):
+ *   livelihood    e0.8 never  none
+ *   stewardship   e0.2 never  cheap
+ *   cooperation   e1   always cheap
  *
  * Design. Paired: the model and the fixed setting take the same seat, on the
  * same seed, against the same four scripted boats, over the same weather.
@@ -57,14 +61,13 @@ import {
 const SEEDS = Number(process.argv[2] ?? 12);
 const EFFORT = (process.argv[3] ?? "low") as "minimal" | "low" | "medium" | "high";
 const CONCURRENCY = Number(process.argv[4] ?? 4);
-const ROUNDS = 12;
 
 type Axis = "livelihood" | "stewardship" | "cooperation";
 const AXES: Axis[] = ["livelihood", "stewardship", "cooperation"];
 
 const CHAMPION: Record<Axis, TunableParams> = {
-  livelihood: { effortFraction: 1, reserve: "storm-only", contracts: "cheap" },
-  stewardship: { effortFraction: 0.2, reserve: "storm-only", contracts: "cheap" },
+  livelihood: { effortFraction: 0.8, reserve: "never", contracts: "none" },
+  stewardship: { effortFraction: 0.2, reserve: "never", contracts: "cheap" },
   cooperation: { effortFraction: 1, reserve: "always", contracts: "cheap" },
 };
 
@@ -191,13 +194,15 @@ async function pooled<T>(jobs: (() => Promise<T>)[], limit: number): Promise<T[]
 // --- run ------------------------------------------------------------------
 
 console.log(`Ocean Commons — Phase 1a judgement`);
-console.log(`seeds=${SEEDS}  rounds=${ROUNDS}  effort=${EFFORT}  concurrency=${CONCURRENCY}\n`);
+console.log(`seeds=${SEEDS}  effort=${EFFORT}  concurrency=${CONCURRENCY}\n`);
 
 const started = Date.now();
 const turns: LlmTurnRecord[] = [];
 
 const jobs = Array.from({ length: SEEDS }, (_, index) => async () => {
-  const scenario = generateScenario(`judge-${index}`, { vary: true, rounds: ROUNDS });
+  // Unpinned, so both entrants play the real game: neither is told which round
+  // is the last, and both meet the same gale on the same seed.
+  const scenario = generateScenario(`judge-${index}`, { vary: true });
   const focal = scenario.boats[0]!;
   const calls = { n: 0 };
 
