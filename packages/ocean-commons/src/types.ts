@@ -1,0 +1,217 @@
+/**
+ * Ocean Commons — shared-resource arena types.
+ *
+ * The ocean itself is never decided by an AI. Every world transition runs
+ * through the deterministic engine in `engine.ts`. Agents only choose actions
+ * and negotiate contracts; the engine alone resolves what the sea does.
+ */
+
+export type ZoneId = string;
+export type BoatId = string;
+export type PactId = string;
+
+/** A fishing ground. Zones differ so that "where" is a real decision. */
+export type Zone = {
+  id: ZoneId;
+  name: string;
+  /** Logistic carrying capacity. */
+  carryingCapacity: number;
+  /** Intrinsic regrowth rate per round. */
+  growthRate: number;
+  initialStock: number;
+  /** Fixed cost to operate here for one round. */
+  travelCost: number;
+  /** Fish landed per unit of effort at full stock. */
+  catchEfficiency: number;
+  /** 0..1 — how strongly storms hit this zone. */
+  stormExposure: number;
+  /**
+   * Fraction of capacity below which recruitment fails. Fish past it and the
+   * ground does not merely thin — it dies, and no restraint later in the match
+   * brings it back. This cliff is what makes restraint worth paying for.
+   */
+  collapseThreshold: number;
+  /** Fishing a reserve is possible but carries a fine; the engine enforces it. */
+  reserve: boolean;
+};
+
+export type Boat = {
+  id: BoatId;
+  name: string;
+  startingCash: number;
+  /** Maximum effort units per round. */
+  effortCapacity: number;
+  /** Fixed operating cost per round, paid even when idle. */
+  upkeepPerRound: number;
+  /** Small boats have less buffer; used by the resilience outcome. */
+  smallFleet: boolean;
+};
+
+export type BoatState = {
+  id: BoatId;
+  cash: number;
+  /** False once the boat has gone bankrupt; it stops fishing permanently. */
+  active: boolean;
+  /** Rounds remaining under repair. A damaged boat cannot fish. */
+  repairRoundsLeft: number;
+  totalCatch: number;
+  totalRevenue: number;
+  totalCosts: number;
+  /** Payments made to other boats under contracts. */
+  totalPaidOut: number;
+  totalReceived: number;
+  /** Rounds where this boat exceeded a cap it had agreed to. */
+  breaches: number;
+};
+
+/** Pre-generated from the scenario seed, so the world is replayable. */
+export type RoundWeather = {
+  round: number;
+  /** 0..1 storm severity applied through each zone's stormExposure. */
+  stormSeverity: number;
+  /** Boats hit by a mechanical failure this round. */
+  breakdowns: BoatId[];
+  /** Multiplier on the market price this round. */
+  priceShock: number;
+};
+
+export type FishingAction = {
+  boatId: BoatId;
+  zoneId: ZoneId;
+  /** Requested effort. The engine clamps it to capacity and to any active cap. */
+  effort: number;
+};
+
+/**
+ * Structured contracts. Agents never settle in free text — a contract is a
+ * typed object whose compliance the engine checks against actual catches.
+ */
+export type PactKind = "CATCH_LIMIT" | "CONSERVATION_BUYOUT" | "MUTUAL_AID";
+
+export type CatchLimitTerms = {
+  kind: "CATCH_LIMIT";
+  /** The constrained boat must not land more than this per round. */
+  capPerRound: number;
+  /** Applies to this zone only, or to all zones when null. */
+  zoneId: ZoneId | null;
+};
+
+export type ConservationBuyoutTerms = {
+  kind: "CONSERVATION_BUYOUT";
+  /**
+   * The paid boat gives up catch rights: it must not fish this zone at all,
+   * or — when null — must not fish anywhere for the term. Only a full stand
+   * down actually removes effort from the sea; closing one ground merely
+   * sends the boat somewhere else.
+   */
+  zoneId: ZoneId | null;
+};
+
+export type MutualAidTerms = {
+  kind: "MUTUAL_AID";
+  /** Contribution each member pays into the fund per round. */
+  contributionPerRound: number;
+  /** Maximum payout to a member per incident. */
+  payoutCap: number;
+};
+
+export type PactTerms = CatchLimitTerms | ConservationBuyoutTerms | MutualAidTerms;
+
+export type Proposal = {
+  id: PactId;
+  round: number;
+  /** Who pays. */
+  proposer: BoatId;
+  /** Who takes on the obligation. Mutual aid uses every member. */
+  counterparties: BoatId[];
+  terms: PactTerms;
+  /** Total escrowed amount, released across the pact's rounds. */
+  payment: number;
+  durationRounds: number;
+  /** Short machine-readable motive, kept as provenance only. Never scored. */
+  reasonCode: string;
+};
+
+export type ProposalResponse =
+  | { type: "ACCEPT"; proposalId: PactId }
+  | { type: "REJECT"; proposalId: PactId; reasonCode: string }
+  | { type: "COUNTER"; proposalId: PactId; counter: Proposal };
+
+/** An accepted pact with funds locked. */
+export type ActivePact = {
+  id: PactId;
+  terms: PactTerms;
+  proposer: BoatId;
+  counterparties: BoatId[];
+  startRound: number;
+  endRound: number;
+  /** Still locked, not yet released to counterparties. */
+  escrowRemaining: number;
+  perRoundRelease: number;
+  status: "ACTIVE" | "COMPLETED" | "BREACHED";
+};
+
+export type MutualAidFund = {
+  balance: number;
+  members: BoatId[];
+  contributionPerRound: number;
+  payoutCap: number;
+};
+
+export type OceanState = {
+  round: number;
+  stocks: Record<ZoneId, number>;
+  boats: Record<BoatId, BoatState>;
+  pacts: ActivePact[];
+  fund: MutualAidFund | null;
+  /** Current market price per fish, moved by total landings. */
+  price: number;
+};
+
+/** One round of fully resolved history — the replay record. */
+export type RoundRecord = {
+  round: number;
+  weather: RoundWeather;
+  priceBefore: number;
+  priceAfter: number;
+  stocksBefore: Record<ZoneId, number>;
+  stocksAfter: Record<ZoneId, number>;
+  entries: BoatRoundEntry[];
+  escrowReleases: EscrowRelease[];
+  aidPayouts: AidPayout[];
+  newPacts: PactId[];
+  breachedPacts: PactId[];
+};
+
+export type BoatRoundEntry = {
+  boatId: BoatId;
+  zoneId: ZoneId | null;
+  requestedEffort: number;
+  appliedEffort: number;
+  /** Cap in force this round, if the boat was under a contract. */
+  capInForce: number | null;
+  catch: number;
+  revenue: number;
+  costs: number;
+  /** Fine charged for fishing a reserve. */
+  fine: number;
+  cashAfter: number;
+  breached: boolean;
+  /** Why the engine reduced effort, if it did. */
+  clampReason: string | null;
+};
+
+export type EscrowRelease = {
+  pactId: PactId;
+  from: BoatId;
+  to: BoatId;
+  amount: number;
+  /** RELEASE pays the obligated boat; REFUND returns funds on breach. */
+  type: "RELEASE" | "REFUND";
+};
+
+export type AidPayout = {
+  to: BoatId;
+  amount: number;
+  reason: "REPAIR" | "INSOLVENCY";
+};
