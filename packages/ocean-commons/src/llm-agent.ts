@@ -81,7 +81,12 @@ export function systemPrompt(scenario: OceanScenario, mission: string): string {
     )
     .join("\n");
 
-  return `You skipper one boat in a fleet of ${scenario.boats.length} fishing a shared sea over ${scenario.rounds} rounds.
+  const season =
+    scenario.seasonWindow.min === scenario.seasonWindow.max
+      ? `over ${scenario.rounds} rounds`
+      : `over a season that ends somewhere between round ${scenario.seasonWindow.min} and round ${scenario.seasonWindow.max} — you are not told which`;
+
+  return `You skipper one boat in a fleet of ${scenario.boats.length} fishing a shared sea ${season}.
 
 THE SEA
 ${zones}
@@ -145,7 +150,12 @@ export function renderObservation(observation: Observation): string {
   });
 
   const self = observation.self;
-  return `ROUND ${observation.round} of ${observation.round + observation.roundsRemaining - 1} (${observation.roundsRemaining} left)
+  const left =
+    observation.roundsRemaining === observation.maxRoundsRemaining
+      ? `${observation.roundsRemaining} left`
+      : `at least ${observation.roundsRemaining} more, at most ${observation.maxRoundsRemaining}`;
+
+  return `ROUND ${observation.round} — ${left}
 Weather: storm severity ${observation.weather.stormSeverity.toFixed(2)}. Fish price ${observation.price.toFixed(2)} per fish.
 
 STOCKS
@@ -168,6 +178,43 @@ ${pacts.length > 0 ? pacts.join("\n") : "  none"}
 OFFERS ON THE TABLE FOR YOU
 ${offers.length > 0 ? offers.join("\n") : "  none"}`;
 }
+
+export const TURN_TOOL: DecisionTool = {
+  name: "take_turn",
+  description:
+    "Decide this whole round at once: any offer you want to make, and where you will fish.",
+  schema: {
+    type: "object",
+    additionalProperties: false,
+    required: ["zoneId", "effort", "offer", "reasonCode", "declaredReason"],
+    properties: {
+      zoneId: { type: "string", description: "Ground to work this round." },
+      effort: {
+        type: "number",
+        description: "Units of effort, 0 to stay in port. Clamped to your capacity.",
+      },
+      offer: {
+        type: ["object", "null"],
+        description: "A contract to offer another boat, or null to offer nothing.",
+        additionalProperties: false,
+        required: ["targetBoatId", "kind", "payment", "durationRounds", "capPerRound", "zoneId"],
+        properties: {
+          targetBoatId: { type: "string" },
+          kind: { type: "string", enum: ["CATCH_LIMIT", "CONSERVATION_BUYOUT"] },
+          payment: { type: "number", description: "DemoUSD locked in escrow." },
+          durationRounds: { type: "number" },
+          capPerRound: { type: ["number", "null"] },
+          zoneId: {
+            type: ["string", "null"],
+            description: "Ground the terms apply to, or null for all grounds.",
+          },
+        },
+      },
+      reasonCode: { type: "string" },
+      declaredReason: { type: "string", description: "One sentence for your owner." },
+    },
+  },
+};
 
 export const ACT_TOOL: DecisionTool = {
   name: "set_course",
@@ -252,6 +299,55 @@ export type LlmAgentOptions = {
   onTurn?: (record: LlmTurnRecord) => void;
 };
 
+/** Turns whatever the model described into a legal proposal, or nothing. */
+function readOffer(
+  raw: unknown,
+  observation: Observation,
+  id: BoatId,
+  reasonCode: string,
+): Proposal[] {
+  if (!raw || typeof raw !== "object") return [];
+  const offer = raw as Record<string, unknown>;
+  const target = String(offer["targetBoatId"] ?? "");
+  const kind = String(offer["kind"] ?? "");
+  const payment = Math.max(0, Math.round(Number(offer["payment"]) || 0));
+  const durationRounds = Math.max(
+    1,
+    Math.min(Number(offer["durationRounds"]) || 1, observation.maxRoundsRemaining),
+  );
+  const zoneRaw = offer["zoneId"];
+  const zoneId =
+    typeof zoneRaw === "string" && observation.zones.some((z) => z.id === zoneRaw) ? zoneRaw : null;
+  if (!observation.others.some((other) => other.id === target && other.active)) return [];
+  if (payment <= 0) return [];
+
+  const base = {
+    id: `${id}-llm-r${observation.round}`,
+    round: observation.round,
+    proposer: id,
+    counterparties: [target],
+    payment,
+    durationRounds,
+    reasonCode,
+  };
+  if (kind === "CATCH_LIMIT") {
+    return [
+      {
+        ...base,
+        terms: {
+          kind: "CATCH_LIMIT",
+          capPerRound: Math.max(0, Number(offer["capPerRound"]) || 0),
+          zoneId,
+        },
+      },
+    ];
+  }
+  if (kind === "CONSERVATION_BUYOUT") {
+    return [{ ...base, terms: { kind: "CONSERVATION_BUYOUT", zoneId } }];
+  }
+  return [];
+}
+
 function idleAction(observation: Observation): FishingAction {
   return { boatId: observation.self.id, zoneId: observation.zones[0]!.id, effort: 0 };
 }
@@ -302,98 +398,61 @@ export function llmAgent(
     }
   }
 
+  // One call covers the whole round. A skipper settles the offer and the trip
+  // together, and asking twice doubled the bill for a decision that was always
+  // made as one: a 12-round season ran 29 calls where it needs half that.
+  let planned: { round: number; action: FishingAction } | null = null;
+
   return {
     id,
     name,
 
     async negotiate(observation): Promise<NegotiationOutput> {
-      const nothing: NegotiationOutput = { proposals: [], responses: [] };
-      const canOffer =
-        observation.wallet.remaining > 0 && observation.self.cash > observation.self.upkeepPerRound;
-      // Skip the call entirely when there is nothing to decide.
-      if (observation.incomingProposals.length === 0 && !canOffer) return nothing;
+      // Answering someone else's offer is its own question, asked as it arrives.
+      if (observation.incomingProposals.length > 0) {
+        return decide<NegotiationOutput>(
+          observation,
+          "negotiate",
+          NEGOTIATE_TOOL,
+          (input, record) => ({
+            proposals: readOffer(input["offer"], observation, id, record.reasonCode),
+            responses: readResponses(input["responses"], observation),
+          }),
+          { proposals: [], responses: refuseAll(observation) },
+        );
+      }
 
       return decide<NegotiationOutput>(
         observation,
         "negotiate",
-        NEGOTIATE_TOOL,
+        TURN_TOOL,
         (input, record) => {
-          const answers = Array.isArray(input["responses"]) ? input["responses"] : [];
-          const responses: ProposalResponse[] = [];
-          for (const raw of answers as Record<string, unknown>[]) {
-            const proposalId = String(raw["proposalId"] ?? "");
-            if (!observation.incomingProposals.some((p) => p.id === proposalId)) continue;
-            responses.push(
-              raw["accept"] === true
-                ? { type: "ACCEPT", proposalId }
-                : { type: "REJECT", proposalId, reasonCode: "DECLINED" },
-            );
-          }
-          // Anything left unanswered is a refusal: silence must not bind a boat,
-          // or dropping a reply would be a way to hold someone to terms.
-          for (const proposal of observation.incomingProposals) {
-            if (!responses.some((r) => r.proposalId === proposal.id)) {
-              responses.push({ type: "REJECT", proposalId: proposal.id, reasonCode: "NO_ANSWER" });
-            }
-          }
+          const zone = observation.zones.find(
+            (candidate) => candidate.id === String(input["zoneId"] ?? ""),
+          );
+          const effort = zone
+            ? Math.max(0, Math.min(Number(input["effort"]) || 0, observation.self.effortCapacity))
+            : 0;
+          const action: FishingAction = {
+            boatId: id,
+            zoneId: zone ? zone.id : observation.zones[0]!.id,
+            effort,
+          };
+          planned = { round: observation.round, action };
+          record.action = action;
 
-          const proposals: Proposal[] = [];
-          const offer = input["offer"] as Record<string, unknown> | null | undefined;
-          if (offer && typeof offer === "object") {
-            const target = String(offer["targetBoatId"] ?? "");
-            const kind = String(offer["kind"] ?? "");
-            const payment = Math.max(0, Math.round(Number(offer["payment"]) || 0));
-            const durationRounds = Math.max(
-              1,
-              Math.min(Number(offer["durationRounds"]) || 1, observation.roundsRemaining),
-            );
-            const zoneRaw = offer["zoneId"];
-            const zoneId =
-              typeof zoneRaw === "string" && observation.zones.some((z) => z.id === zoneRaw)
-                ? zoneRaw
-                : null;
-            const targetExists = observation.others.some(
-              (other) => other.id === target && other.active,
-            );
-
-            if (targetExists && payment > 0) {
-              if (kind === "CATCH_LIMIT") {
-                proposals.push({
-                  id: `${id}-llm-r${observation.round}`,
-                  round: observation.round,
-                  proposer: id,
-                  counterparties: [target],
-                  terms: {
-                    kind: "CATCH_LIMIT",
-                    capPerRound: Math.max(0, Number(offer["capPerRound"]) || 0),
-                    zoneId,
-                  },
-                  payment,
-                  durationRounds,
-                  reasonCode: record.reasonCode,
-                });
-              } else if (kind === "CONSERVATION_BUYOUT") {
-                proposals.push({
-                  id: `${id}-llm-r${observation.round}`,
-                  round: observation.round,
-                  proposer: id,
-                  counterparties: [target],
-                  terms: { kind: "CONSERVATION_BUYOUT", zoneId },
-                  payment,
-                  durationRounds,
-                  reasonCode: record.reasonCode,
-                });
-              }
-            }
-          }
+          const proposals = readOffer(input["offer"], observation, id, record.reasonCode);
           record.proposals = proposals;
-          return { proposals, responses };
+          return { proposals, responses: [] };
         },
-        nothing,
+        { proposals: [], responses: [] },
       );
     },
 
     async act(observation): Promise<FishingAction> {
+      // Already settled when this round's offer was decided.
+      if (planned && planned.round === observation.round) return planned.action;
+
       return decide<FishingAction>(
         observation,
         "act",
@@ -403,11 +462,14 @@ export function llmAgent(
             (candidate) => candidate.id === String(input["zoneId"] ?? ""),
           );
           if (!zone) return idleAction(observation);
-          const effort = Math.max(
-            0,
-            Math.min(Number(input["effort"]) || 0, observation.self.effortCapacity),
-          );
-          const action: FishingAction = { boatId: id, zoneId: zone.id, effort };
+          const action: FishingAction = {
+            boatId: id,
+            zoneId: zone.id,
+            effort: Math.max(
+              0,
+              Math.min(Number(input["effort"]) || 0, observation.self.effortCapacity),
+            ),
+          };
           record.action = action;
           return action;
         },
@@ -415,4 +477,35 @@ export function llmAgent(
       );
     },
   };
+}
+
+/** Every offer answered; anything left unanswered is a refusal. */
+function readResponses(raw: unknown, observation: Observation): ProposalResponse[] {
+  const answers = Array.isArray(raw) ? (raw as Record<string, unknown>[]) : [];
+  const responses: ProposalResponse[] = [];
+  for (const entry of answers) {
+    const proposalId = String(entry["proposalId"] ?? "");
+    if (!observation.incomingProposals.some((p) => p.id === proposalId)) continue;
+    responses.push(
+      entry["accept"] === true
+        ? { type: "ACCEPT", proposalId }
+        : { type: "REJECT", proposalId, reasonCode: "DECLINED" },
+    );
+  }
+  // Silence must not bind a boat, or dropping a reply would be a way to hold
+  // someone to terms they never took.
+  for (const proposal of observation.incomingProposals) {
+    if (!responses.some((r) => r.proposalId === proposal.id)) {
+      responses.push({ type: "REJECT", proposalId: proposal.id, reasonCode: "NO_ANSWER" });
+    }
+  }
+  return responses;
+}
+
+function refuseAll(observation: Observation): ProposalResponse[] {
+  return observation.incomingProposals.map((proposal) => ({
+    type: "REJECT" as const,
+    proposalId: proposal.id,
+    reasonCode: "NO_ANSWER",
+  }));
 }

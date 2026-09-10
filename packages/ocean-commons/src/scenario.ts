@@ -11,7 +11,13 @@ export type OceanScenario = {
   arenaId: "ocean-commons-v1";
   scenarioId: string;
   seed: string;
+  /** The true length. Never shown to an agent unless the window pins it. */
   rounds: number;
+  /**
+   * What agents are told about the end. A pinned scenario sets both bounds to
+   * the same number, so a fixture or a criteria run stays fully knowable.
+   */
+  seasonWindow: { min: number; max: number };
   zones: Zone[];
   boats: Boat[];
   weather: RoundWeather[];
@@ -158,14 +164,35 @@ export const basePriceModel: PriceModel = {
 /**
  * Weather is drawn once, up front, from the seed. Drawing it during the match
  * would make the transition function impure and break replay.
+ *
+ * Somewhere in the middle of every season sits a run of consecutive gales — a
+ * storm season. Independent per-round draws gave a fleet that drifted between
+ * grounds with nothing ever at stake.
+ *
+ * A gale is pitched hard enough to shut the offshore bank for every hull in the
+ * fleet, not just the small ones: at 0.9 severity against 0.95 exposure the
+ * product clears even the sturdiest boat's limit. That leaves the sheltered
+ * inshore ground and the reserve, so the whole fleet arrives in the same water
+ * at the same time — and the reserve becomes most tempting exactly when the
+ * pressure on everything else is highest. That is when the commons binds and a
+ * contract is worth signing. The run's position and length come from the seed,
+ * so it replays like everything else.
  */
 export function generateWeather(seed: string, rounds: number, boatIds: readonly string[]): RoundWeather[] {
   const rng = createRng(`${seed}:weather`);
+  const galeLength = rounds >= 8 ? rngInt(rng, 2, 3) : 2;
+  const galeStart = rngInt(rng, Math.max(2, Math.floor(rounds * 0.3)), Math.max(3, rounds - galeLength - 1));
+
   const weather: RoundWeather[] = [];
   for (let round = 1; round <= rounds; round += 1) {
+    const inGale = round >= galeStart && round < galeStart + galeLength;
     // Most rounds are calm; roughly one in six turns into a real storm.
     const roll = rng();
-    const stormSeverity = roll > 0.83 ? stable(0.55 + rng() * 0.45) : stable(roll * 0.35);
+    const stormSeverity = inGale
+      ? stable(0.9 + rng() * 0.1)
+      : roll > 0.83
+        ? stable(0.55 + rng() * 0.45)
+        : stable(roll * 0.35);
     const breakdowns: string[] = [];
     for (const boatId of boatIds) {
       // Storms make mechanical failure markedly more likely.
@@ -183,13 +210,29 @@ export function generateWeather(seed: string, rounds: number, boatIds: readonly 
 }
 
 export type ScenarioOptions = {
+  /**
+   * Exact season length. Omit it and the length is drawn from the seed inside
+   * `SEASON_WINDOW` — see `generateScenario`.
+   */
   rounds?: number;
   /** Randomises zone and fleet parameters so practice cannot memorise one map. */
   vary?: boolean;
 };
 
+/**
+ * How long a season can run when its length is not pinned.
+ *
+ * A boat that knows the season ends this round has no reason to leave anything
+ * in the water, and a counterparty holding an almost-empty escrow has no reason
+ * to keep its word. Both were observed in live matches: the last round was a
+ * free-for-all every time. Agents are told the window, never the draw, so the
+ * end has to be played around rather than played to.
+ */
+export const SEASON_WINDOW = { min: 7, max: 10 } as const;
+
 export function generateScenario(seed: string, options: ScenarioOptions = {}): OceanScenario {
-  const rounds = options.rounds ?? 12;
+  const lengthRng = createRng(`${seed}:length`);
+  const rounds = options.rounds ?? rngInt(lengthRng, SEASON_WINDOW.min, SEASON_WINDOW.max);
   const rng = createRng(`${seed}:world`);
 
   const zones: Zone[] = baseZones.map((zone) => {
@@ -227,6 +270,10 @@ export function generateScenario(seed: string, options: ScenarioOptions = {}): O
     scenarioId: `ocean-${seed}`,
     seed,
     rounds,
+    seasonWindow:
+      options.rounds === undefined
+        ? { min: SEASON_WINDOW.min, max: SEASON_WINDOW.max }
+        : { min: options.rounds, max: options.rounds },
     zones,
     boats,
     weather: generateWeather(seed, rounds, boats.map((boat) => boat.id)),

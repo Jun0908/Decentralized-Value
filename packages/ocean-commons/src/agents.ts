@@ -56,7 +56,15 @@ export type PublicBoatView = {
 
 export type Observation = {
   round: number;
+  /**
+   * Rounds this boat is *guaranteed* — the floor of the season window, not the
+   * truth. A boat that knew the last round would strip the sea on it, and its
+   * counterparty would break a nearly-empty escrow at the same moment; both
+   * happened in live matches. Plan for `maxRoundsRemaining`, count on this.
+   */
   roundsRemaining: number;
+  /** The most that can still be left. Equal to `roundsRemaining` when pinned. */
+  maxRoundsRemaining: number;
   /** This round's weather is forecast before acting, so compliance is never a gamble. */
   weather: RoundWeather;
   price: number;

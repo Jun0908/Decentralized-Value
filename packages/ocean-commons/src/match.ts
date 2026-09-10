@@ -82,7 +82,8 @@ function buildObservation(
   const boatState = state.boats[boatId]!;
   return {
     round: state.round,
-    roundsRemaining: scenario.rounds - state.round + 1,
+    roundsRemaining: Math.max(1, scenario.seasonWindow.min - state.round + 1),
+    maxRoundsRemaining: Math.max(1, scenario.seasonWindow.max - state.round + 1),
     weather: scenario.weather[state.round - 1]!,
     price: state.price,
     zones: scenario.zones,

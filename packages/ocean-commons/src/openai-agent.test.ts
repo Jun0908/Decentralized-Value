@@ -47,11 +47,12 @@ const MISSION = "Keep the crew paid without emptying the sea.";
 
 describe("openai backend", () => {
   it("parses tool arguments that arrive as a JSON string", async () => {
-    const scenario = generateScenario("oa-basic");
+    const scenario = generateScenario("oa-basic", { rounds: 4 });
     const { client, sent } = stubOpenAi(() => ({
       args: JSON.stringify({
         zoneId: "coastal",
         effort: 7,
+        offer: null,
         reasonCode: "CLOSE_AND_CHEAP",
         declaredReason: "Coastal is close and the price holds.",
       }),
@@ -66,13 +67,14 @@ describe("openai backend", () => {
 
     expect(entry.zoneId).toBe("coastal");
     expect(entry.appliedEffort).toBe(7);
-    // The tool is forced on every call, so the model cannot answer in prose.
-    // A round asks twice: first what to offer, then where to fish.
+    // A quiet round is one question, not two: the offer and the trip are
+    // settled together, which halves what a season costs to play.
+    expect(sent).toHaveLength(scenario.rounds);
     const forced = sent.map(
       (params) => (params["tool_choice"] as { function: { name: string } }).function.name,
     );
-    expect(forced).toContain("answer_offers");
-    expect(forced).toContain("set_course");
+    // Always forced, so the model can never answer in prose instead.
+    expect(new Set(forced)).toEqual(new Set(["take_turn"]));
   });
 
   it("stays in port when the arguments are not valid JSON", async () => {

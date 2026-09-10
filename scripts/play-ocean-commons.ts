@@ -31,7 +31,9 @@ import {
 } from "../packages/ocean-commons/src/index";
 
 const SEED = process.argv[2] ?? "play-1";
-const ROUNDS = Number(process.argv[3] ?? 12);
+// Left unpinned by default: the season length is drawn from the seed, and the
+// boat is told only the window. A boat that knows the last round strips the sea.
+const ROUNDS = process.argv[3] ? Number(process.argv[3]) : undefined;
 
 const MISSION = `Keep the crew paid: finish the season solvent and with a working boat.
 
@@ -42,14 +44,14 @@ You may pay other boats to hold back, and you may take their money to hold back
 yourself, when the arithmetic favours it. Judge each offer on what it is worth,
 not on whether cooperating sounds virtuous.`;
 
-const scenario = generateScenario(SEED, { vary: true, rounds: ROUNDS });
+const scenario = generateScenario(SEED, ROUNDS ? { vary: true, rounds: ROUNDS } : { vary: true });
 const [focal, b, c, d, e] = scenario.boats;
 
 const turns: LlmTurnRecord[] = [];
 const fleet: OceanAgent[] = [
   llmAgent(focal!.id, focal!.name, scenario, {
     mission: MISSION,
-    backend: openaiBackend(),
+    backend: openaiBackend({ reasoningEffort: "low" }),
     onTurn: (record) => turns.push(record),
   }),
   brokerAgent(b!.id, b!.name, scenario),
@@ -58,7 +60,7 @@ const fleet: OceanAgent[] = [
   cautiousAgent(e!.id, e!.name, scenario),
 ];
 
-console.log(`Ocean Commons — seed ${SEED}, ${ROUNDS} rounds`);
+console.log(`Ocean Commons — seed ${SEED}, ${scenario.rounds} rounds (window ${scenario.seasonWindow.min}-${scenario.seasonWindow.max})`);
 const RUNNER = process.env["OPENAI_MODEL"] ?? "gpt-5";
 console.log(`${focal!.name} is run by ${RUNNER}; the other four are scripted baselines.\n`);
 
