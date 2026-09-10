@@ -746,3 +746,186 @@ export function crowdAverseAgent(id: BoatId, name: string, scenario: OceanScenar
     },
   };
 }
+
+/**
+ * A policy reduced to a handful of dials.
+ *
+ * The scripted baselines each express one author's idea of how to fish, so
+ * they cannot answer the question that decides whether this is a competition
+ * at all: is there a single setting that simply wins? Sweeping this policy
+ * over its whole grid does answer it. If one dial setting takes most seeds,
+ * the arena is solved and no agent — however clever — is doing anything a
+ * lookup table could not. If different seeds want different settings, there
+ * is something to be good at.
+ */
+export type TunableParams = {
+  /** Share of hull capacity to commit when fishing. */
+  effortFraction: number;
+  /** When, if ever, to work the reserve. */
+  reserve: "never" | "storm-only" | "always";
+  /** How hard to push contracts, and at what price relative to fair value. */
+  contracts: "none" | "cheap" | "fair" | "generous";
+};
+
+const CONTRACT_PRICE: Record<TunableParams["contracts"], number> = {
+  none: 0,
+  cheap: 0.7,
+  fair: 1,
+  generous: 1.5,
+};
+
+export function tunableAgent(
+  id: BoatId,
+  name: string,
+  scenario: OceanScenario,
+  params: TunableParams,
+): OceanAgent {
+  return {
+    id,
+    name,
+    negotiate(observation) {
+      if (params.contracts === "none") {
+        return {
+          proposals: [],
+          responses: observation.incomingProposals.map((proposal) => ({
+            type: "REJECT" as const,
+            proposalId: proposal.id,
+            reasonCode: "NO_CONTRACTS",
+          })),
+        };
+      }
+      const responses: ProposalResponse[] = observation.incomingProposals.map((proposal) => ({
+        type: "ACCEPT" as const,
+        proposalId: proposal.id,
+      }));
+      const proposals: Proposal[] = [];
+
+      if (
+        !observation.conservationFund &&
+        observation.round <= 3 &&
+        observation.roundsRemaining >= 6 &&
+        observation.wallet.policy.allowedPurposes.includes("CONSERVATION_FUND")
+      ) {
+        proposals.push({
+          id: proposalId(observation, "fund"),
+          round: observation.round,
+          proposer: id,
+          counterparties: observation.others.filter((other) => other.active).map((o) => o.id),
+          terms: {
+            kind: "CONSERVATION_FUND",
+            contributionPerRound: 28,
+            standDownCap: Math.round(observation.wallet.policy.maxPaymentPerTransaction * 2.5),
+          },
+          payment: 0,
+          durationRounds: observation.roundsRemaining,
+          reasonCode: "POOL_RESTRAINT",
+        });
+      }
+
+      const offer = standDownOffer(observation, id, {
+        priceMultiplier: CONTRACT_PRICE[params.contracts],
+      });
+      if (offer) proposals.push(offer);
+      return { proposals, responses };
+    },
+    act(observation) {
+      const allowReserve =
+        params.reserve === "always" ||
+        (params.reserve === "storm-only" && observation.weather.stormSeverity > 0.4);
+      const choice = bestZone(observation, scenario, {
+        allowReserve,
+        effortCap: observation.self.effortCapacity * params.effortFraction,
+      });
+      if (!choice) return idle(observation);
+      return { boatId: id, zoneId: choice.zone.id, effort: choice.effort };
+    },
+  };
+}
+
+/**
+ * Punishes over-fishing itself, not merely broken promises.
+ *
+ * Every other policy here responds only to contract breaches, so a boat that
+ * signs nothing and simply strips the sea pays no social cost at all. Against
+ * opponents that never react, the best reply is a fixed setting — which is
+ * exactly what the grid sweep found. This agent reacts to behaviour: it works
+ * whichever ground the heaviest taker is on, so the two of them split a stock
+ * that neither can then take alone, and it refuses to put money in that boat's
+ * pocket. Whether a fixed strategy survives contact with an opponent that
+ * answers back is the question the sweep could not ask.
+ */
+export function enforcerAgent(id: BoatId, name: string, scenario: OceanScenario): OceanAgent {
+  /** The boat taking the largest share of everything landed so far. */
+  const offenderOf = (observation: Observation): PublicBoatView | null => {
+    const rivals = observation.others.filter((other) => other.active);
+    if (rivals.length === 0 || observation.round < 3) return null;
+    const landed = rivals.reduce((sum, other) => sum + other.totalCatch, 0) +
+      observation.self.totalCatch;
+    if (landed <= 0) return null;
+    const worst = [...rivals].sort((left, right) => right.totalCatch - left.totalCatch)[0]!;
+    // Only a share well past an even split counts as taking more than its due.
+    const evenShare = landed / (rivals.length + 1);
+    return worst.totalCatch > evenShare * 1.25 ? worst : null;
+  };
+
+  return {
+    id,
+    name,
+    negotiate(observation) {
+      const offender = offenderOf(observation);
+      return {
+        proposals: [],
+        responses: observation.incomingProposals.map((proposal) => {
+          // Never fund the boat that is doing the damage.
+          const paysOffender = offender !== null && proposal.counterparties.includes(offender.id);
+          return paysOffender
+            ? { type: "REJECT" as const, proposalId: proposal.id, reasonCode: "WONT_FUND_OFFENDER" }
+            : { type: "ACCEPT" as const, proposalId: proposal.id };
+        }),
+      };
+    },
+    act(observation) {
+      const shim = observationStateShim(observation);
+      if (standDownRequired(shim, id)) return idle(observation);
+
+      const offender = offenderOf(observation);
+      const contested = offender?.lastZoneId ?? null;
+      if (contested) {
+        const zone = observation.zones.find((candidate) => candidate.id === contested);
+        const closed = closedZones(shim, id);
+        if (zone && !closed.has(zone.id) && !tooRough(zone, observation.weather, observation.self)) {
+          const stock = observation.stocks[zone.id] ?? 0;
+          const cap = capInForce(shim, id, zone.id);
+          let effort = observation.self.effortCapacity;
+          if (cap !== null) {
+            effort = Math.min(effort, effortForCatch(zone, stock, observation.weather, cap));
+          }
+          effort = Math.max(0, Math.floor(effort * 100) / 100);
+          const profit = expectedProfit(
+            zone,
+            stock,
+            observation.weather,
+            effort,
+            observation.price,
+            observation.self,
+            scenario,
+          );
+          // Crowding is worth doing only while it still pays its own way.
+          if (effort > 0 && profit > 0) return { boatId: id, zoneId: zone.id, effort };
+        }
+      }
+
+      const fleet = observation.others.filter((other) => other.active).length + 1;
+      const share = Math.max(
+        1,
+        observation.zones
+          .filter((zone) => !zone.reserve)
+          .reduce((sum, zone) => sum + sustainableYield(zone, observation.stocks[zone.id] ?? 0), 0) /
+          fleet,
+      );
+      const choice = bestZone(observation, scenario, { allowReserve: false, catchCap: share });
+      if (!choice) return idle(observation);
+      return { boatId: id, zoneId: choice.zone.id, effort: choice.effort };
+    },
+  };
+}

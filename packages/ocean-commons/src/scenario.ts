@@ -89,15 +89,23 @@ export const baseZones: readonly Zone[] = [
 
 /**
  * Five boats with deliberately unequal balance sheets. Two small boats exist
- * so that "the fleet survived" and "I survived" can diverge — the resilience
- * outcome has nothing to measure in an equal fleet.
+ * so that "the fleet survived" and "I survived" can diverge.
+ *
+ * The hulls carry roughly twice the capacity the sea can support, and that
+ * ratio is the single most important number in the whole design. At half this
+ * size nothing was ever scarce: grounds recovered between visits, restraint
+ * protected nothing, and knowing exactly who you were fishing against was
+ * worth under 3%. Doubling it drops coastal stock to 0.56 of capacity at its
+ * worst and raises the value of reading your rivals to 16%. Every other
+ * problem found in Phase 0 — no depletion, a dead resilience axis, a fleet
+ * that moved as one school — traced back to this ratio.
  */
 export const baseBoats: readonly Boat[] = [
   {
     id: "kaiyo",
     name: "Kaiyo",
     startingCash: 500,
-    effortCapacity: 18,
+    effortCapacity: 36,
     upkeepPerRound: 12,
     stormLimit: 0.72,
     smallFleet: false,
@@ -106,7 +114,7 @@ export const baseBoats: readonly Boat[] = [
     id: "hokuto",
     name: "Hokuto",
     startingCash: 520,
-    effortCapacity: 22,
+    effortCapacity: 44,
     upkeepPerRound: 16,
     stormLimit: 0.85,
     smallFleet: false,
@@ -115,7 +123,7 @@ export const baseBoats: readonly Boat[] = [
     id: "isana",
     name: "Isana",
     startingCash: 480,
-    effortCapacity: 18,
+    effortCapacity: 36,
     upkeepPerRound: 12,
     stormLimit: 0.72,
     smallFleet: false,
@@ -124,7 +132,7 @@ export const baseBoats: readonly Boat[] = [
     id: "nagi",
     name: "Nagi",
     startingCash: 300,
-    effortCapacity: 12,
+    effortCapacity: 24,
     upkeepPerRound: 8,
     stormLimit: 0.34,
     smallFleet: true,
@@ -133,7 +141,7 @@ export const baseBoats: readonly Boat[] = [
     id: "shiosai",
     name: "Shiosai",
     startingCash: 250,
-    effortCapacity: 10,
+    effortCapacity: 20,
     upkeepPerRound: 7,
     stormLimit: 0.28,
     smallFleet: true,
