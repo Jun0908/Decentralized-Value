@@ -936,3 +936,35 @@ export function enforcerAgent(id: BoatId, name: string, scenario: OceanScenario)
     },
   };
 }
+
+/**
+ * Replays one boat's recorded fishing actions instead of deciding again.
+ *
+ * The cooperation axis re-runs a match with a single boat's contracts removed.
+ * For a scripted boat that costs nothing, but a model-backed one would be
+ * asked to decide the whole season a second time, doubling the bill for every
+ * entry. Holding its own fishing fixed and letting the other boats respond
+ * freely isolates what the contract did to them and to the sea, without paying
+ * for a second season of judgement.
+ *
+ * The approximation is explicit: a boat that never signed would likely have
+ * fished differently. What is measured is the contract's effect on everyone
+ * else, not the signer's own change of heart.
+ */
+export function recordedAgent(
+  id: BoatId,
+  name: string,
+  actionsByRound: ReadonlyMap<number, FishingAction>,
+): OceanAgent {
+  return {
+    id,
+    name,
+    negotiate: () => ({ proposals: [], responses: [] }),
+    act: (observation) =>
+      actionsByRound.get(observation.round) ?? {
+        boatId: id,
+        zoneId: observation.zones[0]!.id,
+        effort: 0,
+      },
+  };
+}

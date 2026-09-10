@@ -397,6 +397,24 @@ export function toTranscript(log: MatchLog): MatchTranscript {
   };
 }
 
+/** This boat's actions, round by round, as the engine actually applied them. */
+export function recordedActionsFor(
+  log: MatchLog,
+  boatId: BoatId,
+): Map<number, FishingAction> {
+  const actions = new Map<number, FishingAction>();
+  for (const record of log.rounds) {
+    const entry = record.entries.find((candidate) => candidate.boatId === boatId);
+    if (!entry || entry.zoneId === null) continue;
+    actions.set(record.round, {
+      boatId,
+      zoneId: entry.zoneId,
+      effort: entry.requestedEffort,
+    });
+  }
+  return actions;
+}
+
 /** Re-runs a transcript through the engine with no agents involved. */
 export function replayTranscript(
   scenario: OceanScenario,

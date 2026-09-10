@@ -148,6 +148,8 @@ ${zones}
 
 Fish landed per unit of effort falls as a ground is drawn down, so a stripped ground pays badly for everyone on it. Below a critical stock a ground stops recovering and dies for the rest of the match. The nursery reserve feeds the other grounds: fishing it pays now and quietly starves everything later. One market buys the whole fleet's catch, so a glut lowers the price you get too.
 
+A storm cuts the fish landed per unit of effort in proportion to a ground's storm exposure, and every boat working that ground shares the same finite stock. Note that your hull's weather limit only decides whether you are allowed out — it says nothing about whether the trip pays. You can be well inside your limit and still land almost nothing in rough water on an exposed ground.
+
 WHAT YOU CONTROL
 Each round you choose a ground and how hard to work it, and you may offer contracts to other boats:
 - CATCH_LIMIT: you pay them to land no more than a cap per round.

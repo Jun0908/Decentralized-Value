@@ -24,6 +24,8 @@ import {
   llmAgent,
   opportunistAgent,
   openaiBackend,
+  recordedActionsFor,
+  recordedAgent,
   runMatch,
   scoreCooperation,
   type LlmTurnRecord,
@@ -119,8 +121,16 @@ for (const record of log.rounds) {
 // --- outcome --------------------------------------------------------------
 
 const full = evaluateMatch(log);
+
+// The counterfactual replays the model boat's own fishing and lets the scripted
+// boats respond freely, so it costs nothing. Re-deciding the season would
+// double the model bill for every entry — see Docs/Plan10.md §41.7.
 const solo = evaluateMatch(
-  await runMatch(scenario, fleet, { excludeContractsFor: focal!.id }),
+  await runMatch(
+    scenario,
+    [recordedAgent(focal!.id, focal!.name, recordedActionsFor(log, focal!.id)), ...fleet.slice(1)],
+    { excludeContractsFor: focal!.id },
+  ),
 );
 const cooperation = scoreCooperation(full, solo, focal!.id);
 const me = full.boats.find((boat) => boat.boatId === focal!.id)!;
