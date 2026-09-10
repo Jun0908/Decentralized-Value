@@ -74,7 +74,16 @@ const CHAMPION: Record<Axis, TunableParams> = {
   cooperation: { effortFraction: 1, reserve: "always", contracts: "cheap" },
 };
 
-const MISSION = `Keep the crew paid: finish the season solvent and with a working boat.
+/**
+ * The owner's standing instruction — the whole of what a player writes.
+ *
+ * It is the variable that matters most and the one least examined: an agent
+ * told to keep the crew paid will not spend its own money to leave fish for
+ * rivals, because unilateral spending is exactly what a commons dilemma
+ * punishes. Override it to see how far the mission, rather than the model,
+ * drives the three scores apart.
+ */
+const MISSION = process.env["OCEAN_MISSION"] ?? `Keep the crew paid: finish the season solvent and with a working boat.
 
 Do not empty the sea to do it. A ground you strip past its critical stock never
 comes back, and the nursery reserve is what feeds the grounds you fish.
