@@ -34,8 +34,8 @@ export type WalletPolicy = {
 
 export const defaultWalletPolicy: WalletPolicy = {
   startingBudget: 500,
-  maxPaymentPerTransaction: 90,
-  maxAutonomousSpendPerMatch: 300,
+  maxPaymentPerTransaction: 150,
+  maxAutonomousSpendPerMatch: 600,
   allowedPurposes: ["CATCH_LIMIT", "CONSERVATION_BUYOUT", "MUTUAL_AID"],
   allowArbitraryTransfer: false,
 };
@@ -197,6 +197,84 @@ export function totalCapacity(observation: Observation): number {
   return observation.zones.reduce((sum, zone) => sum + zone.carryingCapacity, 0);
 }
 
+/**
+ * What it should cost to keep another boat in port for `rounds`.
+ *
+ * Nobody can see a rival's books, so the estimate is built from what is
+ * public: last round's landings valued at the current price, less a rough
+ * operating margin. The offer clears that by a small head — enough to be
+ * worth taking, not so much that breaking the deal stops being a real choice.
+ * Escrow only disciplines behaviour while defection is a close call.
+ */
+export function priceStandDown(
+  observation: Observation,
+  target: PublicBoatView,
+  rounds: number,
+): number {
+  const revenuePerRound = target.lastCatch * observation.price;
+  const OPERATING_MARGIN = 0.6;
+  const HEAD = 1.1;
+  return Math.ceil(revenuePerRound * OPERATING_MARGIN * rounds * HEAD);
+}
+
+/**
+ * The offer to buy a boat out of the water, or null when no such deal makes
+ * sense this round. Shared, because more than one policy reaches for it: a
+ * commons is rarely saved by a single buyer.
+ */
+export function standDownOffer(
+  observation: Observation,
+  proposerId: BoatId,
+  options: { priceMultiplier?: number; rounds?: number } = {},
+): Proposal | null {
+  const policy = observation.wallet.policy;
+  if (!policy.allowedPurposes.includes("CONSERVATION_BUYOUT")) return null;
+  if (observation.roundsRemaining < 2) return null;
+
+  // Act while a ground is still falling, not once it is already past the
+  // cliff — a stand-down bought after collapse buys nothing back.
+  const nearCollapse = observation.zones.some((zone) => {
+    const stock = observation.stocks[zone.id] ?? 0;
+    return stock < zone.carryingCapacity * (zone.collapseThreshold + 0.55);
+  });
+  if (!nearCollapse) return null;
+
+  const budget = Math.min(
+    policy.maxPaymentPerTransaction,
+    observation.wallet.remaining,
+    Math.max(0, observation.self.cash - observation.self.upkeepPerRound * 2),
+  );
+  const rounds = Math.min(options.rounds ?? 3, observation.roundsRemaining);
+  const multiplier = options.priceMultiplier ?? 1;
+  const isBound = (boatId: BoatId) =>
+    observation.activePacts.some(
+      (pact) => pact.status === "ACTIVE" && pact.counterparties.includes(boatId),
+    );
+
+  // Take the heaviest boat that can actually be afforded rather than always
+  // bidding for the biggest: the largest extractor is also the dearest to stop.
+  const affordable = [...observation.others]
+    .filter((other) => other.active && !isBound(other.id) && other.lastCatch > 0)
+    .sort((left, right) => right.lastCatch - left.lastCatch)
+    .map((other) => ({
+      other,
+      price: Math.ceil(priceStandDown(observation, other, rounds) * multiplier),
+    }))
+    .find((candidate) => candidate.price > 0 && candidate.price <= budget);
+  if (!affordable) return null;
+
+  return {
+    id: `${proposerId}-standdown-r${observation.round}`,
+    round: observation.round,
+    proposer: proposerId,
+    counterparties: [affordable.other.id],
+    terms: { kind: "CONSERVATION_BUYOUT", zoneId: null },
+    payment: affordable.price,
+    durationRounds: rounds,
+    reasonCode: "NEAR_COLLAPSE",
+  };
+}
+
 // --- baseline policies ----------------------------------------------------
 
 /**
@@ -273,7 +351,22 @@ export function cautiousAgent(id: BoatId, name: string, scenario: OceanScenario)
  * Buys restraint when the commons starts sliding. This is the agent that makes
  * the escrow machinery matter: it spends real money on other boats' behaviour.
  */
-export function brokerAgent(id: BoatId, name: string, scenario: OceanScenario): OceanAgent {
+export type BrokerOptions = {
+  /**
+   * Scales every offer the broker makes. Phase 0 uses it to vary how thick the
+   * escrow behind a deal is while holding everything else fixed, which is the
+   * only way to ask whether the size of the stake changes who defects.
+   */
+  priceMultiplier?: number;
+};
+
+export function brokerAgent(
+  id: BoatId,
+  name: string,
+  scenario: OceanScenario,
+  options: BrokerOptions = {},
+): OceanAgent {
+  const priceMultiplier = options.priceMultiplier ?? 1;
   return {
     id,
     name,
@@ -304,41 +397,10 @@ export function brokerAgent(id: BoatId, name: string, scenario: OceanScenario): 
         );
       const reserve = observation.zones.find((zone) => zone.reserve);
 
-      // How close is the worst ground to the cliff it cannot come back from?
-      const nearCollapse = observation.zones.some((zone) => {
-        const stock = observation.stocks[zone.id] ?? 0;
-        return stock < zone.carryingCapacity * (zone.collapseThreshold + 0.35);
-      });
+      const standDown = standDownOffer(observation, id, { priceMultiplier });
 
-      // Once a ground nears its threshold, buy heavy extractors out of the
-      // water entirely — closing a single zone only sends a boat somewhere
-      // else, and only a stand-down removes effort from the sea.
-      //
-      // Measured over 60 seeds, splitting one budget across three boats left
-      // each share too small to outweigh a round of fishing, so the offer goes
-      // to a single boat at full value. Coalition pricing is a Phase 1 question.
-      const heaviest = [...observation.others]
-        .filter((other) => other.active && !bound(other.id) && other.lastCatch > 0)
-        .sort((left, right) => right.lastCatch - left.lastCatch)
-        .slice(0, 1);
-
-      if (
-        nearCollapse &&
-        heaviest.length > 0 &&
-        budget >= 10 &&
-        observation.roundsRemaining >= 2 &&
-        observation.wallet.policy.allowedPurposes.includes("CONSERVATION_BUYOUT")
-      ) {
-        proposals.push({
-          id: proposalId(observation, "standdown"),
-          round: observation.round,
-          proposer: id,
-          counterparties: heaviest.map((other) => other.id),
-          terms: { kind: "CONSERVATION_BUYOUT", zoneId: null },
-          payment: Math.floor(budget),
-          durationRounds: Math.min(2, observation.roundsRemaining),
-          reasonCode: reserve && nearCollapse ? "NEAR_COLLAPSE" : "STOCK_DECLINE",
-        });
+      if (standDown) {
+        proposals.push(standDown);
       } else if (pressure < 0.7 && budget >= 10 && observation.roundsRemaining >= 3) {
         // Otherwise fall back to capping whoever is landing the most.
         const target = [...observation.others]
@@ -458,6 +520,7 @@ export function reciprocatorAgent(id: BoatId, name: string, scenario: OceanScena
           reasonCode: "BREAKDOWN_RISK",
         });
       }
+
       return { proposals, responses };
     },
     act(observation) {

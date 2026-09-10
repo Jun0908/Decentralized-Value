@@ -67,6 +67,7 @@ function build(
   name: string,
   scenario: OceanScenario,
   seed: string,
+  priceMultiplier = 1,
 ): OceanAgent {
   switch (policy) {
     case "greedy":
@@ -74,7 +75,7 @@ function build(
     case "cautious":
       return cautiousAgent(id, name, scenario);
     case "broker":
-      return brokerAgent(id, name, scenario);
+      return brokerAgent(id, name, scenario, { priceMultiplier });
     case "opportunist":
       return opportunistAgent(id, name, scenario);
     case "reciprocator":
@@ -116,9 +117,14 @@ function lineups(): Lineup[] {
   ];
 }
 
-function agentsFor(lineup: Lineup, scenario: OceanScenario, seed: string): OceanAgent[] {
+function agentsFor(
+  lineup: Lineup,
+  scenario: OceanScenario,
+  seed: string,
+  priceMultiplier = 1,
+): OceanAgent[] {
   return scenario.boats.map((boat, index) =>
-    build(lineup.policies[index] ?? "cautious", boat.id, boat.name, scenario, seed),
+    build(lineup.policies[index] ?? "cautious", boat.id, boat.name, scenario, seed, priceMultiplier),
   );
 }
 
@@ -176,7 +182,7 @@ type Row = {
   lineup: string;
   withContracts: MatchOutcomes;
   withoutContracts: MatchOutcomes;
-  breachesDoubleEscrow: number;
+  doubled: { breached: number; binding: number };
   deterministic: boolean;
   replayMatches: boolean;
 };
@@ -216,7 +222,8 @@ for (let index = 0; index < SEEDS; index += 1) {
     const without = runMatch(scenario, agentsFor(lineup, scenario, seed), {
       enableNegotiation: false,
     });
-    const doubled = runMatch(scenario, agentsFor(lineup, scenario, seed), {
+    // Same world, same policies — only the money behind each promise doubles.
+    const doubled = runMatch(scenario, agentsFor(lineup, scenario, seed, 2), {
       wallets: doubledWallets(scenario),
     });
 
@@ -225,7 +232,10 @@ for (let index = 0; index < SEEDS; index += 1) {
       lineup: lineup.id,
       withContracts: outcomes,
       withoutContracts: evaluateMatch(without),
-      breachesDoubleEscrow: evaluateMatch(doubled).contracts.breached,
+      doubled: {
+        breached: evaluateMatch(doubled).contracts.breached,
+        binding: evaluateMatch(doubled).contracts.bindingAccepted,
+      },
       deterministic,
       replayMatches,
     });
@@ -278,10 +288,18 @@ const livelihoodCostShare =
   rows.filter((row) => row.withContracts.livelihood < row.withoutContracts.livelihood).length /
   rows.length;
 
-// 6. escrow size changes defection
+// 6. escrow size changes defection.
+// Measured as a rate, not a count: a larger escrow also lets the broker afford
+// more contracts, so absolute breaches can rise while each individual deal is
+// held to more reliably. The question is whether a signatory defects, not how
+// many deals existed to defect on.
 const breachesBase = rows.reduce((sum, row) => sum + row.withContracts.contracts.breached, 0);
-const breachesDoubled = rows.reduce((sum, row) => sum + row.breachesDoubleEscrow, 0);
-const breachReduction = breachesBase === 0 ? 0 : (breachesBase - breachesDoubled) / breachesBase;
+const bindingBase = rows.reduce((sum, row) => sum + row.withContracts.contracts.bindingAccepted, 0);
+const breachesDoubled = rows.reduce((sum, row) => sum + row.doubled.breached, 0);
+const bindingDoubled = rows.reduce((sum, row) => sum + row.doubled.binding, 0);
+const rateBase = bindingBase === 0 ? 0 : breachesBase / bindingBase;
+const rateDoubled = bindingDoubled === 0 ? 0 : breachesDoubled / bindingDoubled;
+const breachReduction = rateBase === 0 ? 0 : (rateBase - rateDoubled) / rateBase;
 
 // 7. outcome independence
 const livelihoods = rows.map((row) => row.withContracts.livelihood);
@@ -332,7 +350,7 @@ for (const check of checks) {
 
 console.log(`\n--- 補足統計 ---`);
 console.log(`Stewardship 中央値   契約あり ${stewardshipWith.toFixed(1)} / 契約なし ${stewardshipWithout.toFixed(1)}  (制約付き契約が成立した ${treated.length}/${rows.length} 件で比較)`);
-console.log(`違反件数             通常Escrow ${breachesBase} / 倍額Escrow ${breachesDoubled}`);
+console.log(`違反率               通常Escrow ${(rateBase * 100).toFixed(1)}% (${breachesBase}/${bindingBase}) / 倍額Escrow ${(rateDoubled * 100).toFixed(1)}% (${breachesDoubled}/${bindingDoubled})`);
 console.log(`Zone選択比率        `, Object.fromEntries(
   Object.entries(zoneTotals).map(([zone, count]) => [zone, `${((count / zoneSum) * 100).toFixed(1)}%`]),
 ));
