@@ -22,13 +22,12 @@
 
 import {
   brokerAgent,
-  cautiousAgent,
   evaluateMatch,
   generateScenario,
   greedyAgent,
   opportunistAgent,
   runMatch,
-  enforcerAgent,
+  reciprocatorAgent,
   scoreCooperation,
   scoreRestraint,
   takerAgent,
@@ -73,11 +72,14 @@ function background(scenario: OceanScenario): OceanAgent[] {
       cautiousAgent(e!.id, e!.name, scenario),
     ];
   }
+  // The fleet the Arena actually ships (see the workbench): three maximisers
+  // and one boat that answers back. The earlier line-up predated
+  // `reciprocatorAgent` and so measured a world nobody plays in.
   return [
     brokerAgent(b!.id, b!.name, scenario),
     greedyAgent(c!.id, c!.name, scenario),
     opportunistAgent(d!.id, d!.name, scenario),
-    cautiousAgent(e!.id, e!.name, scenario),
+    reciprocatorAgent(e!.id, e!.name, scenario),
   ];
 }
 

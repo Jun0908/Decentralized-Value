@@ -1007,9 +1007,15 @@ export function tunableAgent(
  * every round. Replaying a seed with an entrant swapped for this boat gives the
  * landings the entrant could have taken and the sea that would have been left.
  *
- * It stays out of the reserve deliberately. A reference that raids the nursery
- * would wreck the counterfactual sea for everyone, and the resulting gap would
- * measure the reference's brutality rather than the entrant's judgement.
+ * It works the reserve too, and that is the correction that made the axis mean
+ * anything. Keeping the reference out of the nursery was meant to stop it
+ * wrecking the counterfactual sea — but it also made the reference behave
+ * almost identically to any entrant that avoided the reserve, so the catch
+ * "given up" collapsed to nothing and restraint scored zero for every approach
+ * that was not simply idle (Plan 10 §59.3). The reference is the boat that
+ * takes everything; a boat that leaves the nursery alone has genuinely given
+ * something up, and whether that restraint survives depends on whether the
+ * rivals raided it anyway — which is the judgement the axis exists to measure.
  */
 export function takerAgent(id: BoatId, name: string, scenario: OceanScenario): OceanAgent {
   return {
@@ -1026,7 +1032,7 @@ export function takerAgent(id: BoatId, name: string, scenario: OceanScenario): O
       };
     },
     act(observation) {
-      const choice = bestZone(observation, scenario, { allowReserve: false });
+      const choice = bestZone(observation, scenario, { allowReserve: true });
       if (!choice) return idle(observation);
       return { boatId: id, zoneId: choice.zone.id, effort: observation.self.effortCapacity };
     },
