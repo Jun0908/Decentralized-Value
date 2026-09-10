@@ -22,12 +22,12 @@
   {
    "seed": "judge-0",
    "model": {
-    "livelihood": 739.075722,
-    "stewardship": 0.607965,
-    "cooperation": 0.070684,
+    "livelihood": 434.830835,
+    "stewardship": 0.632877,
+    "cooperation": -0.002473,
     "zoneChoices": {
-     "coastal": 4,
-     "offshore": 2
+     "coastal": 5,
+     "offshore": 3
     }
    },
    "fixed": {
@@ -51,12 +51,12 @@
   {
    "seed": "judge-1",
    "model": {
-    "livelihood": 836.221517,
-    "stewardship": 0.56841,
-    "cooperation": 0,
+    "livelihood": 532.356143,
+    "stewardship": 0.609953,
+    "cooperation": 0.034435,
     "zoneChoices": {
-     "offshore": 3,
-     "coastal": 4
+     "coastal": 5,
+     "offshore": 2
     }
    },
    "fixed": {
@@ -80,11 +80,11 @@
   {
    "seed": "judge-2",
    "model": {
-    "livelihood": 817.805418,
-    "stewardship": 0.688834,
-    "cooperation": 0,
+    "livelihood": 929.844027,
+    "stewardship": 0.720434,
+    "cooperation": 0.039053,
     "zoneChoices": {
-     "offshore": 3,
+     "offshore": 2,
      "coastal": 2
     }
    },
@@ -109,11 +109,11 @@
   {
    "seed": "judge-3",
    "model": {
-    "livelihood": 693.570609,
-    "stewardship": 0.553205,
-    "cooperation": -0.086011,
+    "livelihood": 653.514312,
+    "stewardship": 0.601409,
+    "cooperation": 0.030681,
     "zoneChoices": {
-     "offshore": 2,
+     "offshore": 3,
      "coastal": 4
     }
    },
@@ -138,12 +138,12 @@
   {
    "seed": "judge-4",
    "model": {
-    "livelihood": 760.122887,
-    "stewardship": 0.559173,
-    "cooperation": 0,
+    "livelihood": 536.268533,
+    "stewardship": 0.572009,
+    "cooperation": 0.002587,
     "zoneChoices": {
-     "offshore": 3,
-     "coastal": 2
+     "offshore": 2,
+     "coastal": 3
     }
    },
    "fixed": {
@@ -167,9 +167,9 @@
   {
    "seed": "judge-5",
    "model": {
-    "livelihood": 703.403459,
-    "stewardship": 0.729578,
-    "cooperation": 0.052889,
+    "livelihood": 646.998792,
+    "stewardship": 0.729878,
+    "cooperation": 0.020409,
     "zoneChoices": {
      "coastal": 3,
      "offshore": 2
@@ -196,12 +196,12 @@
   {
    "seed": "judge-6",
    "model": {
-    "livelihood": 821.33484,
-    "stewardship": 0.64841,
-    "cooperation": 0.056826,
+    "livelihood": 576.025331,
+    "stewardship": 0.676553,
+    "cooperation": 0.016112,
     "zoneChoices": {
-     "coastal": 4,
-     "offshore": 4
+     "coastal": 5,
+     "offshore": 2
     }
    },
    "fixed": {
@@ -225,13 +225,12 @@
   {
    "seed": "judge-7",
    "model": {
-    "livelihood": 1337.493859,
-    "stewardship": 0.621408,
-    "cooperation": 0,
+    "livelihood": 1217.971887,
+    "stewardship": 0.654169,
+    "cooperation": 0.1074,
     "zoneChoices": {
-     "coastal": 4,
-     "offshore": 4,
-     "nursery": 1
+     "coastal": 6,
+     "offshore": 2
     }
    },
    "fixed": {
@@ -255,12 +254,12 @@
   {
    "seed": "judge-8",
    "model": {
-    "livelihood": 645.798113,
-    "stewardship": 0.652949,
-    "cooperation": 0.033809,
+    "livelihood": 424.747905,
+    "stewardship": 0.655227,
+    "cooperation": 0.044363,
     "zoneChoices": {
-     "offshore": 2,
-     "coastal": 3
+     "offshore": 4,
+     "coastal": 4
     }
    },
    "fixed": {
@@ -284,9 +283,9 @@
   {
    "seed": "judge-9",
    "model": {
-    "livelihood": 890.482396,
-    "stewardship": 0.601216,
-    "cooperation": 0,
+    "livelihood": 609.192411,
+    "stewardship": 0.618602,
+    "cooperation": 0.054629,
     "zoneChoices": {
      "offshore": 4,
      "coastal": 2
@@ -313,9 +312,9 @@
   {
    "seed": "judge-10",
    "model": {
-    "livelihood": 707.406478,
-    "stewardship": 0.630743,
-    "cooperation": 0.028172,
+    "livelihood": 675.378536,
+    "stewardship": 0.672054,
+    "cooperation": 0.087704,
     "zoneChoices": {
      "coastal": 5,
      "offshore": 2
@@ -342,11 +341,11 @@
   {
    "seed": "judge-11",
    "model": {
-    "livelihood": 632.676242,
-    "stewardship": 0.642043,
-    "cooperation": 0.0698,
+    "livelihood": 487.049797,
+    "stewardship": 0.71136,
+    "cooperation": 0.141175,
     "zoneChoices": {
-     "offshore": 4,
+     "offshore": 1,
      "coastal": 2
     }
    },
