@@ -101,3 +101,44 @@ Simulationは §21 の GO 条件10項目を機械的に判定して `GO` / `PIVO
 未達は #6 のみです。Conservation Fund の導入で #4 は基準を満たしました（0.5% → 5.8%）。#6 は「機構が働かない」ではなく、基金によってEscrowが潤沢になり離脱が起きなくなったため**感度を測定できない**という状態です。詳細と対処案は §32.4 / §32.6。
 
 この判定は Ocean Commons 側の設計問題であり、計画9 Rescue Room には影響しません。
+
+---
+
+## 2026-09-11 — ルールを差し替え、フロントエンドを追加
+
+### 触ったファイル
+
+**パッケージ（`packages/ocean-commons/`）**
+- `types.ts` … `Sounding` / `BoatRoundMemory` 型を追加。`Boat.fuelBudget`、`BoatState.fuelRemaining`、`Zone.travelFuel`、`SoundingExchangeTerms` を追加
+- `match.ts` … `buildObservation` を全面改修。`stocks` を廃止し `soundings` に。`history` は `BoatRoundMemory[]` に
+- `engine.ts` … 燃料の消費と切り詰め（`OUT_OF_FUEL` / `FUEL_LIMITED`）
+- `agents.ts` … `believedStock()` / `believedStocks()` / `soundingAge()` / `affordableEffort()` / `takerAgent()` を追加。全エージェントが測深記録から推定するように
+- `evaluator.ts` … `scoreRestraint()` を追加（第3軸）
+- `scenario.ts` … 燃料予算と `travelFuel`。掃引つまみは全削除
+- `manifest.ts`（新規） … `oceanCommonsManifest` / `oceanCommonsManifestHash` / `publicOceanCommonsScenario()`
+- `voyage.ts`（新規） … `toVoyage(log, viewpoint)` — リプレイ用の場面データ
+
+**web（`apps/web/`）**
+- `src/lib/arenas.ts` … `ocean-commons` を `status: "Practice"` で登録
+- `src/lib/arena-adapters.tsx` … `oceanAdapter`
+- `src/components/ocean-voyage-stage.tsx`（新規） … イラスト版リプレイ
+- `src/components/ocean-commons-workbench.tsx`（新規） … アリーナ本体
+- `src/app/globals.css` … **末尾に追記のみ。既存規則は一切書き換えていない**
+- `package.json` … `@frontier/ocean-commons` を依存に追加
+
+### 衝突について（要確認）
+
+作業中に `ocean-commons-workbench.tsx` が別実装（`async` なサーバーコンポーネント）へ書き換わっていました。そちらの**サーバー側で対戦を解決する設計は優れている**と判断し、`reciprocatorAgent` を対戦相手に採用し、「読み方の凡例」も取り入れました。
+
+一方で戻した点が 2 つあります。
+
+1. **表示していた軸が退役済みだった。** `stewardship`（水に残った魚）と `resilience` は判定 3 軸から外れています（Plan 10 §51.3、§56）。前者は effort に対して単調で、何もしない船が満点を取るため技能を分けません。現在の 3 軸は **livelihood / restraint / cooperation**
+2. **CSS クラスが 1 つも定義されていなかった。** `ocean-practice-brief` / `ocean-rules-card` / `ocean-evidence-strip` / `ocean-practice-note` は `globals.css` に存在せず、無スタイルで表示される状態でした
+
+もしサーバーコンポーネント版を進めたい場合、上の 2 点さえ満たせば私の版を差し替えて構いません。Mission のテキスト入力だけは残してください — ユーザーの要望の中心が「Prompt を入れる → イラストが動く → 勝敗が出る」という流れです。
+
+### 状態
+
+- テスト 40 件 PASS、型検査クリーン、secret-scan PASS
+- 単調性ゲート **2/3**（Plan 10 §56.2）。3/3 に届かなかったので `status: "Practice"`、報酬プールなし。**Demo competition にはしないでください**
+- Push はしていません

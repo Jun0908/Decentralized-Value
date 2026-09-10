@@ -25,6 +25,8 @@ import {
   territorialAgent,
   runMatch,
   scoreCooperation,
+  scoreRestraint,
+  takerAgent,
   toOutcomePoint,
   toTranscript,
   type MatchOutcomes,
@@ -245,6 +247,7 @@ type Row = {
   /** The seat whose contracts the cooperation counterfactual removes. */
   focalBoat: string;
   cooperation: number;
+  restraint: number;
   withContracts: MatchOutcomes;
   withoutContracts: MatchOutcomes;
   escrowCurve: { multiplier: number; breached: number; binding: number }[];
@@ -297,6 +300,16 @@ for (let index = 0; index < SEEDS; index += 1) {
       await runMatch(scenario, agentsFor(lineup, scenario, seed), { excludeContractsFor: focalBoat }),
     );
     const cooperation = scoreCooperation(outcomes, soloOut, focalBoat).efficacy;
+    // The restraint axis needs its own counterfactual: the same seed with this
+    // seat swapped for the boat that signs nothing and fishes flat out.
+    const focalName = scenario.boats[focalSeat]!.name;
+    const takenOut = evaluateMatch(
+      await runMatch(scenario, [
+        ...agentsFor(lineup, scenario, seed).filter((agent) => agent.id !== focalBoat),
+        takerAgent(focalBoat, focalName, scenario),
+      ]),
+    );
+    const restraint = scoreRestraint(outcomes, takenOut, focalBoat).efficacy;
     // Same world, same policies — only the money behind each promise changes.
     // Sweeping below 1x as well as above gives the dose-response curve room to
     // show itself; a thick escrow can suppress defection so completely that a
@@ -319,6 +332,7 @@ for (let index = 0; index < SEEDS; index += 1) {
       lineup: lineup.id,
       focalBoat,
       cooperation,
+      restraint,
       withContracts: outcomes,
       withoutContracts: evaluateMatch(without),
       escrowCurve,
@@ -330,8 +344,13 @@ for (let index = 0; index < SEEDS; index += 1) {
 
 const elapsedMs = Date.now() - started;
 
-const axisValue = (row: Row, key: "livelihood" | "stewardship" | "cooperation"): number =>
-  key === "cooperation" ? row.cooperation : row.withContracts[key];
+// The three judged axes. `stewardship` is kept as evidence but is no longer one
+// of them: stock left in the water is monotone in effort, so it is maximised by
+// fishing least and separates no two players (Plan 10 §50.2). `restraint` asks
+// the same question with a denominator — of the fish you gave up, how many were
+// still there at the end — and holds an interior optimum.
+const axisValue = (row: Row, key: "livelihood" | "restraint" | "cooperation"): number =>
+  key === "cooperation" ? row.cooperation : key === "restraint" ? row.restraint : row.withContracts[key];
 
 // --- criteria -------------------------------------------------------------
 
@@ -349,7 +368,7 @@ for (const seed of seeds) {
     here.reduce((best, row) => (axisValue(row, key) > axisValue(best, key) ? row : best)).lineup;
   const winners = new Set([
     bestOn("livelihood"),
-    bestOn("stewardship"),
+    bestOn("restraint"),
     bestOn("cooperation"),
   ]);
   if (winners.size === 1) dominatedSeeds += 1;
@@ -361,7 +380,7 @@ let diverseSeeds = 0;
 for (const seed of seeds) {
   const points = focalRows
     .filter((row) => row.seed === seed)
-    .map((row) => toOutcomePoint(row.lineup, row.lineup, row.withContracts, row.cooperation));
+    .map((row) => toOutcomePoint(row.lineup, row.lineup, { ...row.withContracts, stewardship: row.restraint }, row.cooperation));
   if (oceanFrontier(points).length >= 2) diverseSeeds += 1;
 }
 const diversityShare = diverseSeeds / seeds.length;
@@ -406,12 +425,12 @@ const breachReduction = rateBase === 0 ? 0 : (rateBase - rateDoubled) / rateBase
 
 // 7. outcome independence
 const livelihoods = rows.map((row) => row.withContracts.livelihood);
-const stewardships = rows.map((row) => row.withContracts.stewardship);
+const restraints = rows.map((row) => row.restraint);
 const cooperations = rows.map((row) => row.cooperation);
 const correlations = {
-  "livelihood~stewardship": spearman(livelihoods, stewardships),
+  "livelihood~restraint": spearman(livelihoods, restraints),
   "livelihood~cooperation": spearman(livelihoods, cooperations),
-  "stewardship~cooperation": spearman(stewardships, cooperations),
+  "restraint~cooperation": spearman(restraints, cooperations),
 };
 const maxCorrelation = Math.max(...Object.values(correlations).map(Math.abs));
 

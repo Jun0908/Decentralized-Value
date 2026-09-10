@@ -6,5 +6,7 @@ export * from "./negotiation";
 export * from "./agents";
 export * from "./match";
 export * from "./evaluator";
+export * from "./manifest";
+export * from "./voyage";
 export * from "./llm-agent";
 export * from "./openai-agent";

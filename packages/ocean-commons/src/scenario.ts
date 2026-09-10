@@ -28,6 +28,8 @@ export type OceanScenario = {
   reserveFinePerEffort: number;
   /** Fuel and crew cost per unit of effort. */
   effortCostPerUnit: number;
+  /** Fuel burned per unit of effort, drawn from the season budget. */
+  fuelPerEffort: number;
   /** Cost to repair a broken boat, and how long it stays out of action. */
   repairCost: number;
   repairRounds: number;
@@ -63,6 +65,7 @@ export const baseZones: readonly Zone[] = [
     collapseThreshold: 0.25,
     initialStock: 380,
     travelCost: 4,
+    travelFuel: 6,
     catchEfficiency: 1.2,
     stormExposure: 0.45,
     reserve: false,
@@ -75,6 +78,7 @@ export const baseZones: readonly Zone[] = [
     collapseThreshold: 0.25,
     initialStock: 820,
     travelCost: 15,
+    travelFuel: 22,
     catchEfficiency: 1.7,
     stormExposure: 0.95,
     reserve: false,
@@ -87,6 +91,7 @@ export const baseZones: readonly Zone[] = [
     collapseThreshold: 0.3,
     initialStock: 500,
     travelCost: 8,
+    travelFuel: 11,
     catchEfficiency: 2,
     stormExposure: 0.2,
     reserve: true,
@@ -97,21 +102,25 @@ export const baseZones: readonly Zone[] = [
  * Five boats with deliberately unequal balance sheets. Two small boats exist
  * so that "the fleet survived" and "I survived" can diverge.
  *
- * The hulls carry roughly twice the capacity the sea can support, and that
- * ratio is the single most important number in the whole design. At half this
- * size nothing was ever scarce: grounds recovered between visits, restraint
- * protected nothing, and knowing exactly who you were fishing against was
- * worth under 3%. Doubling it drops coastal stock to 0.56 of capacity at its
- * worst and raises the value of reading your rivals to 16%. Every other
- * problem found in Phase 0 — no depletion, a dead resilience axis, a fleet
- * that moved as one school — traced back to this ratio.
+ * `effortCapacity` is what a hull can work in one round; `fuelBudget` is what
+ * it can work all season. The second is the one that binds, and that is the
+ * whole point. When the only limit was per-round capacity, each round stood
+ * alone and "go as hard as you can" answered every one of them — which is why
+ * all three axes came out monotone in effort and a grid sweep beat a language
+ * model (Plan 10 §50). A budget spent across a season of unknown length has an
+ * interior optimum by construction.
+ *
+ * Roughly four rounds at full effort, against a season of seven to ten. Nobody
+ * can fish every round flat out, so every entrant must decide which rounds
+ * matter — before knowing how many there will be.
  */
 export const baseBoats: readonly Boat[] = [
   {
     id: "kaiyo",
     name: "Kaiyo",
     startingCash: 500,
-    effortCapacity: 36,
+    effortCapacity: 108,
+    fuelBudget: 430,
     upkeepPerRound: 12,
     stormLimit: 0.72,
     smallFleet: false,
@@ -120,7 +129,8 @@ export const baseBoats: readonly Boat[] = [
     id: "hokuto",
     name: "Hokuto",
     startingCash: 520,
-    effortCapacity: 44,
+    effortCapacity: 132,
+    fuelBudget: 520,
     upkeepPerRound: 16,
     stormLimit: 0.85,
     smallFleet: false,
@@ -129,7 +139,8 @@ export const baseBoats: readonly Boat[] = [
     id: "isana",
     name: "Isana",
     startingCash: 480,
-    effortCapacity: 36,
+    effortCapacity: 108,
+    fuelBudget: 430,
     upkeepPerRound: 12,
     stormLimit: 0.72,
     smallFleet: false,
@@ -138,7 +149,8 @@ export const baseBoats: readonly Boat[] = [
     id: "nagi",
     name: "Nagi",
     startingCash: 300,
-    effortCapacity: 24,
+    effortCapacity: 72,
+    fuelBudget: 300,
     upkeepPerRound: 8,
     stormLimit: 0.34,
     smallFleet: true,
@@ -147,7 +159,8 @@ export const baseBoats: readonly Boat[] = [
     id: "shiosai",
     name: "Shiosai",
     startingCash: 250,
-    effortCapacity: 20,
+    effortCapacity: 60,
+    fuelBudget: 250,
     upkeepPerRound: 7,
     stormLimit: 0.28,
     smallFleet: true,
@@ -254,6 +267,9 @@ export function generateScenario(seed: string, options: ScenarioOptions = {}): O
       ...boat,
       startingCash: Math.round(boat.startingCash * (0.85 + rng() * 0.3)),
       effortCapacity: Math.max(4, boat.effortCapacity + rngInt(rng, -2, 2)),
+      // The season's fuel varies with the boat, so the same policy meets a
+      // different allocation problem on every seed.
+      fuelBudget: Math.max(40, Math.round(boat.fuelBudget * (0.85 + rng() * 0.3))),
     };
   });
 
@@ -281,6 +297,7 @@ export function generateScenario(seed: string, options: ScenarioOptions = {}): O
     spilloverRate: 0.05,
     reserveFinePerEffort: 3,
     effortCostPerUnit: 1.6,
+  fuelPerEffort: 1,
     repairCost: 70,
     repairRounds: 1,
   };

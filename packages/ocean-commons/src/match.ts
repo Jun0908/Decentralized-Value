@@ -4,7 +4,15 @@ import { createInitialState, transition } from "./engine";
 import { acceptProposal, type ValidationError } from "./negotiation";
 import { stable } from "./rng";
 import type { OceanScenario } from "./scenario";
-import type { BoatId, FishingAction, OceanState, Proposal, RoundRecord } from "./types";
+import type {
+  BoatId,
+  BoatRoundMemory,
+  FishingAction,
+  OceanState,
+  Proposal,
+  RoundRecord,
+  Sounding,
+} from "./types";
 
 /**
  * Runs a full match: negotiate, then fish, then let the engine resolve the
@@ -43,6 +51,85 @@ export type MatchOptions = {
    */
   excludeContractsFor?: BoatId;
 };
+
+/**
+ * What one boat has learned about the sea, from its own nets and from watching.
+ *
+ * This is the only route by which any stock number reaches an agent, and it is
+ * built per boat on purpose. Handing every agent `state.stocks` — which is what
+ * this arena used to do — makes the optimal action computable in closed form
+ * and hands the match to whoever can do the arithmetic fastest (Plan 10 §50.1).
+ *
+ * Three grades of knowledge, and the gap between them is what a contract can
+ * sell. Your own haul measures a ground exactly. Watching a rival land fish
+ * tells you roughly what was there, banded to a tenth of capacity, because you
+ * are reading someone else's catch across open water. A ground nobody worked
+ * stays dark.
+ */
+function soundingsFor(
+  scenario: OceanScenario,
+  history: RoundRecord[],
+  boatId: string,
+  shared: ReadonlySet<string>,
+): Sounding[] {
+  const soundings: Sounding[] = [];
+  for (const record of history) {
+    for (const zone of scenario.zones) {
+      const worked = record.entries.filter(
+        (entry) => entry.zoneId === zone.id && entry.appliedEffort > 0,
+      );
+      if (worked.length === 0) continue;
+      const truth = record.stocksBefore[zone.id] ?? 0;
+      const mine = worked.some((entry) => entry.boatId === boatId);
+      if (mine) {
+        soundings.push({ zoneId: zone.id, stock: stable(truth), round: record.round, source: "FISHED" });
+        continue;
+      }
+      // A counterparty under a sounding exchange reports what it measured.
+      if (worked.some((entry) => shared.has(entry.boatId))) {
+        soundings.push({ zoneId: zone.id, stock: stable(truth), round: record.round, source: "SHARED" });
+        continue;
+      }
+      const band = zone.carryingCapacity / 10;
+      soundings.push({
+        zoneId: zone.id,
+        stock: stable(Math.round(truth / band) * band),
+        round: record.round,
+        source: "OBSERVED",
+      });
+    }
+  }
+  return soundings;
+}
+
+/** Boats currently obliged to share their readings with `boatId`. */
+function soundingPartners(state: OceanState, boatId: string): Set<string> {
+  const partners = new Set<string>();
+  for (const pact of state.pacts) {
+    if (pact.status !== "ACTIVE" || pact.terms.kind !== "SOUNDING_EXCHANGE") continue;
+    const parties = [pact.proposer, ...pact.counterparties];
+    if (!parties.includes(boatId)) continue;
+    for (const party of parties) if (party !== boatId) partners.add(party);
+  }
+  return partners;
+}
+
+/** One round as a single boat remembers it — carrying no stock it did not earn. */
+function memoryFor(history: RoundRecord[], boatId: string): BoatRoundMemory[] {
+  return history.flatMap((record) => {
+    const self = record.entries.find((entry) => entry.boatId === boatId);
+    if (!self) return [];
+    return [{
+      round: record.round,
+      weather: record.weather,
+      price: record.priceBefore,
+      self,
+      others: record.entries
+        .filter((entry) => entry.boatId !== boatId)
+        .map((entry) => ({ boatId: entry.boatId, zoneId: entry.zoneId, catch: entry.catch })),
+    }];
+  });
+}
 
 function publicViews(
   state: OceanState,
@@ -87,7 +174,7 @@ function buildObservation(
     weather: scenario.weather[state.round - 1]!,
     price: state.price,
     zones: scenario.zones,
-    stocks: { ...state.stocks },
+    soundings: soundingsFor(scenario, history, boatId, soundingPartners(state, boatId)),
     self: { ...boat, ...boatState },
     wallet: {
       policy: wallet,
@@ -99,7 +186,7 @@ function buildObservation(
     fund: state.fund,
     conservationFund: state.conservationFund,
     incomingProposals: incoming,
-    history,
+    history: memoryFor(history, boatId),
   };
 }
 

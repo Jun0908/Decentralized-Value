@@ -9,11 +9,13 @@ import {
   type Observation,
   type OceanAgent,
   type WalletPolicy,
+  takerAgent,
 } from "./agents";
 import { createInitialState, transition } from "./engine";
 import {
   evaluateMatch,
   scoreCooperation,
+  scoreRestraint,
   hashResult,
   hashTranscript,
   oceanFrontier,
@@ -360,6 +362,56 @@ describe("wallet policy", async () => {
     expect(
       log.rejectedProposals.every((entry) => entry.reason === "PURPOSE_NOT_ALLOWED"),
     ).toBe(true);
+  });
+});
+
+describe("restraint axis", async () => {
+  it("scores zero for a boat that gave up nothing", async () => {
+    const scenario = generateScenario("gave-nothing", { vary: true });
+    const seat = scenario.boats[0]!;
+    // The entrant IS the reference, so there is no restraint to measure and no
+    // near-zero denominator to divide by either.
+    const fleet = (): OceanAgent[] => [
+      takerAgent(seat.id, seat.name, scenario),
+      ...mixedFleet(scenario).slice(1),
+    ];
+    const full = evaluateMatch(await runMatch(scenario, fleet()));
+    const ifTaken = evaluateMatch(await runMatch(scenario, fleet()));
+    const score = scoreRestraint(full, ifTaken, seat.id);
+
+    expect(score.forgone).toBe(0);
+    expect(score.efficacy).toBe(0);
+  });
+
+  it("measures fish left in the water against fish given up", async () => {
+    const scenario = generateScenario("held-back", { vary: true });
+    const seat = scenario.boats[0]!;
+    const full = evaluateMatch(await runMatch(scenario, mixedFleet(scenario)));
+    const ifTaken = evaluateMatch(
+      await runMatch(scenario, [
+        takerAgent(seat.id, seat.name, scenario),
+        ...mixedFleet(scenario).slice(1),
+      ]),
+    );
+    const score = scoreRestraint(full, ifTaken, seat.id);
+
+    // The reference takes at least as much as the entrant did.
+    const played = full.boats.find((boat) => boat.boatId === seat.id)!;
+    const taken = ifTaken.boats.find((boat) => boat.boatId === seat.id)!;
+    expect(taken.totalCatch).toBeGreaterThanOrEqual(played.totalCatch);
+    expect(score.forgone).toBeCloseTo(taken.totalCatch - played.totalCatch, 6);
+    expect(score.efficacy).toBeGreaterThanOrEqual(0);
+  });
+
+  it("never pays a boat for out-fishing the boat that takes everything", async () => {
+    const outcomes = (catchTotal: number, finalStock: number) =>
+      ({
+        boats: [{ boatId: "kaiyo", totalCatch: catchTotal }],
+        evidence: { finalTotalStock: finalStock },
+      }) as never;
+    // Landed more than the reference and left less sea: both terms negative.
+    const score = scoreRestraint(outcomes(300, 100), outcomes(200, 140), "kaiyo");
+    expect(score.efficacy).toBe(0);
   });
 });
 

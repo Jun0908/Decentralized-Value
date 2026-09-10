@@ -7550,3 +7550,153 @@ a.table-row:hover {
     animation-iteration-count: 1 !important;
   }
 }
+/* --- Ocean Commons -------------------------------------------------------
+   The stage is a map, not a chart. Fog carries a rule rather than a mood:
+   dark water is water nobody in the fleet has read, so it must stay legible
+   as absence of knowledge and never look like decoration. */
+
+.ocean-workbench {
+  --ocean-deep: #071a26;
+  --ocean-shelf: #0d3247;
+  --ocean-bond-limit: #c7ff45;
+  --ocean-bond-buyout: #ff7849;
+  --ocean-bond-aid: #6fd3ff;
+  --ocean-bond-fund: #d59bff;
+  --ocean-bond-sounding: #ffd166;
+  display: grid;
+  gap: 2rem;
+}
+
+.ocean-hero { display: grid; gap: 1rem; }
+.ocean-hero h2 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.6rem); line-height: 1.1; }
+.ocean-lede { margin: 0; max-width: 62ch; color: var(--muted); }
+
+.ocean-stage {
+  border: 1px solid var(--line);
+  background: #05121b;
+  display: grid;
+  gap: 0;
+}
+.ocean-stage-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.ocean-stage-head strong { display: block; font-size: 1.05rem; }
+.ocean-stage-controls { display: flex; align-items: center; gap: 0.75rem; color: var(--muted); }
+.ocean-stage-controls button {
+  width: 2.2rem; height: 2.2rem; display: grid; place-items: center;
+  border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer;
+}
+.ocean-stage-controls svg { width: 1.1rem; height: 1.1rem; }
+
+.ocean-map { display: block; width: 100%; height: auto; }
+.ocean-water { fill: var(--ocean-deep); }
+.ocean-ground { fill: var(--ocean-shelf); stroke: #14506e; stroke-width: 0.3; }
+.ocean-ground.reserve { stroke: var(--lime); stroke-width: 0.5; stroke-dasharray: 1.6 1.1; }
+.ocean-ground-name { fill: #9fd4ee; font-size: 1.9px; letter-spacing: 0.09em; font-weight: 700; paint-order: stroke; stroke: #030a10; stroke-width: 0.5px; }
+.ocean-ground-read { fill: #7fa9bf; font-size: 1.7px; paint-order: stroke; stroke: #030a10; stroke-width: 0.5px; }
+.ocean-port-quay { fill: #12222b; stroke: var(--line); stroke-width: 0.3; }
+
+.ocean-fish { fill: #7ff0c8; opacity: 0.85; }
+.ocean-shoal.collapsed .ocean-fish { fill: #ff6b6b; opacity: 0.5; }
+.ocean-fog { fill: #030a10; pointer-events: none; }
+
+.ocean-hull-body { fill: #f4f1e8; }
+.ocean-hull-mast { stroke: #f4f1e8; stroke-width: 0.5; }
+.ocean-hull-sail { fill: var(--lime); }
+.ocean-hull-name { fill: #d7e4ea; font-size: 4.2px; text-anchor: middle; }
+.ocean-hull-dry .ocean-hull-sail { fill: #6b6b6b; }
+.ocean-hull-repair .ocean-hull-sail { fill: var(--orange); }
+.ocean-hull-sunk { opacity: 0.28; }
+.ocean-net-line { stroke: #cfe6f2; stroke-width: 0.35; fill: none; }
+.ocean-net-bag { fill: #0d3247; stroke: #7ff0c8; stroke-width: 0.35; }
+.ocean-net-count { fill: #7ff0c8; font-size: 4.6px; text-anchor: middle; font-weight: 700; }
+.ocean-fuel-track { fill: #1b2b33; }
+.ocean-fuel-fill { fill: #6fd3ff; }
+.ocean-fuel-fill.low { fill: var(--orange); }
+
+.ocean-bond { fill: none; opacity: 0.9; }
+.ocean-bond.broken { stroke-dasharray: 1.2 1.6; opacity: 0.65; }
+.ocean-map.gale .ocean-water { fill: #04101a; }
+.ocean-gale-veil { fill: #000; opacity: 0.42; }
+.ocean-gale-badge { fill: #1a0f08; stroke: var(--orange); stroke-width: 0.3; }
+.ocean-gale-word {
+  fill: var(--orange); font-size: 2.4px; font-weight: 800;
+  text-anchor: middle; letter-spacing: 0.16em;
+}
+
+.ocean-legend {
+  display: flex; flex-wrap: wrap; gap: 0.9rem;
+  padding: 0.7rem 1rem; border-top: 1px solid var(--line);
+  color: var(--muted); font-size: 0.8rem;
+}
+.ocean-legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.ocean-legend i { width: 0.85rem; height: 0.2rem; border-radius: 1px; display: inline-block; }
+.ocean-legend-fog { background: #030a10; border: 1px solid var(--line); height: 0.7rem !important; width: 0.7rem !important; }
+
+.ocean-scrub { display: flex; flex-wrap: wrap; gap: 0.3rem; list-style: none; margin: 0; padding: 0.7rem 1rem; border-top: 1px solid var(--line); }
+.ocean-scrub button {
+  min-width: 1.9rem; padding: 0.2rem 0.4rem; border: 1px solid var(--line);
+  background: transparent; color: var(--muted); cursor: pointer; font-size: 0.8rem;
+}
+.ocean-scrub button.current { border-color: var(--lime); color: var(--lime); }
+
+.ocean-stat-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 0.75rem; }
+.ocean-stat-tiles article { border: 1px solid var(--line); padding: 0.85rem; }
+.ocean-stat-tiles span { display: block; font-size: 1.7rem; font-weight: 700; }
+.ocean-stat-tiles small { color: var(--muted); letter-spacing: 0.08em; font-size: 0.68rem; }
+
+.ocean-section { border-top: 1px solid var(--line); padding-top: 1.5rem; display: grid; gap: 0.9rem; }
+.ocean-section h2 { margin: 0; font-size: clamp(1.3rem, 3vw, 1.9rem); }
+.ocean-section p { margin: 0; max-width: 68ch; color: var(--muted); }
+.ocean-note { font-size: 0.9rem; }
+
+.ocean-rules { display: grid; gap: 0.6rem; margin: 0; padding-left: 1.1rem; color: var(--muted); max-width: 72ch; }
+.ocean-rules strong { color: var(--ink); }
+
+.ocean-pools { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.9rem; }
+.ocean-pools article { border: 1px solid var(--line); padding: 1rem; }
+.ocean-pools h3 { margin: 0 0 0.4rem; font-size: 1rem; }
+.ocean-pools p { font-size: 0.9rem; }
+
+.ocean-field { display: grid; gap: 0.4rem; }
+.ocean-field > span { color: var(--muted); font-size: 0.85rem; }
+.ocean-field textarea, .ocean-field select {
+  background: #05121b; color: var(--ink); border: 1px solid var(--line);
+  padding: 0.7rem; font: inherit; font-size: 0.92rem; line-height: 1.5;
+}
+.ocean-field.inline { grid-template-columns: auto auto; align-items: center; justify-content: start; gap: 0.6rem; }
+
+.ocean-approaches { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.7rem; }
+.ocean-approaches button {
+  display: grid; gap: 0.3rem; text-align: left; padding: 0.85rem;
+  border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer;
+}
+.ocean-approaches button.selected { border-color: var(--lime); background: rgba(199, 255, 69, 0.07); }
+.ocean-approaches small { color: var(--muted); }
+
+.ocean-results { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.8rem; }
+.ocean-results article { border: 1px solid var(--line); padding: 1rem; display: grid; gap: 0.25rem; }
+.ocean-results small { color: var(--muted); letter-spacing: 0.08em; font-size: 0.68rem; }
+.ocean-results strong { font-size: 1.9rem; }
+.ocean-results span { color: var(--muted); font-size: 0.82rem; }
+
+.ocean-manifest { display: grid; gap: 0.5rem; margin: 0; }
+.ocean-manifest div { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.ocean-manifest dt { color: var(--muted); min-width: 9rem; }
+.ocean-manifest dd { margin: 0; }
+.ocean-manifest .mono { font-family: ui-monospace, monospace; font-size: 0.8rem; word-break: break-all; }
+
+/* Reading key: the scene is only legible if the viewer is told what a fish, a
+   dark patch and a line each mean before the replay starts moving. */
+.ocean-reading-key {
+  display: flex; flex-wrap: wrap; gap: 1rem;
+  padding: 0.75rem 0.9rem; border: 1px solid var(--line);
+  color: var(--muted); font-size: 0.85rem;
+}
+.ocean-reading-key b { color: var(--ink); font-weight: 600; }

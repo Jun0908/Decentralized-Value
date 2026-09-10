@@ -1,3 +1,4 @@
+import { believedStock, soundingAge } from "./agents";
 import type { NegotiationOutput, Observation, OceanAgent } from "./agents";
 import type { OceanScenario } from "./scenario";
 import type { BoatId, FishingAction, Proposal, ProposalResponse } from "./types";
@@ -95,10 +96,21 @@ Fish landed per unit of effort falls as a ground is drawn down, so a stripped gr
 
 A storm cuts the fish landed per unit of effort in proportion to a ground's storm exposure, and every boat working that ground shares the same finite stock. Note that your hull's weather limit only decides whether you are allowed out — it says nothing about whether the trip pays. You can be well inside your limit and still land almost nothing in rough water on an exposed ground.
 
+YOU CANNOT SEE THE SEA
+Nobody is told how many fish are in a ground. You learn one only by working it, and what you learn ages from the moment you look away: the ground regrows, and anyone who goes there takes fish out. Watching a rival land fish tells you roughly what was under them, but only roughly. A ground nobody has touched is dark, and the published opening survey is all you have on it.
+
+So where the other boats go is not gossip — it is the only evidence you will ever get about water you are not in. Read it.
+
+FUEL IS THE REAL LIMIT
+You are given fuel for the whole season, not per round. Steaming to a ground costs fuel before you fish at all, and the further out the ground, the more it costs. When the tank is empty you stay in port for whatever is left of the season — and you are not told how long that is.
+
+Roughly four rounds at full effort, against a season of seven to ten. You cannot fish every round hard. Decide which rounds are worth it.
+
 WHAT YOU CONTROL
 Each round you choose a ground and how hard to work it, and you may offer contracts to other boats:
 - CATCH_LIMIT: you pay them to land no more than a cap per round.
 - CONSERVATION_BUYOUT: you pay them to stay out of one ground, or out of the water entirely.
+- SOUNDING_EXCHANGE: you trade readings. Both sides see the other's measurements exactly instead of guessing from a distance. Worth most with a boat that has been where you have not.
 
 Money offered is locked in escrow when a contract is accepted. It is released round by round while the terms hold, and refunded to you if they are broken. Compliance is measured by the engine from actual catches — nobody's word counts, including yours.
 
@@ -110,12 +122,32 @@ Answer only through the tool. Keep declaredReason to one plain sentence about wh
 
 /** The board as this boat can see it. */
 export function renderObservation(observation: Observation): string {
+  // Readings, never the sea itself. A ground nobody has worked shows as dark,
+  // and an old reading shows its age. Both are conditions the boat has to
+  // decide under, not facts it is handed.
   const stocks = observation.zones
     .map((zone) => {
-      const stock = observation.stocks[zone.id] ?? 0;
-      const share = stock / zone.carryingCapacity;
-      const critical = stock < zone.carryingCapacity * (zone.collapseThreshold + 0.15);
-      return `  ${zone.id}: ${stock.toFixed(0)} (${(share * 100).toFixed(0)}% of capacity)${critical ? " — NEAR COLLAPSE" : ""}`;
+      const age = soundingAge(observation, zone.id);
+      if (age === null) {
+        return `  ${zone.id}: NEVER SOUNDED — nobody has worked it. The opening survey said ${zone.initialStock}.`;
+      }
+      const readings = observation.soundings.filter((entry) => entry.zoneId === zone.id);
+      const newest = readings.reduce((best, entry) => (entry.round > best.round ? entry : best));
+      const believed = believedStock(observation, zone);
+      const share = believed / zone.carryingCapacity;
+      const critical = believed < zone.carryingCapacity * (zone.collapseThreshold + 0.15);
+      const how =
+        newest.source === "FISHED"
+          ? "your own haul, exact"
+          : newest.source === "SHARED"
+            ? "shared under contract, exact"
+            : "estimated from watching a rival, banded";
+      const when = age === 0 ? "this round" : `${age} round${age === 1 ? "" : "s"} ago`;
+      return (
+        `  ${zone.id}: read ${newest.stock.toFixed(0)} in round ${newest.round} (${how}, ${when}). ` +
+        `Grown forward that is about ${believed.toFixed(0)} (${(share * 100).toFixed(0)}% of capacity)` +
+        `${critical ? " — NEAR COLLAPSE" : ""}. Anyone who fished it since has taken more than this.`
+      );
     })
     .join("\n");
 
@@ -145,7 +177,9 @@ export function renderObservation(observation: Observation): string {
           ? proposal.terms.zoneId
             ? `stay out of ${proposal.terms.zoneId}`
             : "stay in port entirely"
-          : `pay ${proposal.terms.contributionPerRound} per round into a pool`;
+          : proposal.terms.kind === "SOUNDING_EXCHANGE"
+            ? `trade readings${proposal.terms.zoneId ? ` for ${proposal.terms.zoneId}` : " for every ground"}`
+            : `pay ${proposal.terms.contributionPerRound} per round into a pool`;
     return `  ${proposal.id}: ${proposal.proposer} offers you ${proposal.payment} DemoUSD to ${terms}, for ${proposal.durationRounds} rounds`;
   });
 
@@ -158,11 +192,15 @@ export function renderObservation(observation: Observation): string {
   return `ROUND ${observation.round} — ${left}
 Weather: storm severity ${observation.weather.stormSeverity.toFixed(2)}. Fish price ${observation.price.toFixed(2)} per fish.
 
-STOCKS
+WHAT YOU KNOW ABOUT THE GROUNDS
 ${stocks}
 
+STEAMING COSTS, BEFORE YOU FISH
+${observation.zones.map((zone) => `  ${zone.id}: ${zone.travelFuel} fuel to reach`).join("\n")}
+
 YOUR BOAT (${self.id})
-  cash ${self.cash.toFixed(0)}, effort capacity ${self.effortCapacity}, upkeep ${self.upkeepPerRound} per round
+  cash ${self.cash.toFixed(0)}, effort capacity ${self.effortCapacity} per round, upkeep ${self.upkeepPerRound} per round
+  FUEL LEFT FOR THE WHOLE SEASON: ${self.fuelRemaining.toFixed(0)} of ${self.fuelBudget}. Empty means in port until the season ends.
   landed ${self.totalCatch.toFixed(0)} so far, paid out ${self.totalPaidOut.toFixed(0)}, received ${self.totalReceived.toFixed(0)}
   this hull cannot work water rougher than ${self.stormLimit} (zone storm exposure x storm severity)
 

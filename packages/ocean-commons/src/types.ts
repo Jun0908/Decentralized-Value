@@ -21,6 +21,8 @@ export type Zone = {
   initialStock: number;
   /** Fixed cost to operate here for one round. */
   travelCost: number;
+  /** Fuel burned reaching this ground, before any is spent fishing it. */
+  travelFuel: number;
   /** Fish landed per unit of effort at full stock. */
   catchEfficiency: number;
   /** 0..1 — how strongly storms hit this zone. */
@@ -35,12 +37,65 @@ export type Zone = {
   reserve: boolean;
 };
 
+/**
+ * What a boat knows about one ground, and how it came to know it.
+ *
+ * Nobody is handed the state of the sea. Earlier versions put the true stock
+ * of every zone in front of every agent each round, which made the optimum
+ * computable in closed form and handed the match to whichever entrant could do
+ * the arithmetic fastest (Plan 10 §50.1). Here the sea is dark: a ground is
+ * known only if someone worked it, and only as well as the watcher's vantage
+ * allowed.
+ *
+ * This is the exploration/exploitation trade the arena rests on. Steaming to a
+ * ground nobody has touched costs fuel and may find nothing; going where the
+ * readings are fresh means going where the fleet already is.
+ */
+export type Sounding = {
+  zoneId: ZoneId;
+  /** Stock at the time the reading was taken — not the stock now. */
+  stock: number;
+  /** The round it was taken in. Compare against the current round for age. */
+  round: number;
+  /**
+   * FISHED   — this boat worked the ground and measured it from its own haul.
+   * OBSERVED — inferred from watching another boat's landings. Coarse: banded
+   *            to a tenth of the ground's capacity, because you are reading a
+   *            rival's catch, not your own net.
+   * SHARED   — handed over under a contract, and exact. That precision is what
+   *            makes a reading worth paying for.
+   */
+  source: "FISHED" | "OBSERVED" | "SHARED";
+};
+
+/** One round as a boat remembers it. Carries no stock the boat did not earn. */
+export type BoatRoundMemory = {
+  round: number;
+  weather: RoundWeather;
+  price: number;
+  /** This boat's own entry, in full. */
+  self: BoatRoundEntry;
+  /** Where the others went and what they landed — the whole inference channel. */
+  others: { boatId: BoatId; zoneId: ZoneId | null; catch: number }[];
+};
+
 export type Boat = {
   id: BoatId;
   name: string;
   startingCash: number;
   /** Maximum effort units per round. */
   effortCapacity: number;
+  /**
+   * Fuel for the whole season, not per round.
+   *
+   * With only a per-round hull limit there was nothing to allocate: every round
+   * was independent and "go as hard as you can" answered all of them, so every
+   * axis was monotone in effort (Plan 10 §50.2). A budget spent across a season
+   * of unknown length puts the optimum in the interior by construction — burn
+   * it early and the price collapses while you are still at sea with the late
+   * grounds unfished; spread it thin and upkeep eats you before the gale.
+   */
+  fuelBudget: number;
   /** Fixed operating cost per round, paid even when idle. */
   upkeepPerRound: number;
   /**
@@ -61,6 +116,8 @@ export type BoatState = {
   active: boolean;
   /** Rounds remaining under repair. A damaged boat cannot fish. */
   repairRoundsLeft: number;
+  /** Fuel left for the rest of the season. At zero the boat cannot leave port. */
+  fuelRemaining: number;
   totalCatch: number;
   totalRevenue: number;
   totalCosts: number;
@@ -97,7 +154,8 @@ export type PactKind =
   | "CATCH_LIMIT"
   | "CONSERVATION_BUYOUT"
   | "MUTUAL_AID"
-  | "CONSERVATION_FUND";
+  | "CONSERVATION_FUND"
+  | "SOUNDING_EXCHANGE";
 
 export type CatchLimitTerms = {
   kind: "CATCH_LIMIT";
@@ -141,11 +199,27 @@ export type ConservationFundTerms = {
   standDownCap: number;
 };
 
+/**
+ * Buying someone else's eyes.
+ *
+ * Every other contract here moves fish or money. This one moves knowledge: for
+ * the term of the deal, each side receives the other's readings at full
+ * precision instead of the banded estimate watching would give. In a dark sea
+ * that is worth paying for, and it is the only contract whose value depends on
+ * the counterparty having been somewhere you have not.
+ */
+export type SoundingExchangeTerms = {
+  kind: "SOUNDING_EXCHANGE";
+  /** Readings for this ground only, or for every ground when null. */
+  zoneId: ZoneId | null;
+};
+
 export type PactTerms =
   | CatchLimitTerms
   | ConservationBuyoutTerms
   | MutualAidTerms
-  | ConservationFundTerms;
+  | ConservationFundTerms
+  | SoundingExchangeTerms;
 
 export type Proposal = {
   id: PactId;
@@ -245,6 +319,9 @@ export type BoatRoundEntry = {
   breached: boolean;
   /** Why the engine reduced effort, if it did. */
   clampReason: string | null;
+  /** Fuel burned this round, and what was left after. */
+  fuelBurned: number;
+  fuelAfter: number;
 };
 
 export type EscrowRelease = {

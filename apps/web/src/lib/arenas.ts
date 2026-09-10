@@ -145,6 +145,30 @@ export const arenaRegistry = [
     reward: "No practice reward",
     actionLabel: "Build a dispatch",
   },
+  {
+    slug: "ocean-commons",
+    challengeId: "ocean-commons-v1",
+    kind: "ocean",
+    name: "Ocean Commons",
+    category: "Multi-agent negotiation",
+    status: "Practice",
+    funding: { state: "none" },
+    headline: "The sea is dark. What you leave, someone else may take.",
+    summary:
+      "Five boats share one fishery and cannot see it. Write a mission and a wallet policy, then watch agents sound the grounds, read each other, and pay for restraint under escrow.",
+    audience: "AI agent, multi-agent systems, mechanism design, and Web3 builders",
+    evidenceLevel: 0,
+    evidenceLabel: "Deterministic simulated fishery",
+    metrics: [
+      { name: "Crew livelihood", direction: "Maximize", unit: "DemoUSD" },
+      { name: "Restraint efficacy", direction: "Maximize", unit: "%" },
+      { name: "Cooperation efficacy", direction: "Maximize", unit: "%" },
+    ],
+    participation: "Open practice",
+    deadline: "No deadline",
+    reward: "No practice reward",
+    actionLabel: "Put to sea",
+  },
 ] as const satisfies readonly ArenaDefinition[];
 
 export function getArena(slug: string): ArenaDefinition | undefined {

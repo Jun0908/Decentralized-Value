@@ -15,6 +15,7 @@
     "@frontier/emergency-supply": "workspace:*",
     "@frontier/ens-adapter": "workspace:*",
     "@frontier/microgrid-dispatch": "workspace:*",
+    "@frontier/ocean-commons": "workspace:*",
     "@frontier/rescue-room": "workspace:*",
     "@frontier/secret-gate": "workspace:*",
     "@frontier/shared": "workspace:*",

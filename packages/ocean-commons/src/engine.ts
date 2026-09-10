@@ -32,6 +32,7 @@ export function createInitialState(scenario: OceanScenario): OceanState {
       cash: boat.startingCash,
       active: true,
       repairRoundsLeft: 0,
+      fuelRemaining: boat.fuelBudget,
       totalCatch: 0,
       totalRevenue: 0,
       totalCosts: 0,
@@ -150,6 +151,8 @@ export function transition(
       cashAfter: boatState.cash,
       breached: false,
       clampReason: null,
+      fuelBurned: 0,
+      fuelAfter: boatState.fuelRemaining,
     };
 
     if (!boatState.active) {
@@ -182,12 +185,29 @@ export function transition(
       continue;
     }
 
+    // Fuel is a season-long budget. A boat that cannot pay the steam out to a
+    // ground never leaves port, however much hull it still has.
+    if (boatState.fuelRemaining < zone.travelFuel) {
+      entry.clampReason = "OUT_OF_FUEL";
+      planned.push({ entry, zone: null });
+      continue;
+    }
+
     entry.zoneId = zone.id;
     entry.capInForce = capInForce(state, boat.id, zone.id);
     // Effort above the hull's capacity is simply impossible.
     let effort = Math.min(action.effort, boat.effortCapacity);
     if (effort < action.effort) entry.clampReason = "OVER_CAPACITY";
+    // Then by what is left in the tank after the steam out.
+    const forEffort = (boatState.fuelRemaining - zone.travelFuel) / scenario.fuelPerEffort;
+    if (effort > forEffort) {
+      effort = Math.max(0, forEffort);
+      entry.clampReason = "FUEL_LIMITED";
+    }
     entry.appliedEffort = stable(effort);
+    entry.fuelBurned = stable(zone.travelFuel + effort * scenario.fuelPerEffort);
+    boatState.fuelRemaining = stable(Math.max(0, boatState.fuelRemaining - entry.fuelBurned));
+    entry.fuelAfter = boatState.fuelRemaining;
     planned.push({ entry, zone });
   }
 

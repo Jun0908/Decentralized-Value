@@ -4,14 +4,15 @@ import type { OceanScenario } from "./scenario";
 import type {
   Boat,
   BoatId,
+  BoatRoundMemory,
   BoatState,
   FishingAction,
   OceanState,
   PactKind,
   Proposal,
   ProposalResponse,
-  RoundRecord,
   RoundWeather,
+  Sounding,
   Zone,
 } from "./types";
 
@@ -69,7 +70,13 @@ export type Observation = {
   weather: RoundWeather;
   price: number;
   zones: readonly Zone[];
-  stocks: Record<string, number>;
+  /**
+   * Everything this boat knows about the state of the sea. A ground with no
+   * reading here has not been worked by anyone this boat could watch, and its
+   * stock is genuinely unknown — the published biology on `zones` is all there
+   * is to go on. Readings go stale; check `round` against the current one.
+   */
+  soundings: readonly Sounding[];
   self: Boat & BoatState;
   wallet: { policy: WalletPolicy; spentThisMatch: number; remaining: number };
   others: PublicBoatView[];
@@ -77,7 +84,12 @@ export type Observation = {
   fund: OceanState["fund"];
   conservationFund: OceanState["conservationFund"];
   incomingProposals: Proposal[];
-  history: readonly RoundRecord[];
+  /**
+   * This boat's own memory of the season. Deliberately not `RoundRecord[]`,
+   * which carries `stocksBefore`/`stocksAfter` for every ground and would hand
+   * back the whole sea through the back door.
+   */
+  history: readonly BoatRoundMemory[];
 };
 
 export type NegotiationOutput = {
@@ -140,7 +152,61 @@ export function sustainableYield(zone: Zone, stock: number): number {
   return Math.max(0, zone.growthRate * stock * (1 - stock / zone.carryingCapacity));
 }
 
+
+/**
+ * The best guess this boat can make about a ground right now.
+ *
+ * A reading is a snapshot of a round that has already passed, and the sea has
+ * moved since: it regrew, and anyone who went there took fish out. The boat
+ * knows the published biology, so it can carry the reading forward through the
+ * growth curve — but it cannot know what was landed after it looked away. That
+ * gap is the uncertainty the arena is built on, and it widens with every round
+ * a reading goes unrefreshed.
+ *
+ * With no reading at all, the published opening survey is all there is.
+ */
+export function believedStock(observation: Observation, zone: Zone): number {
+  const readings = observation.soundings.filter((s) => s.zoneId === zone.id);
+  const newest = readings.reduce<Sounding | null>(
+    (best, s) => (best === null || s.round > best.round ? s : best),
+    null,
+  );
+  let stock = newest?.stock ?? zone.initialStock;
+  // Project forward one round at a time, the way the engine grows it.
+  for (let round = newest?.round ?? observation.round; round < observation.round; round += 1) {
+    const critical = zone.carryingCapacity * zone.collapseThreshold;
+    const depensation = (stock - critical) / (zone.carryingCapacity - critical);
+    stock += zone.growthRate * stock * (1 - stock / zone.carryingCapacity) * depensation;
+    stock = Math.max(0, Math.min(zone.carryingCapacity, stock));
+  }
+  return stock;
+}
+
+/** Believed stock for every ground, keyed by id. */
+export function believedStocks(observation: Observation): Record<string, number> {
+  const stocks: Record<string, number> = {};
+  for (const zone of observation.zones) stocks[zone.id] = believedStock(observation, zone);
+  return stocks;
+}
+
+/** How many rounds old this boat's freshest reading of a ground is. */
+export function soundingAge(observation: Observation, zoneId: string): number | null {
+  const rounds = observation.soundings.filter((s) => s.zoneId === zoneId).map((s) => s.round);
+  return rounds.length === 0 ? null : observation.round - Math.max(...rounds);
+}
+
 type ZoneChoice = { zone: Zone; effort: number; profit: number };
+
+/** The most effort this boat can still pay fuel for on this ground. */
+export function affordableEffort(
+  observation: Observation,
+  zone: Zone,
+  scenario: OceanScenario,
+): number {
+  const left = observation.self.fuelRemaining - zone.travelFuel;
+  if (left <= 0) return 0;
+  return Math.max(0, left / scenario.fuelPerEffort);
+}
 
 function bestZone(
   observation: Observation,
@@ -157,9 +223,15 @@ function bestZone(
     if (zone.reserve && !options.allowReserve) continue;
     if (closed.has(zone.id)) continue;
     if (tooRough(zone, observation.weather, observation.self)) continue;
-    const stock = observation.stocks[zone.id] ?? 0;
+    const stock = believedStock(observation, zone);
     const cap = capInForce(observationStateShim(observation), observation.self.id, zone.id);
-    let effort = Math.min(observation.self.effortCapacity, options.effortCap ?? Infinity);
+    // Fuel is a season-long budget, so the hull limit is rarely what binds.
+    const fuelEffort = affordableEffort(observation, zone, scenario);
+    let effort = Math.min(
+      observation.self.effortCapacity,
+      fuelEffort,
+      options.effortCap ?? Infinity,
+    );
 
     // Respect a cap by choosing the exact effort that lands it.
     const binding = [cap, options.catchCap].filter((value): value is number => value !== null && value !== undefined);
@@ -188,7 +260,7 @@ function bestZone(
 function observationStateShim(observation: Observation): OceanState {
   return {
     round: observation.round,
-    stocks: observation.stocks,
+    stocks: believedStocks(observation),
     boats: {},
     pacts: observation.activePacts,
     fund: observation.fund,
@@ -207,7 +279,7 @@ function proposalId(observation: Observation, tag: string): string {
 
 /** Total stock across every zone, the headline signal of commons health. */
 export function totalStock(observation: Observation): number {
-  return Object.values(observation.stocks).reduce((sum, value) => sum + value, 0);
+  return Object.values(believedStocks(observation)).reduce((sum, value) => sum + value, 0);
 }
 
 /** Combined carrying capacity, the denominator for commons health. */
@@ -259,7 +331,7 @@ export function standDownOffer(
   // Act while a ground is still falling, not once it is already past the
   // cliff — a stand-down bought after collapse buys nothing back.
   const nearCollapse = observation.zones.some((zone) => {
-    const stock = observation.stocks[zone.id] ?? 0;
+    const stock = believedStock(observation, zone);
     return stock < zone.carryingCapacity * (zone.collapseThreshold + 0.55);
   });
   if (!nearCollapse) return null;
@@ -381,7 +453,7 @@ export function cautiousAgent(id: BoatId, name: string, scenario: OceanScenario)
           1,
           observation.zones
             .filter((zone) => !zone.reserve)
-            .reduce((sum, zone) => sum + sustainableYield(zone, observation.stocks[zone.id] ?? 0), 0) /
+            .reduce((sum, zone) => sum + sustainableYield(zone, believedStock(observation, zone)), 0) /
             fleet,
         ),
       });
@@ -432,7 +504,7 @@ export function brokerAgent(
       // so watch the worst ground rather than the fleet-wide average.
       const pressure = Math.min(
         ...observation.zones.map(
-          (zone) => (observation.stocks[zone.id] ?? 0) / zone.carryingCapacity,
+          (zone) => believedStock(observation, zone) / zone.carryingCapacity,
         ),
       );
 
@@ -554,7 +626,7 @@ export function opportunistAgent(id: BoatId, name: string, scenario: OceanScenar
       const unconstrained = (() => {
         let best: ZoneChoice | null = null;
         for (const zone of observation.zones) {
-          const stock = observation.stocks[zone.id] ?? 0;
+          const stock = believedStock(observation, zone);
           const effort = observation.self.effortCapacity;
           const profit = expectedProfit(
             zone,
@@ -627,7 +699,7 @@ export function reciprocatorAgent(id: BoatId, name: string, scenario: OceanScena
             observation.zones
               .filter((zone) => !zone.reserve)
               .reduce(
-                (sum, zone) => sum + sustainableYield(zone, observation.stocks[zone.id] ?? 0),
+                (sum, zone) => sum + sustainableYield(zone, believedStock(observation, zone)),
                 0,
               ) / fleet,
           );
@@ -676,7 +748,7 @@ export function territorialAgent(
       const closed = closedZones(shim, id);
 
       if (home && !closed.has(home.id) && !tooRough(home, observation.weather, observation.self)) {
-        const stock = observation.stocks[home.id] ?? 0;
+        const stock = believedStock(observation, home);
         const cap = capInForce(shim, id, home.id);
         let effort = observation.self.effortCapacity;
         if (cap !== null) {
@@ -728,15 +800,16 @@ export function crowdAverseAgent(id: BoatId, name: string, scenario: OceanScenar
       if (standDownRequired(shim, id)) return idle(observation);
       const closed = closedZones(shim, id);
       const last = observation.history[observation.history.length - 1];
+      // Who else worked this ground last round. Landings are visible even when
+      // the stock behind them is not, so crowding is still readable.
       const crowd = (zoneId: string) =>
-        last?.entries.filter((entry) => entry.zoneId === zoneId && entry.appliedEffort > 0).length ??
-        0;
+        last?.others.filter((entry) => entry.zoneId === zoneId && entry.catch > 0).length ?? 0;
 
       let best: { zoneId: string; effort: number; score: number } | null = null;
       for (const zone of observation.zones) {
         if (zone.reserve || closed.has(zone.id)) continue;
         if (tooRough(zone, observation.weather, observation.self)) continue;
-        const stock = observation.stocks[zone.id] ?? 0;
+        const stock = believedStock(observation, zone);
         const cap = capInForce(shim, id, zone.id);
         let effort = observation.self.effortCapacity;
         if (cap !== null) {
@@ -869,6 +942,41 @@ export function tunableAgent(
  * pocket. Whether a fixed strategy survives contact with an opponent that
  * answers back is the question the sweep could not ask.
  */
+/**
+ * The reference against which restraint is measured — never an entrant.
+ *
+ * The restraint axis asks what a boat gave up, and that question needs a fixed
+ * answer to "gave up compared with what". This boat is that answer: it signs
+ * nothing, works whichever legal ground pays best, and commits its whole hull
+ * every round. Replaying a seed with an entrant swapped for this boat gives the
+ * landings the entrant could have taken and the sea that would have been left.
+ *
+ * It stays out of the reserve deliberately. A reference that raids the nursery
+ * would wreck the counterfactual sea for everyone, and the resulting gap would
+ * measure the reference's brutality rather than the entrant's judgement.
+ */
+export function takerAgent(id: BoatId, name: string, scenario: OceanScenario): OceanAgent {
+  return {
+    id,
+    name,
+    negotiate(observation) {
+      return {
+        proposals: [],
+        responses: observation.incomingProposals.map((proposal) => ({
+          type: "REJECT" as const,
+          proposalId: proposal.id,
+          reasonCode: "TAKES_EVERYTHING",
+        })),
+      };
+    },
+    act(observation) {
+      const choice = bestZone(observation, scenario, { allowReserve: false });
+      if (!choice) return idle(observation);
+      return { boatId: id, zoneId: choice.zone.id, effort: observation.self.effortCapacity };
+    },
+  };
+}
+
 export function enforcerAgent(id: BoatId, name: string, scenario: OceanScenario): OceanAgent {
   /** The boat taking the largest share of everything landed so far. */
   const offenderOf = (observation: Observation): PublicBoatView | null => {
@@ -909,7 +1017,7 @@ export function enforcerAgent(id: BoatId, name: string, scenario: OceanScenario)
         const zone = observation.zones.find((candidate) => candidate.id === contested);
         const closed = closedZones(shim, id);
         if (zone && !closed.has(zone.id) && !tooRough(zone, observation.weather, observation.self)) {
-          const stock = observation.stocks[zone.id] ?? 0;
+          const stock = believedStock(observation, zone);
           const cap = capInForce(shim, id, zone.id);
           let effort = observation.self.effortCapacity;
           if (cap !== null) {
@@ -935,7 +1043,7 @@ export function enforcerAgent(id: BoatId, name: string, scenario: OceanScenario)
         1,
         observation.zones
           .filter((zone) => !zone.reserve)
-          .reduce((sum, zone) => sum + sustainableYield(zone, observation.stocks[zone.id] ?? 0), 0) /
+          .reduce((sum, zone) => sum + sustainableYield(zone, believedStock(observation, zone)), 0) /
           fleet,
       );
       const choice = bestZone(observation, scenario, { allowReserve: false, catchCap: share });

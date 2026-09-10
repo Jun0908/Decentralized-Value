@@ -280,6 +280,73 @@ export function scoreCooperation(
   };
 }
 
+// --- restraint, measured per unit of catch given up ------------------------
+
+/**
+ * The third axis: how much sea a boat bought with the fish it did not take.
+ *
+ * `stewardship` — stock left in the water — cannot be this axis, because it is
+ * monotone in effort. Its optimum is "fish less", found without reading
+ * anything, so it separates no two players (Plan 10 §50.2). Nor is the fix a
+ * counterfactual on its own: subtracting a constant from a monotone quantity
+ * leaves it monotone (§50.5).
+ *
+ * What breaks monotonicity is a denominator. Restraint is scarce — every fish
+ * left in the water is revenue given up — so the question stops being "how
+ * much did you hold back" and becomes "was holding back worth it". A boat that
+ * never sails forgoes everything and buys almost nothing, because the other
+ * four take what it left. A boat that fishes flat out forgoes nothing. Between
+ * them sits a peak whose location depends on whether this fleet, on this
+ * weather, will hoover up what you leave — which is to say, on reading the
+ * other boats.
+ *
+ * `ifTaken` is the same seed replayed with this boat swapped for `takerAgent`.
+ */
+export type RestraintScore = {
+  /** Catch this boat gave up against the reference that takes everything. */
+  forgone: number;
+  /** Fish still in the water at season end because this boat held back. */
+  retained: number;
+  /** The axis value: the share of what you left that was still there at the end. */
+  efficacy: number;
+};
+
+/**
+ * Scoring restraint as "sea gained per fish forgone" does not work: as a boat
+ * approaches full effort its forgone catch approaches zero, and a ratio with a
+ * vanishing denominator rewards taking everything. Measured that way the axis
+ * peaked at effort 1.0 — the exact failure it was meant to fix.
+ *
+ * Asking instead what became of the fish keeps the denominator honest. Leaving
+ * a ground the greedy boat is steaming towards buys nothing; the fish are
+ * landed by someone else that round, and the sea ends where it would have
+ * anyway. Leaving one nobody will work, or leaving it early enough to spawn,
+ * can return more than was given up. The ratio is bounded, it is zero for a
+ * boat that gives up nothing, and it is low for one that gives up everything
+ * blindly — the peak is in between, and finding it means reading where the
+ * other four are going.
+ */
+const RESTRAINT_FLOOR = 0.02;
+
+export function scoreRestraint(
+  full: MatchOutcomes,
+  ifTaken: MatchOutcomes,
+  boatId: BoatId,
+): RestraintScore {
+  const played = full.boats.find((boat) => boat.boatId === boatId);
+  const taken = ifTaken.boats.find((boat) => boat.boatId === boatId);
+  const reference = taken?.totalCatch ?? 0;
+  const forgone = stable(reference - (played?.totalCatch ?? 0));
+  const retained = stable(full.evidence.finalTotalStock - ifTaken.evidence.finalTotalStock);
+  // Below the floor the boat barely held back at all, and the ratio would be
+  // reading rounding noise rather than a decision. Out-fishing the reference is
+  // not restraint either.
+  if (reference <= 0 || forgone <= reference * RESTRAINT_FLOOR) {
+    return { forgone: Math.max(0, forgone), retained, efficacy: 0 };
+  }
+  return { forgone, retained, efficacy: stable(Math.max(0, retained) / forgone) };
+}
+
 // --- fleet-wide cooperation efficacy, measured against a counterfactual ----
 
 export type CooperationEfficacy = {

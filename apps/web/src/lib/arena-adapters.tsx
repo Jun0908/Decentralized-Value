@@ -88,8 +88,31 @@ const rescueRoomAdapter: ArenaAdapter = {
   },
 };
 
+const oceanAdapter: ArenaAdapter = {
+  kind: "ocean",
+  challengeId: "ocean-commons-v1",
+  async renderWorkbench() {
+    const [{ publicOceanCommonsScenario }, { OceanCommonsWorkbench }] = await Promise.all([
+      import("@frontier/ocean-commons"),
+      import("@/components/ocean-commons-workbench"),
+    ]);
+    return <OceanCommonsWorkbench scenario={publicOceanCommonsScenario()} />;
+  },
+  async loadManifest() {
+    const { oceanCommonsManifest, oceanCommonsManifestHash } = await import("@frontier/ocean-commons");
+    return { manifest: oceanCommonsManifest, manifestHash: oceanCommonsManifestHash };
+  },
+};
+
 export const arenaAdapters: ReadonlyMap<string, ArenaAdapter> = new Map(
-  [supplyAdapter, calldataAdapter, microgridAdapter, secretGateAdapter, rescueRoomAdapter].map(
+  [
+    supplyAdapter,
+    calldataAdapter,
+    microgridAdapter,
+    secretGateAdapter,
+    rescueRoomAdapter,
+    oceanAdapter,
+  ].map(
     (adapter) => [adapter.kind, adapter],
   ),
 );
