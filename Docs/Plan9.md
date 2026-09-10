@@ -2,7 +2,7 @@
 
 **作成日:** 2026-09-10
 
-**状態:** Phase 0は`GO`。Phase 1完了、Phase 2のControlled AI Practiceをローカル実装済み。UX GateのIncident Storyboard、Live Stage、Outcome因果説明を実装し、初見テスト前の検証中
+**状態:** Phase 0は`GO`。Phase 1完了、Phase 2のControlled AI Practice、Strategy Game UX Pass A、Pass B0/B1のDoctrine ContractとStrategy Studio、Pass CのIncident Theatreをローカル実装済み。「作戦を編集する → 固定する → 視覚的に追う → 比較して改善する」Loopを検証中
 
 **前計画:** Secret Gateの参照実装は維持し、競技化は`PIVOT`として終了
 
@@ -870,6 +870,230 @@ False Positiveは内部的に開始時からSafeでも、CommanderのPublic View
 
 Desktop 1440×1000とMobile 390×844では、主要Run、Replay、Evidence download、AI Editor、Result Revealを自動操作し、横Overflowなし、Console Errorなしを確認した。最終Heroは[`../artifacts/ux-audit-rescue-room/23-rescue-storyboard-desktop-final.png`](../artifacts/ux-audit-rescue-room/23-rescue-storyboard-desktop-final.png)、Mobileは[`../artifacts/ux-audit-rescue-room/24-rescue-storyboard-mobile-final.png`](../artifacts/ux-audit-rescue-room/24-rescue-storyboard-mobile-final.png)、Live Stageは[`../artifacts/ux-audit-rescue-room/27-rescue-live-stage-restarted.png`](../artifacts/ux-audit-rescue-room/27-rescue-live-stage-restarted.png)に保存した。初見5人テストは未実施であり、UX Gate全体はまだ通過扱いにしない。
 
+### Phase 2 Strategy Game UX Revision — Commander Doctrine
+
+**状態:** 2026-09-10にPass AとPass B0/B1を実装済み。構造化Doctrine Schema、決定論的Interpreter、Basic / Prompt / Artifact Studioが動作する。Revision差分とIncident Shiftは未実装。
+
+#### 現状の問題
+
+Incident Storyboardによって世界観とGame Loopの説明は改善したが、Practice本体はまだ「Alertと既製Policyを選び、`Run Reference Commander`を押すとTimeline Logが流れる」体験に見える。特に次が不足している。
+
+1. 実行前に、プレイヤーがどのTradeoffを選んだのか分からない。
+2. `Reference policy`が主役に見え、ユーザー自身のCommanderを作った感覚が弱い。
+3. TimelineはAction、Payment、Evidenceを記録しているが、「なぜ今そのActionを選び、何を支払い、Stateがどう変わったか」を一つの因果として読めない。
+4. Outcomeは独立3軸と因果を表示しているが、同一Incidentの他戦略や前回Runと比較できず、次に何を変えるべきか判断しにくい。
+5. Service MarketがPractice Controlより後にあるため、実行前の戦略材料ではなく説明資料に見える。
+6. 現在のCTAはSimulationを開始するだけで、StrategyをCommitする緊張と、結果を予想する楽しさがない。
+
+面白さは派手なAnimationやRandom Rewardではなく、次の循環から作る。
+
+```text
+予想する
+  → Commanderの判断原則を選ぶ
+  → 未知のIncidentへ固定して投入する
+  → AIが自律的にServiceを購入しProtocolを操作する
+  → 予想外のEvidenceと結果を見る
+  → Baselineと比較し、一つの判断原則を変更する
+  → 再挑戦する
+```
+
+#### プレイヤーの役割
+
+プレイヤーをIncident中の手動Operatorにはしない。プレイヤーはProtocol GovernanceまたはCommander Designerとして、Incident前にAI CommanderのMandateと支出権限を設計する。
+
+Simulation中にユーザー自身がService購入、Pause、Patchを逐次クリックすると、「AI Agentが限られた情報から自律判断し、他のAI Agentを雇う」というArenaの中心が失われる。そのため、プレイヤーのAgencyは実行前のDoctrine設計と、実行後の比較・改訂に置く。
+
+#### 新しい中心ループ
+
+```text
+1. BRIEFING
+   Public Alertと不明点を読む
+
+2. BUILD DOCTRINE
+   Commanderの予算、Evidence条件、Pause権限、Service優先度を決める
+
+3. LOCK & DEPLOY
+   同じDoctrineを未知のIncidentへ固定して投入する
+
+4. WATCH DECISIONS
+   Commander、Service、Evidence、Protocolの因果を追う
+
+5. DEBRIEF
+   同一IncidentのBaselineと独立3軸で比較する
+
+6. CHANGE ONE RULE
+   一つだけDoctrineを変更し、再挑戦する
+```
+
+`Reference Commander`はプレイヤーの主CTAから外し、Tutorial、Baseline、Counterfactual比較として使う。主CTAは`作戦を固定してIncidentを開始`に変更する。
+
+#### Commander DoctrineのBasic設定
+
+初回ユーザーには自由文Promptを直接見せず、次の構造化された判断原則だけを見せる。
+
+| 設定 | 選択例 | 戦略上の意味 |
+| --- | --- | --- |
+| Investigation Budget | 20 / 50 / 80 RC | 情報へどこまで支払うか |
+| Evidence Rule | 1件で動く / 2件一致を待つ / 緊急時は省略 | 誤検知と対応遅延のTradeoff |
+| Pause Authority | 禁止 / Moduleのみ / Protocol全体 | User ProtectionとAvailabilityのTradeoff |
+| Service Priority | 速度 / 精度 / 価格 | どのService Agentを先に雇うか |
+| Patch Safety | 直接適用 / 検証必須 | 復旧速度と誤Patch RiskのTradeoff |
+
+開始Presetは次の3つとする。
+
+- `Evidence First`: 複数Evidenceを集めてから介入する。
+- `User Guardian`: 疑わしい場合は早く止め、User Lossを抑える。
+- `Keep It Running`: 全停止を避け、安価で速い調査を優先する。
+
+Preset選択後は、現在の設定を自然文で必ず要約する。
+
+```text
+このCommanderは最大50 RCを調査へ使う。
+2つのEvidenceが一致するまでPauseしない。
+Pauseは対象Moduleだけに限定し、Patch適用前には検証を要求する。
+```
+
+Advancedでは現在のAI Playbook instructions、Service Agent許可、Protocol Action許可、Service単価上限を残す。Basic設定とAdvanced設定は同じCommander Artifactへ正規化し、画面だけの飾りにしない。
+
+#### Service Marketの配置
+
+Service Marketを実行後の説明Sectionだけに置かず、Doctrine Builderの横または展開Panelに置く。各Service Agentには、実行前に比較できる情報だけを表示する。
+
+- Price
+- Delivery time
+- 対象Task
+- Calibrationされた精度またはConfidence範囲
+- 典型的な弱点
+- Commanderが現在そのServiceを購入可能か
+
+ユーザー自身がServiceを購入するUIにはしない。「このCommanderへ誰を雇う権限を与えるか」を設定するUIにする。
+
+#### Live Incidentの表示
+
+Raw TranscriptはEvidenceとして保持するが、中心表示からは一段下げ、折りたたみ可能にする。中心は次の4 Laneで構成する。
+
+```text
+PROTOCOL        現在のModule状態とPublic Signal
+COMMANDER       Observation、発火したRule、選択Action
+SERVICE AGENTS  注文、Reserved Budget、ETA、Receipt
+EVIDENCE        新しいFinding、Confidence、矛盾
+```
+
+各Decisionは単なるLog行ではなく、次の因果Cardで表示する。
+
+```text
+T+00  Accounting Auditを雇った
+
+Trigger        Withdrawalと新規Addressを検知
+Rule           Evidenceを得るまでPauseしない
+Cost / Time    18 RCをreserve、ETA 7分
+State change   Available 100 → 82 RC、Evidence 0 → 調査中
+Alternatives   即Pause / Pulse Monitor / Close Incident
+```
+
+Chain of Thoughtは表示しない。`Observation / matched rule or reason code / Action / Cost / State delta / available alternatives`だけを、Replay可能なEvidenceから作る。True Stateの確率や将来Outcomeを途中表示して、Hidden Stateを漏らしてはならない。
+
+#### Debriefと比較
+
+単独の絶対値だけで終わらせず、同一Episode・同一Contextで少なくとも次を比較する。
+
+- Your Commander
+- Always Pause
+- Never Pause
+- Previous Revision（存在する場合）
+
+比較はWeighted ScoreやRadar chartの面積へ統合しない。3 Outcomeを独立した列または小さなAxisとして表示する。
+
+```text
+                   User Loss   Availability   Spend
+Your Commander            0          73.2%    46 RC
+Always Pause              0          41.0%     0 RC
+Never Pause          18,400         100.0%     0 RC
+```
+
+その下に、値を統合しない自然文のTradeoff説明を出す。
+
+```text
+User Lossは防いだ。
+Always Pauseより多くProtocolを稼働させるため、46 RCを使った。
+Never PauseよりAvailabilityは低いが、User Lossを回避した。
+```
+
+`Dominated in pack`だけを単独表示しない。比較対象、支配された軸、Frontierへ近づくために変更できるDoctrine Ruleを示す。ただし「正解の設定」は教えない。
+
+結果画面の主CTAはEvidence Downloadではなく、`一つのRuleを変更して再挑戦`とする。Evidence DownloadはSecondary Actionへ移す。
+
+#### PracticeからCompetitionへの接続
+
+単一Episodeの最適化だけで終わらせないため、Practiceの最終段階に`Incident Shift`を追加する。
+
+- 1つのCommander Doctrineを5つの未知Episodeへ固定する。
+- Episodeごとに初期Budgetは同じにし、最初はEvaluatorの意味を変える共有Budgetを導入しない。
+- Shift中はDoctrineを変更できない。
+- 各Episode終了後のTrue State Revealは、Shift全体終了まで遅延する方式も比較検討する。
+- 5 EpisodeのUser Loss、Availability、Spendを独立集計する。
+- Reference BaselineとPareto関係を表示する。
+
+これにより、見えているAlertごとの手動攻略ではなく、未知環境へ一般化するCommanderを作る競技であることを体験させる。
+
+#### 実装境界
+
+最初の改善ではEvaluatorのOutcome、Service Evidence、Payment、Hashを変更しない。既存の8 Reference Policy、35 Public Episode、Transcript、Outcome説明を再利用し、UIの戦略ループを先に成立させる。
+
+**Pass A — 既存Evaluatorだけで実装する。**
+
+1. [x] Policy selectを3つのDoctrine CardとTradeoff説明へ置き換える。
+2. [x] Service Marketの比較情報を実行前へ移す。
+3. [x] 開始前にDoctrine SummaryとLock状態を表示する。
+4. [x] TranscriptからDecision因果Cardを作り、Raw LogをSecondaryへ移す。
+5. [x] 同一EpisodeでYour Commander / Always Pause / Never Pauseを比較する。
+6. [x] `一つのRuleを変更して再挑戦`をPrimary CTAにする。
+
+実装のSource Visual Truthは[`../artifacts/ux-audit-rescue-room/34-strategy-game-selected.png`](../artifacts/ux-audit-rescue-room/34-strategy-game-selected.png)へ固定した。実装後のHero、Doctrine Builder、Live Decision、Debriefはそれぞれ[`35-strategy-game-desktop-hero.png`](../artifacts/ux-audit-rescue-room/35-strategy-game-desktop-hero.png)、[`36-strategy-game-desktop-builder.png`](../artifacts/ux-audit-rescue-room/36-strategy-game-desktop-builder.png)、[`37-strategy-game-desktop-live.png`](../artifacts/ux-audit-rescue-room/37-strategy-game-desktop-live.png)、[`38-strategy-game-desktop-result.png`](../artifacts/ux-audit-rescue-room/38-strategy-game-desktop-result.png)へ保存した。Mobile BuilderとDebriefは[`39-strategy-game-mobile-builder.png`](../artifacts/ux-audit-rescue-room/39-strategy-game-mobile-builder.png)と[`40-strategy-game-mobile-result.png`](../artifacts/ux-audit-rescue-room/40-strategy-game-mobile-result.png)で確認した。
+
+自動UI検証は3 Doctrine、4 Live Lane、同一EpisodeのBaseline 2種、Previous Revision、Replay、Evidence Download、AI Playbook、Desktop / Mobileの横Overflow、Console Error、禁止Contrast Pairを対象にする。実AI Commanderも固定runtimeでAction Replayまで完了した。
+
+Pass Aでは、`Evidence First / User Guardian / Keep It Running`を既存の決定論的Policyへ明示的に対応付けた。これは画面だけの架空設定ではなく、選択したDoctrineが実際のAction列、Service購入、支出、Protocol State、Outcomeを変える。通常の入口は再現可能なDoctrine Practiceとし、実OpenAI runtimeは`AI Commander`として別状態を明示することで、Scripted PolicyをAIと偽らない。
+
+実行後は同じEpisode IDで`Always Pause`と`Never Pause`を再評価し、Your Commander、両Baseline、存在する場合はPrevious Revisionを3つの独立Outcome列で比較する。Raw Transcriptは折りたたみ可能なEvidenceへ下げ、中心表示を`Protocol / Commander / Service Agents / Evidence`の4 Laneへ変更した。Evaluator、Context Hash、Result Hashの計算は変更していない。
+
+**Pass B — Strategy Artifactを拡張する。**
+
+1. [x] **Pass B0:** Basic Doctrine設定を`rescue-doctrine-v0`の決定論的な構造化Schemaへする。
+2. [x] **Pass B0:** AI PlaybookとBasic DoctrineをService権限、Protocol Action権限、Service単価上限、調査総予算の同じ実行Gateへ正規化する。
+3. [x] **Pass B0:** Public Viewだけを読む決定論的Interpreterを実装し、各Actionへ`reasonCode`、Public View Hash、受理結果を記録する。
+4. [x] **Pass B1:** `Basic / Prompt / Artifact`のStrategy Studioを追加し、設定、Prompt、正規化JSON、Artifact Hash、Runtime Versionを確認可能にする。
+5. [ ] **Pass B2:** Doctrine Revision差分を永続保存し、前回RunとのRule単位の因果比較を追加する。
+6. [ ] **Pass B3:** 1つのDoctrineを固定して走らせる5 EpisodeのIncident Shiftを追加する。
+
+Pass B0/B1では任意のTypeScript / JavaScript実行を導入しない。Code ModeはSandbox、時間・Memory上限、依存関係、非決定性の扱いを定義した後、同じ`RescuePublicView → RescueAction`境界へ接続する上級者向け機能として扱う。
+
+実装したDoctrineは、Investigation Budget、Evidence件数、Confidence Gate、Evidence不一致時の判断、Pause Authority、Service Priority、Patch Safety、予算切れ時の行動、Service許可を編集できる。設定変更は画面だけの表示ではなく、`/v1/rescue-room/doctrine-evaluations`へArtifactとして送られ、Action列とOutcomeを変える。
+
+Pass Aの初見テストはPass B1の編集可能なStrategy Studioを含めて実施する。これが通った後にPass B2/B3へ進み、Hidden Final、Sepolia Service Payment、Open Service Marketはさらに後のGateとする。
+
+#### Strategy Game UXの合格条件
+
+1. 初見ユーザー5人中4人以上が、「自分はAI Commanderの作戦を決め、そのAIがService Agentを雇うゲーム」と10秒以内に説明できる。
+2. 初回Runの前に、選んだDoctrineの強みと犠牲にするOutcomeを一つずつ説明できる。
+3. Simulation中に、最新ActionのTrigger、Cost、Time、State deltaをLogの解読なしで説明できる。
+4. Episode終了後、Your CommanderとAlways Pause / Never Pauseの違いを3 Outcomeそれぞれで比較できる。
+5. Weighted Scoreなしで、自分が次に変更するDoctrine Ruleを一つ選べる。
+6. AI CommanderがService購入とProtocol Actionを自律決定し、人間の途中介入に依存しない。
+7. Raw Transcript、Action Replay、Result HashはUI再構成前後で一致する。
+8. 同じDoctrineを複数の未知Episodeへ固定する意味をユーザーが理解できる。
+
+#### Strategy Game UX実装順序
+
+1. Reference PolicyをBaselineへ移し、Player Journeyの主役をCommander Doctrineにする。
+2. Doctrine Card、Basic設定、Doctrine Summary、Lock CTAを作る。
+3. Service Marketを実行前の判断材料として接続する。
+4. Live Incidentを4 LaneとDecision因果Cardへ再構成する。
+5. 同一EpisodeのBaseline比較とPrevious Revision比較を作る。
+6. Rule変更から再挑戦までを一つのLoopにする。
+7. 初見5人テストを実施する。
+8. 合格後に構造化Doctrine SchemaとIncident Shiftを実装する。
+
 ## 24. Phase 3 — Sepolia Agent-to-Agent Payment
 
 Game内Service購入に意味があると確認できた後だけ開始する。
@@ -994,10 +1218,85 @@ Phase 0が`PIVOT`または`STOP`になった場合は、未達項目を完成扱
 1. [x] Public / Hidden Stateの表示矛盾を解消する。
 2. [x] Whole game Illustrationと初見Game Loopを作る。
 3. [x] Protocol Map中心のLive Incident Stageと再生Controlを作る。
-4. [ ] Outcome因果説明、Playbook Preset、Reference比較、Value Pool接続を作る（因果説明、Preset、各Poolが読む現在値は実装済み。Reference / AI比較とPool資格表示が残る）。
-5. [ ] Desktop、Mobile、Accessibility、初見5人テストでUX Gateを判定する。
-6. [ ] UX Gate通過後にRevision HistoryとFinal Entryを実装する。
-7. [ ] 不変なModel Versionと複数Hidden Final PackをCommitし、Full Fieldを評価する。
-8. [ ] Agent-to-Agent購入がゲームとして有効だと確認した後だけSepolia Paymentへ進む。
+4. [x] Outcome因果説明とPlaybook Presetを作る。
+5. [x] Reference PolicyをBaselineへ移し、Commander DoctrineをPlayer Journeyの主役にする。
+6. [x] Doctrine Card、Basic設定、Summary、Lock CTAを実装する。
+7. [x] Service Marketを実行前の戦略材料として接続する。
+8. [x] Live Incidentを5 ChapterのIncident TheatreとDecision因果Cardへ再構成する。
+9. [x] 同一EpisodeのYour Commander / Always Pause / Never Pause比較を作る。
+10. [x] `一つのRuleを変更して再挑戦`までを一つのLoopにする。
+11. [x] Desktop、Mobile、Reduced Motion、Contrast、Console Errorの自動検証を完了する。
+12. [ ] 初見5人テストでStrategy Game UX Gateを判定する。
+13. [ ] Gate通過後にDurable Revision History、Incident Shift、Final Entryを実装する。
+14. [ ] 不変なModel Versionと複数Hidden Final PackをCommitし、Full Fieldを評価する。
+15. [ ] Agent-to-Agent購入がゲームとして有効だと確認した後だけSepolia Paymentへ進む。
 
 現在は、競技基盤を広げる前に「ユーザーがRescue Roomを理解し、Simulationの因果を追い、次のPlaybook改善へ進めるか」を先に証明する。
+
+## 30. Pass C — Incident TheatreとStrategy Legibility
+
+**開始日:** 2026-09-11
+
+**目的:** SimulationをRaw Logの連続ではなく、Commander、Service Agent、Payment、Evidence、Protocol Stateが動く戦略ゲームとして理解できるようにする。設定項目は内部Parameter名ではなく、「何を決めるRuleか」「上げ下げすると何を守り、何を失うか」「今回のRunでどう作用したか」を説明する。
+
+### 30.1 現在の問題
+
+1. Incident Storyboardは世界観を示しているが、実際のEventと十分に連動しておらず、背景画像に見える。
+2. 1 EventごとにTimeline Rowを追加するため、Simulationが進むほどRaw Logを読む体験になる。
+3. `Investigation Budget`、`Evidence required`、`Confidence gate`などが同じ強さで並び、初心者には数値を変えた結果が予測できない。
+4. AI Model ParameterとCommanderの権限・戦略Ruleの違いが画面上で明確でない。
+5. Action、Payment、Evidence、State Transitionが別々の行に分かれ、一つの判断が何を変えたかを視線だけでは追えない。
+
+### 30.2 Incident Theatre
+
+- [x] Raw Transcriptを初期状態で閉じ、監査用Evidenceへ格下げする。
+- [x] Transcript EventをGame Minute単位のStory Beatへまとめ、`Step`を1 Eventではなく1判断ターンとして進める。
+- [x] `Alert / Investigate / Decide / Recover / Outcome`のChapter進行を常時表示する。
+- [x] Commander、Protocol、Service AgentをIncident Storyboard上のActorとして表示する。
+- [x] Service購入時にCommanderからServiceへRescue Creditsが移動する方向を表示する。
+- [x] Service完了時にEvidenceがCommanderへ戻る方向、Confidence、対象Moduleを表示する。
+- [x] Pause、Patch、Resume、CloseをProtocolへのActionとして表示し、対象Moduleの状態へ反映する。
+- [x] User Loss、Demand Served、Available / Reserved / Paid Budgetを盤面上で同時に追えるようにする。
+- [x] 再生中の主説明は最新Story Beat一つに限定し、Raw Eventを画面へ積み上げない。
+- [x] `prefers-reduced-motion`では自動Animationを省略し、同じ最終Evidenceへ到達させる。
+
+### 30.3 Strategy Parameterの説明
+
+- [x] Strategy Studioの冒頭で「これはModel tuningではなく、Commanderの権限と判断Ruleである」と明示する。
+- [x] 各設定に、Plain-languageの意味とOutcome Tradeoffを常時表示する。
+- [x] Investigation Budgetは「調査全体に使える総額」と説明し、情報量とTreasury消費の関係を示す。
+- [x] Evidence CountとConfidence Gateは「いつ判断してよいか」を決める組として説明する。
+- [x] Pause AuthorityはUser ProtectionとAvailabilityのTradeoffとして説明する。
+- [x] Service Priority、Disagreement、Patch Safety、Budget Exhaustion、Single-service Capの挙動を説明する。
+- [x] 現在の設定を`Spend / Certainty / Containment`の3つの読みやすいSummaryへ変換する。
+- [x] PromptはAI Commanderだけを制御し、Temperature、Model Version、Turn Limitは公平なContextとして固定されることを説明する。
+- [x] Artifact JSONとRaw parameter名はExpert / Evidence層に残す。
+
+### 30.4 実装結果
+
+2026-09-11にPass Cをローカル実装した。従来の4 Lane中心表示は`Incident Theatre`へ置き換え、Canonical Transcript自体は変更せず、同一Game MinuteのEventだけを有限のStory Beatへ束ねて再生する。盤面は3 Actor、双方向のService取引、Protocol Action、5 Chapter、6 Module、3 Outcomeを一つの視覚階層へ統合した。Chapterは現在地だけでなく通過済み状態も保持する。
+
+Strategy Studioには全10個の決定論的RuleとAI Playbookの主要3設定について、意味とTradeoffを常時表示した。現在設定は`Spend / Certainty / Containment`へ翻訳するが、Evaluatorへ送るArtifactとHashは従来どおりであり、表示用Summaryを新しいWeighted Scoreとして使用しない。
+
+自動UI検証はDesktop / MobileのHTTP 200、3 Actor、5 Chapter、10 Parameter説明、3 Strategy Summary、Raw Transcript初期閉鎖、Replay、Baseline比較、横Overflowなし、Console Errorなし、禁止Contrast Pairなしを確認した。実OpenAI CommanderもService購入からAction Replay検証まで完了した。初見5人による理解度テストは人間参加が必要なため、引き続き未完了とする。
+
+実装Evidenceは[`42-incident-theatre-desktop-builder.png`](../artifacts/ux-audit-rescue-room/42-incident-theatre-desktop-builder.png)、[`43-incident-theatre-desktop-live.png`](../artifacts/ux-audit-rescue-room/43-incident-theatre-desktop-live.png)、[`44-incident-theatre-mobile-live.png`](../artifacts/ux-audit-rescue-room/44-incident-theatre-mobile-live.png)、[`45-incident-theatre-desktop-result.png`](../artifacts/ux-audit-rescue-room/45-incident-theatre-desktop-result.png)、[`46-incident-theatre-ai-result.png`](../artifacts/ux-audit-rescue-room/46-incident-theatre-ai-result.png)へ保存した。
+
+### 30.5 合格条件
+
+1. Raw Transcriptを開かなくても、誰が誰へ支払い、何を受け取り、Protocolへ何をしたかを追える。
+2. 1 Episodeの自動再生が有限のStory Beatとして完了し、縦方向へLogが増え続けない。
+3. 初見ユーザーが主要設定について、値を上げた場合の利点と犠牲を画面内の説明だけで答えられる。
+4. Reference Doctrine、AI Prompt、固定Model Context、Artifact Evidenceの役割が混同されない。
+5. Desktop 1440幅とMobile 390幅でActor、Chapter、現在判断、主要Outcomeが欠けない。
+6. Keyboard、Screen Reader、Reduced Motionで同じAction Replayへ到達できる。
+7. Action列、Final State、Outcome、Transcript Hash、Result HashはPass C前後で変化しない。
+
+### 30.6 実装順序
+
+1. [x] Story Beat groupingとChapter判定を追加する。
+2. [x] Incident Storyboardを動的なIncident Theatreへ置き換える。
+3. [x] Raw Transcriptを閉じ、Decision Causeを現在のStory Beatへ接続する。
+4. [x] Parameter meaningと3つのStrategy Summaryを追加する。
+5. [x] Desktop / Mobile / Reduced Motion / Console / Contrastの自動検証を更新する。
+6. [x] 同一Episode、同一DoctrineでAction Replay、Outcome、Hashが不変であることを確認する。

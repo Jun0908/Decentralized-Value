@@ -20,9 +20,11 @@ import {
 } from "@frontier/disaster-response";
 import { evaluateMicrogridDispatch, publicMicrogridScenario } from "@frontier/microgrid-dispatch";
 import {
+  evaluateRescueDoctrinePracticeEpisode,
   evaluateRescuePracticeEpisode,
   publicRescueRoomScenario,
   rescueCommanderPlaybookSchema,
+  rescueDoctrineSchema,
   rescuePracticePolicyIds,
 } from "@frontier/rescue-room";
 import { publicSecretGateScenario } from "@frontier/secret-gate";
@@ -100,6 +102,12 @@ const rescueRoomCommanderEvaluationSchema = z
   .object({
     episodeId: z.string().min(1),
     playbook: rescueCommanderPlaybookSchema,
+  })
+  .strict();
+const rescueRoomDoctrineEvaluationSchema = z
+  .object({
+    episodeId: z.string().min(1),
+    doctrine: rescueDoctrineSchema,
   })
   .strict();
 const sandboxRegistrationSchema = z
@@ -793,6 +801,22 @@ export class FrontierApi {
     if (path === "/v1/microgrid-dispatch/evaluations") {
       const parsed = microgridEvaluationSchema.parse(await body(request));
       return json({ state: "measured", ...evaluateMicrogridDispatch(parsed.allocations) }, 200);
+    }
+    if (path === "/v1/rescue-room/doctrine-evaluations") {
+      const parsed = rescueRoomDoctrineEvaluationSchema.parse(await body(request));
+      const scenario = publicRescueRoomScenario();
+      if (!scenario.episodes.some(({ id }) => id === parsed.episodeId)) {
+        throw new ApiError(400, "UNKNOWN_PRACTICE_EPISODE", "Unknown Rescue Room practice Episode");
+      }
+      return json(
+        {
+          state: "simulated",
+          strategyState: "deterministic-rules",
+          paymentState: "game-credits",
+          ...evaluateRescueDoctrinePracticeEpisode(parsed.doctrine, parsed.episodeId),
+        },
+        200,
+      );
     }
     if (path === "/v1/rescue-room/commander-evaluations") {
       const client = request.headers.get("x-forwarded-for") ?? "local";

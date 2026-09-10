@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   createRescueBaselinePolicy,
   createRescuePracticeSession,
+  evaluateRescueDoctrinePracticeEpisode,
   evaluateRescuePolicy,
   generateRescueEpisode,
   getInitialRescuePublicView,
@@ -9,6 +10,8 @@ import {
   publicRescueRoomScenario,
   replayRescuePracticeCommander,
   replayRescueEpisode,
+  rescueDoctrineHash,
+  rescueDoctrinePresets,
   rescueEpisodeHash,
   rescueCommanderPlaybookHash,
   rescueCommanderStarterPlaybook,
@@ -182,6 +185,65 @@ describe("Rescue Room Phase 0", () => {
     expect(rescueCommanderPlaybookHash(reversed)).toBe(
       rescueCommanderPlaybookHash(rescueCommanderStarterPlaybook),
     );
+  });
+
+  it("normalizes Doctrine permissions while preserving strategic Service priority", () => {
+    const doctrine = rescueDoctrinePresets[0]!.doctrine;
+    const reorderedPermissions = {
+      ...doctrine,
+      constraints: {
+        ...doctrine.constraints,
+        allowedServiceIds: [...doctrine.constraints.allowedServiceIds].reverse(),
+        allowedProtocolActions: [...doctrine.constraints.allowedProtocolActions].reverse(),
+      },
+    };
+    const reorderedPriority = {
+      ...doctrine,
+      rules: {
+        ...doctrine.rules,
+        servicePriority: [...doctrine.rules.servicePriority].reverse(),
+      },
+    };
+
+    expect(rescueDoctrineHash(reorderedPermissions)).toBe(rescueDoctrineHash(doctrine));
+    expect(rescueDoctrineHash(reorderedPriority)).not.toBe(rescueDoctrineHash(doctrine));
+  });
+
+  it("runs and replays an editable deterministic Doctrine artifact", () => {
+    const episodeId = publicRescueRoomScenario().episodes[0]!.id;
+    const doctrine = rescueDoctrinePresets[1]!.doctrine;
+    const first = evaluateRescueDoctrinePracticeEpisode(doctrine, episodeId);
+    const second = evaluateRescueDoctrinePracticeEpisode(doctrine, episodeId);
+
+    expect(first.doctrineHash).toBe(rescueDoctrineHash(doctrine));
+    expect(first.evaluationHash).toBe(second.evaluationHash);
+    expect(first.decisions.length).toBeGreaterThan(0);
+    expect(first.decisions.every(({ accepted }) => accepted)).toBe(true);
+    expect(first.replay.matchesRecordedOutcome).toBe(true);
+  });
+
+  it("keeps every published Doctrine preset valid across the public Practice pack", () => {
+    const scenario = publicRescueRoomScenario();
+    for (const preset of rescueDoctrinePresets) {
+      for (const episode of scenario.episodes) {
+        const evaluation = evaluateRescueDoctrinePracticeEpisode(preset.doctrine, episode.id);
+        expect(evaluation.outcome.correctness).toBe(true);
+        expect(evaluation.decisions.every(({ accepted }) => accepted)).toBe(true);
+      }
+    }
+  });
+
+  it("enforces the Playbook investigation budget as a common execution gate", () => {
+    const episodeId = publicRescueRoomScenario().episodes[0]!.id;
+    const playbook = {
+      ...rescueCommanderStarterPlaybook,
+      investigationBudgetCredits: 4,
+    };
+    const session = createRescuePracticeSession(episodeId, playbook);
+    const step = session.takeAction({ type: "BUY_SERVICE", serviceId: "pulse-monitor" });
+
+    expect(step.accepted).toBe(false);
+    expect(step.invalidReason).toContain("investigation budget");
   });
 
   it("replays AI decision evidence and enforces Playbook authorization", () => {

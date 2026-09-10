@@ -88,4 +88,87 @@ Desktop と Mobile の Outcome 画面で、Evidence Timeline、Replay、次の�
 - [x] UI verifier に禁止配色の自動検出を追加
 - [x] 恒久禁止ルールを本ファイルへ記載
 
+## Strategy Game UX Pass A — 2026-09-10
+
+### 対象とSource Visual Truth
+
+- 選択されたデザイン: `artifacts/ux-audit-rescue-room/34-strategy-game-selected.png`（1536 × 1088 px）
+- 実装Route: `http://localhost:3000/arenas/rescue-room`
+- 実装箇所: `apps/web/src/components/rescue-room-workbench.tsx`、`apps/web/src/app/globals.css`
+- Desktop: CSS viewport 1440 × 1000、deviceScaleFactor 1
+- Mobile: CSS viewport 390 × 844、deviceScaleFactor 1
+- 検証State: Hero、Doctrine選択前、Reference Doctrine実行中、実行完了、Previous Revision表示、AI Commander実行完了
+
+### 比較Evidence
+
+- Desktop Hero: `artifacts/ux-audit-rescue-room/35-strategy-game-desktop-hero.png`
+- Desktop Doctrine Builder: `artifacts/ux-audit-rescue-room/36-strategy-game-desktop-builder.png`
+- Desktop Live Decision: `artifacts/ux-audit-rescue-room/37-strategy-game-desktop-live.png`
+- Desktop Debrief: `artifacts/ux-audit-rescue-room/38-strategy-game-desktop-result.png`
+- Mobile Doctrine Builder: `artifacts/ux-audit-rescue-room/39-strategy-game-mobile-builder.png`
+- Mobile Debrief: `artifacts/ux-audit-rescue-room/40-strategy-game-mobile-result.png`
+- Real AI Commander Debrief: `artifacts/ux-audit-rescue-room/41-strategy-game-ai-result.png`
+
+### Comparison history
+
+#### Iteration 1 — blocked
+
+- Sourceと初回Desktop実装を同じ比較入力で確認した。暗いgrid、lime / cyan / orange、巨大見出し、横長Doctrine Row、選択中Rule、Service Toolkitという視覚階層は一致した。
+- [P1 / Mobile layout] Lock CTAが2-column gridのまま残り、説明文へ重なった。
+- [P1 / Mobile comparison] 4-column Baseline tableが画面外へ切れ、3 Outcomeを同時に比較できなかった。
+- [P2 / Content hierarchy] HeroとBuilderで`Unknown incident. One doctrine.`を繰り返し、Sourceの「BriefingからDoctrine選択へ進む」階層が弱かった。
+- Fix: Mobile deploy barを1-column化し、BaselineをStrategyごとの3 Outcome cardへ変換した。Builder見出しを`Choose your strategic doctrine.`へ変更した。
+
+#### Iteration 2 — passed
+
+- Source、Desktop Hero、Desktop Builderを同じ比較入力で再確認した。
+- 3 Doctrineは選択可能で、選択中だけRulesと許可Serviceが展開される。Primary CTAはStrategyをLockしてから実行する。
+- Live画面はProtocol / Commander / Service Agents / Evidenceの4 Laneと、Trigger / Rule / Cost-Time / State Change / AlternativesのDecision Lensを表示する。Raw TranscriptはSecondaryの`details`へ移した。
+- DebriefはYour Commander / Always Pause / Never Pause / Previous RevisionをUser Loss、Demand Served、Spendの独立列で比較し、Weighted Scoreを作らない。
+- MobileではDoctrine、Service、Lock CTA、Baseline comparisonが1-columnへ収まり、横Overflowはない。
+- 選択デザインのicon tileは既存プロダクトに同系統のicon setがないため、偽SVGやCSS artへ置き換えず、既存の番号・色・境界線による識別へ統一した。
+
+### Required fidelity surfaces
+
+- Fonts / typography: 既存display sansとmonoを維持。巨大見出し、Doctrine名、Rule、Evidenceの階層はSourceに合わせた。Desktop / Mobileでclippingなし。
+- Spacing / layout: Sourceの横長Doctrine Row、選択展開、Toolkit / Value Focus分割、下部Lock CTAを再現。Mobileは縦stackへ変換。
+- Colors / tokens: 既存のdark surface、lime、cyan、orangeだけを使用。visible interactive elementの禁止配色は0件。
+- Image quality: 既存の高解像度Incident StoryboardをNext Imageで使用し、Desktop / Mobileともstretch、halo、placeholderなし。
+- Copy / content: Strategyの保護対象と犠牲、True State非公開、Information cost、simulated Game Creditsを実行前に明示。
+- States / interactions: 3 Doctrine、Reference / AI runtime切替、Alert選択、Advanced AI設定、Lock、Play / Pause / Step / Skip、Raw Log、Baseline比較、Previous Revision、Retry、Evidence Downloadを操作確認。
+- Accessibility: semantic button、`aria-pressed`、form label、table role、live region、keyboard focus、reduced-motion処理を維持。Desktop / Mobileでconsole error 0件。
+
+### Automated verification
+
+- `pnpm verify:rescue-room-ui`でDesktop / MobileともHTTP 200。
+- Doctrine 3、Decision Lane 4、Baseline comparison、Previous Revision、Service 6、Value Pool 4を確認。
+- Reference Replayと実AI CommanderのAction Replayを完了。
+- Desktop / Mobileともhorizontal overflowなし、runtime overlayなし、console errorなし、禁止Contrast Pairなし。
+
+final result: passed
+
+## Rescue Room Incident Theatre Pass C — 2026-09-11
+
+### 変更とEvidence
+
+- Strategy Builder: `artifacts/ux-audit-rescue-room/42-incident-theatre-desktop-builder.png`
+- Desktop Incident Theatre: `artifacts/ux-audit-rescue-room/43-incident-theatre-desktop-live.png`
+- Mobile Incident Theatre: `artifacts/ux-audit-rescue-room/44-incident-theatre-mobile-live.png`
+- Desktop Debrief: `artifacts/ux-audit-rescue-room/45-incident-theatre-desktop-result.png`
+- Real AI Commander Debrief: `artifacts/ux-audit-rescue-room/46-incident-theatre-ai-result.png`
+- 実装箇所: `apps/web/src/components/rescue-incident-theatre.tsx`、`apps/web/src/components/rescue-room-workbench.tsx`、`apps/web/src/app/globals.css`
+
+Live表示を縦に増え続けるEvent Logから、5 Chapter、3 Actor、Service Payment、Evidence Return、Protocol Action、3 Outcomeを同時に示す一枚のIncident Theatreへ変更した。Canonical Transcriptは監査用Evidenceとして初期状態で閉じ、再生単位だけを同一Game MinuteのStory Beatへ束ねた。
+
+Strategy Builderには全10個の決定論的設定について意味とTradeoffを常時表示し、設定全体を`Spend / Certainty / Containment`で要約した。この3項目は読みやすさのための説明であり、評価用Weighted Scoreではない。AI PlaybookにはModel tuningとCommander Strategyの境界を明示した。
+
+### Automated verification
+
+- Desktop / MobileともHTTP 200、3 Actor、5 Chapter、10 Parameter説明、3 Strategy Summaryを確認。
+- Raw Transcriptが初期状態で閉じていること、Replay reset、Previous Revision、同一Episode Baseline比較を確認。
+- Mobileは`prefers-reduced-motion: reduce`で最終Evidenceへ直接到達。
+- Desktop / Mobileともhorizontal overflowなし、runtime overlayなし、console errorなし、禁止Contrast Pairなし。
+- Rescue RoomとAPIの決定論テスト40件、全Workspace typecheck、Next.js production buildが成功。
+- 実OpenAI Commanderは固定RuntimeでService購入を含むRunとAction Replay検証に成功。
+
 final result: passed

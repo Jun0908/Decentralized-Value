@@ -19,6 +19,10 @@ Rescue Roomは、架空のEthereum Protocolで起きた異常に対し、限ら�
 - 8つのReference Commander Policy
 - 3つの独立Outcome、Pareto Frontier、4つのPractice Value Pool
 - APIとIncident Room UI
+- Game Minute単位の有限なStory Beat Replay
+- Commander、Protocol、Service Agent、Payment、Evidenceを同じ盤面で示す5 ChapterのIncident Theatre
+- 全Strategy RuleのPlain-language説明と`Spend / Certainty / Containment` Summary
+- 初期状態で閉じた監査用Raw Transcript
 - 固定OpenAI Agents SDK Runtimeと参加者編集可能なCommander Playbook
 - Model、Prompt、Token、Action、Public View Hashを含むAI Provenance
 - Playbook Schema、公開Alert、Service Catalog、Runtime Contractを含むStarter Kit

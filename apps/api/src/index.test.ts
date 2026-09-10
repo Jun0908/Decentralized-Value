@@ -5,6 +5,7 @@ import {
   createRescuePracticeSession,
   finalizeRescueCommanderPracticeEvaluation,
   rescueCommanderStarterPlaybook,
+  rescueDoctrinePresets,
   rescuePublicViewHash,
   rescueRoomCommanderEpisodeTimeoutMs,
   rescueRoomCommanderMaximumModelTurns,
@@ -125,6 +126,29 @@ describe("Frontier API contracts", () => {
     expect(first.evaluationHash).toBe(second.evaluationHash);
   });
 
+  it("evaluates an editable Rescue Doctrine through the deterministic rules endpoint", async () => {
+    const api = createApi(benchmark);
+    const scenario = await (await api.fetch(request("/v1/rescue-room"))).json();
+    const doctrine = rescueDoctrinePresets[0]!.doctrine;
+    const init = {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ episodeId: scenario.episodes[0].id, doctrine }),
+    };
+    const firstResponse = await api.fetch(request("/v1/rescue-room/doctrine-evaluations", init));
+    const first = await firstResponse.json();
+    const second = await (
+      await api.fetch(request("/v1/rescue-room/doctrine-evaluations", init))
+    ).json();
+
+    expect(firstResponse.status).toBe(200);
+    expect(first.strategyState).toBe("deterministic-rules");
+    expect(first.doctrineHash).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(first.decisions.every(({ accepted }: { accepted: boolean }) => accepted)).toBe(true);
+    expect(first.replay.matchesRecordedOutcome).toBe(true);
+    expect(first.evaluationHash).toBe(second.evaluationHash);
+  });
+
   it("runs a structured AI Commander adapter and returns replay evidence", async () => {
     const scenarioApi = createApi(benchmark);
     const scenario = await (await scenarioApi.fetch(request("/v1/rescue-room"))).json();
@@ -196,6 +220,9 @@ describe("Frontier API contracts", () => {
     expect(Object.keys(archive).sort()).toEqual(
       expect.arrayContaining([
         "rescue-room-starter/README.md",
+        "rescue-room-starter/doctrine-presets.json",
+        "rescue-room-starter/doctrine-request.example.json",
+        "rescue-room-starter/doctrine.schema.json",
         "rescue-room-starter/playbook.schema.json",
         "rescue-room-starter/public-practice-alerts.json",
         "rescue-room-starter/request.example.json",

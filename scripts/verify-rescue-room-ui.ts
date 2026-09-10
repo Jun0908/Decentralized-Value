@@ -16,6 +16,7 @@ try {
       viewport: { width: config.width, height: config.height },
       isMobile: config.name === "mobile",
       hasTouch: config.name === "mobile",
+      reducedMotion: config.name === "mobile" ? "reduce" : "no-preference",
     });
     const page = await context.newPage();
     const homePage = await context.newPage();
@@ -34,14 +35,49 @@ try {
     const initialText = await page.locator("body").innerText();
     const initialPath = join(tmpdir(), `rescue-room-${config.name}-initial.png`);
     await page.screenshot({ path: initialPath, fullPage: false });
+    const builderPath = join(tmpdir(), `rescue-room-${config.name}-builder.png`);
+    await page.locator(".rescue-control-panel").screenshot({ path: builderPath });
+    const strategyTabs = await page.locator(".rescue-studio-tabs > button").count();
+    const ruleEditorVisible = await page.getByLabel("Evidence required").isVisible();
+    const parameterExplanations = await page.locator(".rescue-control-meaning").count();
+    const strategySummaries = await page.locator(".rescue-strategy-snapshot > article").count();
+    if (config.name === "desktop") {
+      await page.getByLabel("Doctrine name").fill("Evidence First Revision");
+      await page.getByLabel("Evidence required").selectOption("1");
+      await page.getByRole("button", { name: "artifact", exact: true }).click();
+    }
+    const artifactShowsRevision =
+      config.name === "desktop"
+        ? (await page.locator(".rescue-artifact-panel pre").innerText()).includes(
+            '\"minimumEvidenceCount\": 1',
+          )
+        : true;
+    if (config.name === "desktop") {
+      await page.getByRole("button", { name: "basic", exact: true }).click();
+    }
     const ablationPath = join(tmpdir(), `rescue-room-${config.name}-ablation.png`);
     await page.locator(".rescue-ablation").screenshot({ path: ablationPath });
 
     if (config.name === "mobile") {
-      await page.getByLabel("Initial protocol alert").selectOption({ index: 1 });
-      await page.getByLabel("Reference Commander").selectOption("monitor-first");
+      await page.getByLabel("Practice alert").selectOption({ index: 1 });
+      await page.getByRole("button", { name: /Keep It Running/ }).click();
     }
-    await page.getByRole("button", { name: "Run Reference Commander" }).click();
+    await page.getByRole("button", { name: "Lock doctrine & start incident" }).click();
+    await page
+      .getByRole("button", { name: "Skip to outcome" })
+      .waitFor({ state: "visible", timeout: 15_000 });
+    const pauseButton = page.getByRole("button", { name: "Pause", exact: true });
+    if (await pauseButton.isVisible()) await pauseButton.click();
+    for (let step = 0; step < 6; step += 1) {
+      const stepButton = page.getByRole("button", { name: "Next story beat", exact: true });
+      if (await stepButton.isEnabled()) await stepButton.click();
+    }
+    await page
+      .locator(".rescue-live-room")
+      .evaluate((element) => element.scrollIntoView({ block: "start" }));
+    const livePath = join(tmpdir(), `rescue-room-${config.name}-live.png`);
+    await page.screenshot({ path: livePath, fullPage: false });
+    await page.getByRole("button", { name: "Skip to outcome" }).click();
     const reveal = page.locator(".rescue-reveal");
     await reveal.waitFor({ state: "visible", timeout: 15_000 });
     const resultText = await page.locator("body").innerText();
@@ -52,6 +88,15 @@ try {
     await page.screenshot({ path: resultPath, fullPage: false });
     const revealPath = join(tmpdir(), `rescue-room-${config.name}-reveal.png`);
     await reveal.screenshot({ path: revealPath });
+    const incidentActors = await page.locator(".rescue-theatre-actors > article").count();
+    const incidentChapters = await page.locator(".rescue-theatre-chapters > li").count();
+    const incidentTheatre = page.locator(".rescue-incident-theatre");
+    const storyBeatCount = Number(await incidentTheatre.getAttribute("data-story-beat-count"));
+    const completedAtOutcome = (await incidentTheatre.getAttribute("data-chapter")) === "outcome";
+    const rawLogCollapsed = !(await page
+      .locator(".rescue-raw-log")
+      .evaluate((element) => element.hasAttribute("open")));
+    const comparisonRows = await page.locator(".rescue-comparison-row").count();
     await page
       .locator(".rescue-value-pools")
       .evaluate((element) => element.scrollIntoView({ block: "start" }));
@@ -63,24 +108,42 @@ try {
     const download = await downloadPromise;
     const downloadName = download.suggestedFilename();
 
-    await page.getByRole("button", { name: "Replay evidence timeline" }).click();
+    await page.getByRole("button", { name: "Replay illustrated incident" }).click();
     const replayResetObserved = (await page.locator(".rescue-timeline > li").count()) < 12;
     await reveal.waitFor({ state: "visible", timeout: 15_000 });
     const referenceTimelineEvents = await page.locator(".rescue-timeline > li").count();
     const referenceHiddenStateRevealed = await reveal.isVisible();
 
-    await page.getByRole("button", { name: "AI Playbook", exact: true }).click();
-    const aiEditorVisible = await page.locator(".rescue-playbook-editor").isVisible();
+    await page.getByRole("button", { name: "Change one rule & retry" }).click();
+    await page.getByRole("button", { name: /User Guardian/ }).click();
+    await page.getByRole("button", { name: "Lock doctrine & start incident" }).click();
+    await page
+      .getByRole("button", { name: "Skip to outcome" })
+      .waitFor({ state: "visible", timeout: 15_000 });
+    await page.getByRole("button", { name: "Skip to outcome" }).click();
+    await reveal.waitFor({ state: "visible", timeout: 15_000 });
+    const previousRevisionVisible =
+      (await page.getByText("Previous Revision", { exact: true }).count()) === 1;
+
+    await page.getByRole("button", { name: "AI Commander", exact: true }).click();
+    const aiEditorVisible = await page
+      .locator(".rescue-strategy-studio")
+      .getByLabel("Commander instructions")
+      .isVisible();
+    await page.getByRole("button", { name: "basic", exact: true }).click();
     const aiServicePermissions = await page
-      .locator(".rescue-playbook-options")
-      .first()
-      .locator("label")
+      .getByRole("group", { name: "Service Agents this strategy may hire" })
+      .locator('input[type="checkbox"]')
       .count();
     const starterKitLink = await page.locator('a[href="/v1/rescue-room/starter-kit"]').isVisible();
     let aiRunVerified = false;
     let aiPath: string | null = null;
     if (config.name === "desktop" && verifyAiCommander) {
-      await page.getByRole("button", { name: "Run AI Commander" }).click();
+      await page.getByRole("button", { name: "Lock strategy & deploy AI Commander" }).click();
+      await page
+        .getByRole("button", { name: "Skip to outcome" })
+        .waitFor({ state: "visible", timeout: 120_000 });
+      await page.getByRole("button", { name: "Skip to outcome" }).click();
       const aiProof = page.locator(".rescue-ai-proof");
       await aiProof.waitFor({ state: "visible", timeout: 120_000 });
       const aiText = await page.locator(".rescue-result").innerText();
@@ -152,15 +215,28 @@ try {
       rescueNavigationLinks,
       title: await page.title(),
       initialContent:
-        initialText.toLowerCase().includes("an incident is already moving") &&
+        initialText.toLowerCase().includes("unknown incident. one doctrine") &&
         initialText.toLowerCase().includes("game credits"),
+      strategyTabs,
+      ruleEditorVisible,
+      artifactShowsRevision,
+      doctrines: await page.locator(".rescue-doctrine-card").count(),
+      incidentActors,
+      incidentChapters,
+      storyBeatCount,
+      completedAtOutcome,
+      parameterExplanations,
+      strategySummaries,
+      rawLogCollapsed,
+      comparisonRows,
       services: await page.locator(".rescue-service-grid > article").count(),
       pools: await page.locator(".rescue-pool-grid > article").count(),
       timelineEvents: referenceTimelineEvents,
-      outcomeVisible: resultText.includes("No weighted score. No overall winner."),
+      outcomeVisible: resultText.includes("Same incident. Different judgment."),
       hiddenStateRevealed: referenceHiddenStateRevealed,
       downloadName,
       replayResetObserved,
+      previousRevisionVisible,
       aiEditorVisible,
       aiServicePermissions,
       starterKitLink,
@@ -173,6 +249,8 @@ try {
       forbiddenContrastPairs,
       consoleErrors,
       initialPath,
+      builderPath,
+      livePath,
       ablationPath,
       resultPath,
       revealPath,
@@ -195,6 +273,19 @@ if (
       result.homeStatus !== 200 ||
       Number(result.rescueNavigationLinks) < 1 ||
       !result.initialContent ||
+      result.strategyTabs !== 3 ||
+      !result.ruleEditorVisible ||
+      !result.artifactShowsRevision ||
+      result.doctrines !== 3 ||
+      result.incidentActors !== 3 ||
+      result.incidentChapters !== 5 ||
+      Number(result.storyBeatCount) < 2 ||
+      Number(result.storyBeatCount) >= Number(result.timelineEvents) ||
+      !result.completedAtOutcome ||
+      Number(result.parameterExplanations) < 10 ||
+      result.strategySummaries !== 3 ||
+      !result.rawLogCollapsed ||
+      Number(result.comparisonRows) < 4 ||
       result.services !== 6 ||
       result.pools !== 4 ||
       Number(result.timelineEvents) < 1 ||
@@ -202,6 +293,7 @@ if (
       !result.hiddenStateRevealed ||
       !String(result.downloadName).endsWith(".json") ||
       !result.replayResetObserved ||
+      !result.previousRevisionVisible ||
       !result.aiEditorVisible ||
       result.aiServicePermissions !== 6 ||
       !result.starterKitLink ||

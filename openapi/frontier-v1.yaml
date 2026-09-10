@@ -367,7 +367,7 @@ paths:
   /v1/rescue-room/starter-kit:
     get:
       operationId: downloadRescueRoomStarterKit
-      description: Downloads the public alerts, Service Agent catalog, Commander Playbook schema, fixed runtime contract, and an example request. Hidden incident state is excluded.
+      description: Downloads the public alerts, Service Agent catalog, Doctrine and Commander Playbook schemas, deterministic and AI runtime contracts, starter Artifacts, and example requests. Hidden incident state is excluded.
       responses:
         {
           "200":
@@ -392,6 +392,24 @@ paths:
       responses:
         {
           "200": { description: Simulated Episode Replay and three-axis Practice outcome },
+          "400": { $ref: "#/components/responses/BadRequest" },
+        }
+  /v1/rescue-room/doctrine-evaluations:
+    post:
+      operationId: evaluateRescueRoomDoctrine
+      description: Runs one normalized deterministic Rescue Doctrine against one public Practice Episode. Returns reason-coded decisions, an Artifact hash, deterministic Action replay, and three independent outcomes.
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                { schema: { $ref: "#/components/schemas/RescueRoomDoctrineEvaluationInput" } },
+            },
+        }
+      responses:
+        {
+          "200": { description: Simulated outcome with deterministic Doctrine replay evidence },
           "400": { $ref: "#/components/responses/BadRequest" },
         }
   /v1/rescue-room/commander-evaluations:
@@ -737,6 +755,100 @@ components:
         episodeId: { type: string, minLength: 1 }
         playbook: { $ref: "#/components/schemas/RescueCommanderPlaybook" }
       additionalProperties: false
+    RescueRoomDoctrineEvaluationInput:
+      type: object
+      required: [episodeId, doctrine]
+      properties:
+        episodeId: { type: string, minLength: 1 }
+        doctrine: { $ref: "#/components/schemas/RescueDoctrine" }
+      additionalProperties: false
+    RescueDoctrine:
+      type: object
+      required: [schemaVersion, name, constraints, rules]
+      properties:
+        schemaVersion: { type: string, enum: [rescue-doctrine-v0] }
+        name: { type: string, minLength: 3, maxLength: 80 }
+        constraints:
+          type: object
+          required:
+            [
+              investigationBudgetCredits,
+              maxServicePriceCredits,
+              allowedServiceIds,
+              allowedProtocolActions,
+            ]
+          properties:
+            investigationBudgetCredits: { type: integer, minimum: 0, maximum: 100 }
+            maxServicePriceCredits: { type: integer, minimum: 0, maximum: 100 }
+            allowedServiceIds:
+              type: array
+              uniqueItems: true
+              minItems: 1
+              maxItems: 6
+              items:
+                {
+                  type: string,
+                  enum:
+                    [
+                      pulse-monitor,
+                      trace-audit,
+                      accounting-audit,
+                      second-opinion,
+                      patch-builder,
+                      patch-verifier,
+                    ],
+                }
+            allowedProtocolActions:
+              type: array
+              uniqueItems: true
+              minItems: 1
+              maxItems: 7
+              items:
+                {
+                  type: string,
+                  enum:
+                    [
+                      PAUSE_MODULE,
+                      PAUSE_PROTOCOL,
+                      APPLY_PATCH,
+                      RESUME_MODULE,
+                      RESUME_PROTOCOL,
+                      WAIT,
+                      CLOSE_INCIDENT,
+                    ],
+                }
+          additionalProperties: false
+        rules:
+          type: object
+          required:
+            [
+              minimumEvidenceCount,
+              minimumConfidencePpm,
+              disagreementAction,
+              containmentScope,
+              servicePriority,
+              requirePatchVerification,
+              budgetExhaustedAction,
+            ]
+          properties:
+            minimumEvidenceCount: { type: integer, minimum: 1, maximum: 3 }
+            minimumConfidencePpm: { type: integer, minimum: 500000, maximum: 950000 }
+            disagreementAction: { type: string, enum: [second-opinion, wait, contain] }
+            containmentScope: { type: string, enum: [none, module, protocol] }
+            servicePriority:
+              type: array
+              uniqueItems: true
+              minItems: 1
+              maxItems: 4
+              items:
+                {
+                  type: string,
+                  enum: [pulse-monitor, trace-audit, accounting-audit, second-opinion],
+                }
+            requirePatchVerification: { type: boolean }
+            budgetExhaustedAction: { type: string, enum: [wait, close, contain] }
+          additionalProperties: false
+      additionalProperties: false
     RescueCommanderPlaybook:
       type: object
       required:
@@ -789,6 +901,7 @@ components:
                 ],
             }
         maxServicePriceCredits: { type: integer, minimum: 0, maximum: 100 }
+        investigationBudgetCredits: { type: integer, minimum: 0, maximum: 100, default: 100 }
       additionalProperties: false
     SandboxRegistration:
       type: object

@@ -99,6 +99,7 @@ ${playbook.instructions}
 
 Authorized Service Agents: ${playbook.allowedServiceIds.join(", ") || "none"}
 Maximum price per Service Agent: ${playbook.maxServicePriceCredits} Rescue Credits
+Total investigation budget: ${playbook.investigationBudgetCredits} Rescue Credits
 Authorized protocol actions: ${playbook.allowedProtocolActions.join(", ")}`,
     outputType: rescueCommanderDecisionSchema,
   });

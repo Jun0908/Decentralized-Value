@@ -17,8 +17,9 @@ export const rescueRoomEvaluatorVersion = "rescue-room-evaluator-v2" as const;
 export const rescueRoomInitialBudgetCredits = 100;
 export const rescueRoomHorizonMinutes = 60;
 export const rescueRoomMaximumDecisions = 12;
-export const rescueRoomCommanderRuntimeVersion = "rescue-commander-runtime-v1" as const;
+export const rescueRoomCommanderRuntimeVersion = "rescue-commander-runtime-v2" as const;
 export const rescueRoomCommanderPromptVersion = "rescue-commander-prompt-v1" as const;
+export const rescueDoctrineInterpreterVersion = "rescue-doctrine-interpreter-v0" as const;
 export const rescueRoomCommanderModel = "gpt-5.6-luna" as const;
 export const rescueRoomCommanderMaximumModelTurns = 12;
 export const rescueRoomCommanderMaximumOutputTokens = 400;
@@ -276,6 +277,12 @@ export const rescueCommanderPlaybookSchema = z
       .min(1)
       .max(rescueProtocolActionTypeSchema.options.length),
     maxServicePriceCredits: z.number().int().min(0).max(rescueRoomInitialBudgetCredits),
+    investigationBudgetCredits: z
+      .number()
+      .int()
+      .min(0)
+      .max(rescueRoomInitialBudgetCredits)
+      .default(rescueRoomInitialBudgetCredits),
   })
   .strict()
   .superRefine((playbook, context) => {
@@ -295,6 +302,134 @@ export const rescueCommanderPlaybookSchema = z
     }
   });
 export type RescueCommanderPlaybook = z.infer<typeof rescueCommanderPlaybookSchema>;
+
+export const rescueDoctrinePresetIdSchema = z.enum([
+  "evidence-first",
+  "user-guardian",
+  "keep-running",
+]);
+export type RescueDoctrinePresetId = z.infer<typeof rescueDoctrinePresetIdSchema>;
+
+export const rescueDoctrineDiagnosticServiceIdSchema = z.enum([
+  "pulse-monitor",
+  "trace-audit",
+  "accounting-audit",
+  "second-opinion",
+]);
+export type RescueDoctrineDiagnosticServiceId = z.infer<
+  typeof rescueDoctrineDiagnosticServiceIdSchema
+>;
+
+export const rescueDoctrineSchema = z
+  .object({
+    schemaVersion: z.literal("rescue-doctrine-v0"),
+    name: z.string().trim().min(3).max(80),
+    constraints: z
+      .object({
+        investigationBudgetCredits: z.number().int().min(0).max(rescueRoomInitialBudgetCredits),
+        maxServicePriceCredits: z.number().int().min(0).max(rescueRoomInitialBudgetCredits),
+        allowedServiceIds: z.array(serviceIdSchema).min(1).max(rescueServices.length),
+        allowedProtocolActions: z
+          .array(rescueProtocolActionTypeSchema)
+          .min(1)
+          .max(rescueProtocolActionTypeSchema.options.length),
+      })
+      .strict(),
+    rules: z
+      .object({
+        minimumEvidenceCount: z.number().int().min(1).max(3),
+        minimumConfidencePpm: z.number().int().min(500_000).max(950_000),
+        disagreementAction: z.enum(["second-opinion", "wait", "contain"]),
+        containmentScope: z.enum(["none", "module", "protocol"]),
+        servicePriority: z
+          .array(rescueDoctrineDiagnosticServiceIdSchema)
+          .min(1)
+          .max(rescueDoctrineDiagnosticServiceIdSchema.options.length),
+        requirePatchVerification: z.boolean(),
+        budgetExhaustedAction: z.enum(["wait", "close", "contain"]),
+      })
+      .strict(),
+  })
+  .strict()
+  .superRefine((doctrine, context) => {
+    const { allowedProtocolActions, allowedServiceIds } = doctrine.constraints;
+    if (new Set(allowedServiceIds).size !== allowedServiceIds.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["constraints", "allowedServiceIds"],
+        message: "Service Agent ids must be unique",
+      });
+    }
+    if (new Set(allowedProtocolActions).size !== allowedProtocolActions.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["constraints", "allowedProtocolActions"],
+        message: "Protocol action types must be unique",
+      });
+    }
+    for (const requiredAction of ["WAIT", "CLOSE_INCIDENT"] as const) {
+      if (!allowedProtocolActions.includes(requiredAction)) {
+        context.addIssue({
+          code: "custom",
+          path: ["constraints", "allowedProtocolActions"],
+          message: `Deterministic doctrines require ${requiredAction} authorization`,
+        });
+      }
+    }
+    if (new Set(doctrine.rules.servicePriority).size !== doctrine.rules.servicePriority.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["rules", "servicePriority"],
+        message: "Service priority ids must be unique",
+      });
+    }
+    for (const serviceId of doctrine.rules.servicePriority) {
+      if (!allowedServiceIds.includes(serviceId)) {
+        context.addIssue({
+          code: "custom",
+          path: ["rules", "servicePriority"],
+          message: `Service priority ${serviceId} must also be authorized`,
+        });
+      }
+    }
+    if (
+      doctrine.rules.containmentScope === "module" &&
+      !allowedProtocolActions.includes("PAUSE_MODULE")
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["rules", "containmentScope"],
+        message: "Module containment requires PAUSE_MODULE authorization",
+      });
+    }
+    if (
+      doctrine.rules.containmentScope === "protocol" &&
+      !allowedProtocolActions.includes("PAUSE_PROTOCOL")
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["rules", "containmentScope"],
+        message: "Protocol containment requires PAUSE_PROTOCOL authorization",
+      });
+    }
+    if (
+      doctrine.rules.requirePatchVerification &&
+      (!allowedServiceIds.includes("patch-builder") ||
+        !allowedServiceIds.includes("patch-verifier") ||
+        !allowedProtocolActions.includes("APPLY_PATCH"))
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["rules", "requirePatchVerification"],
+        message: "Verified patching requires Patch Builder, Patch Verifier, and APPLY_PATCH",
+      });
+    }
+  });
+export type RescueDoctrine = z.infer<typeof rescueDoctrineSchema>;
+
+export const rescueDoctrineJsonSchema = JSON.parse(
+  JSON.stringify(z.toJSONSchema(rescueDoctrineSchema)),
+) as Record<string, unknown>;
 
 export const rescueCommanderPlaybookJsonSchema = JSON.parse(
   JSON.stringify(z.toJSONSchema(rescueCommanderPlaybookSchema)),
@@ -366,7 +501,117 @@ export const rescueCommanderStarterPlaybook: RescueCommanderPlaybook = {
     "CLOSE_INCIDENT",
   ],
   maxServicePriceCredits: 30,
+  investigationBudgetCredits: 80,
 };
+
+const doctrineProtocolActions: RescueProtocolActionType[] = [
+  "PAUSE_MODULE",
+  "PAUSE_PROTOCOL",
+  "APPLY_PATCH",
+  "RESUME_MODULE",
+  "RESUME_PROTOCOL",
+  "WAIT",
+  "CLOSE_INCIDENT",
+];
+
+export type RescueDoctrinePreset = {
+  id: RescueDoctrinePresetId;
+  promise: string;
+  protects: string;
+  accepts: string;
+  doctrine: RescueDoctrine;
+};
+
+export const rescueDoctrinePresets: readonly RescueDoctrinePreset[] = [
+  {
+    id: "evidence-first",
+    promise: "Corroborate the incident before committing the protocol.",
+    protects: "Decision confidence",
+    accepts: "Higher spend and slower containment",
+    doctrine: {
+      schemaVersion: "rescue-doctrine-v0",
+      name: "Evidence First",
+      constraints: {
+        investigationBudgetCredits: 90,
+        maxServicePriceCredits: 30,
+        allowedServiceIds: [
+          "pulse-monitor",
+          "trace-audit",
+          "accounting-audit",
+          "second-opinion",
+          "patch-builder",
+          "patch-verifier",
+        ],
+        allowedProtocolActions: [...doctrineProtocolActions],
+      },
+      rules: {
+        minimumEvidenceCount: 2,
+        minimumConfidencePpm: 700_000,
+        disagreementAction: "second-opinion",
+        containmentScope: "module",
+        servicePriority: ["trace-audit", "accounting-audit", "second-opinion", "pulse-monitor"],
+        requirePatchVerification: true,
+        budgetExhaustedAction: "contain",
+      },
+    },
+  },
+  {
+    id: "user-guardian",
+    promise: "Contain credible loss, then verify the recovery path.",
+    protects: "User assets",
+    accepts: "Selective downtime and specialist cost",
+    doctrine: {
+      schemaVersion: "rescue-doctrine-v0",
+      name: "User Guardian",
+      constraints: {
+        investigationBudgetCredits: 80,
+        maxServicePriceCredits: 30,
+        allowedServiceIds: [
+          "trace-audit",
+          "accounting-audit",
+          "second-opinion",
+          "patch-builder",
+          "patch-verifier",
+        ],
+        allowedProtocolActions: [...doctrineProtocolActions],
+      },
+      rules: {
+        minimumEvidenceCount: 1,
+        minimumConfidencePpm: 650_000,
+        disagreementAction: "contain",
+        containmentScope: "module",
+        servicePriority: ["trace-audit", "accounting-audit", "second-opinion"],
+        requirePatchVerification: true,
+        budgetExhaustedAction: "contain",
+      },
+    },
+  },
+  {
+    id: "keep-running",
+    promise: "Start cheap and fast; restrict service only after a strong signal.",
+    protects: "Protocol availability",
+    accepts: "More exposure while evidence arrives",
+    doctrine: {
+      schemaVersion: "rescue-doctrine-v0",
+      name: "Keep It Running",
+      constraints: {
+        investigationBudgetCredits: 50,
+        maxServicePriceCredits: 28,
+        allowedServiceIds: ["pulse-monitor", "second-opinion", "patch-builder"],
+        allowedProtocolActions: [...doctrineProtocolActions],
+      },
+      rules: {
+        minimumEvidenceCount: 1,
+        minimumConfidencePpm: 800_000,
+        disagreementAction: "wait",
+        containmentScope: "module",
+        servicePriority: ["pulse-monitor", "second-opinion"],
+        requirePatchVerification: false,
+        budgetExhaustedAction: "close",
+      },
+    },
+  },
+];
 
 export type TranscriptEvent = {
   sequence: number;
@@ -478,6 +723,26 @@ export function normalizeRescueCommanderPlaybook(input: unknown): RescueCommande
     allowedServiceIds: lexicalSort(parsed.allowedServiceIds),
     allowedProtocolActions: lexicalSort(parsed.allowedProtocolActions),
   };
+}
+
+export function normalizeRescueDoctrine(input: unknown): RescueDoctrine {
+  const parsed = rescueDoctrineSchema.parse(input);
+  return {
+    ...parsed,
+    constraints: {
+      ...parsed.constraints,
+      allowedServiceIds: lexicalSort(parsed.constraints.allowedServiceIds),
+      allowedProtocolActions: lexicalSort(parsed.constraints.allowedProtocolActions),
+    },
+    rules: {
+      ...parsed.rules,
+      servicePriority: [...parsed.rules.servicePriority],
+    },
+  };
+}
+
+export function rescueDoctrineHash(input: unknown): Hex {
+  return hashValue(normalizeRescueDoctrine(input));
 }
 
 export function rescueCommanderPlaybookHash(input: unknown): Hex {
@@ -1028,7 +1293,11 @@ export type RescueEpisodeSession = {
   finish(): RescueEpisodeOutcome;
 };
 
-function playbookViolation(playbook: RescueCommanderPlaybook, action: RescueAction): string | null {
+function playbookViolation(
+  playbook: RescueCommanderPlaybook,
+  action: RescueAction,
+  view: RescuePublicView,
+): string | null {
   if (action.type === "BUY_SERVICE") {
     if (!playbook.allowedServiceIds.includes(action.serviceId)) {
       return `Playbook does not authorize Service Agent ${action.serviceId}`;
@@ -1036,6 +1305,12 @@ function playbookViolation(playbook: RescueCommanderPlaybook, action: RescueActi
     const service = rescueServices.find(({ id }) => id === action.serviceId)!;
     if (service.priceCredits > playbook.maxServicePriceCredits) {
       return `Service Agent ${action.serviceId} exceeds the Playbook price ceiling`;
+    }
+    if (
+      view.netResponseSpendCredits + view.reservedBudgetCredits + service.priceCredits >
+      playbook.investigationBudgetCredits
+    ) {
+      return `Service Agent ${action.serviceId} exceeds the Playbook investigation budget`;
     }
     return null;
   }
@@ -1075,7 +1350,7 @@ export function createRescueEpisodeSession(
       const beforeActions = state.actions.length;
       const parsed = rescueActionSchema.safeParse(input);
       if (parsed.success && playbook) {
-        const violation = playbookViolation(playbook, parsed.data);
+        const violation = playbookViolation(playbook, parsed.data, publicView(state));
         if (violation) invalidate(state, violation);
         else applyAction(state, parsed.data);
       } else {
@@ -1123,6 +1398,286 @@ function pauseTarget(view: RescuePublicView): RescueAction {
   return receipt?.likelyAffectedModule
     ? { type: "PAUSE_MODULE", module: receipt.likelyAffectedModule }
     : { type: "PAUSE_PROTOCOL" };
+}
+
+function doctrineAuthorizationPlaybook(doctrine: RescueDoctrine): RescueCommanderPlaybook {
+  return normalizeRescueCommanderPlaybook({
+    schemaVersion: "rescue-commander-playbook-v0",
+    name: doctrine.name,
+    instructions:
+      "Execute the committed deterministic Rescue Doctrine. Only public observations and purchased Service Agent evidence may affect an action.",
+    allowedServiceIds: doctrine.constraints.allowedServiceIds,
+    allowedProtocolActions: doctrine.constraints.allowedProtocolActions,
+    maxServicePriceCredits: doctrine.constraints.maxServicePriceCredits,
+    investigationBudgetCredits: doctrine.constraints.investigationBudgetCredits,
+  });
+}
+
+function diagnosticReceipts(view: RescuePublicView): ServiceReceipt[] {
+  return view.serviceReceipts.filter(({ task }) =>
+    ["SCAN_ACTIVITY", "TRACE_EXECUTION", "CHECK_ACCOUNTING", "SECOND_OPINION"].includes(task),
+  );
+}
+
+function credibleDiagnosticReceipts(
+  doctrine: RescueDoctrine,
+  view: RescuePublicView,
+): ServiceReceipt[] {
+  return diagnosticReceipts(view).filter(
+    ({ classification, confidencePpm }) =>
+      classification !== "inconclusive" && confidencePpm >= doctrine.rules.minimumConfidencePpm,
+  );
+}
+
+function consensusFinding(
+  doctrine: RescueDoctrine,
+  view: RescuePublicView,
+): { receipt: ServiceReceipt; count: number } | null {
+  const groups = new Map<IncidentFamily, ServiceReceipt[]>();
+  for (const receipt of credibleDiagnosticReceipts(doctrine, view)) {
+    if (receipt.classification === "inconclusive") continue;
+    const group = groups.get(receipt.classification) ?? [];
+    group.push(receipt);
+    groups.set(receipt.classification, group);
+  }
+  const ranked = [...groups.entries()].sort((left, right) => {
+    const countDifference = right[1].length - left[1].length;
+    if (countDifference !== 0) return countDifference;
+    const rightConfidence = right[1].reduce((sum, receipt) => sum + receipt.confidencePpm, 0);
+    const leftConfidence = left[1].reduce((sum, receipt) => sum + receipt.confidencePpm, 0);
+    return rightConfidence - leftConfidence || left[0].localeCompare(right[0]);
+  });
+  const best = ranked[0];
+  if (!best || best[1].length < doctrine.rules.minimumEvidenceCount) return null;
+  return { receipt: best[1].at(-1)!, count: best[1].length };
+}
+
+function hasCredibleDisagreement(doctrine: RescueDoctrine, view: RescuePublicView): boolean {
+  return (
+    new Set(credibleDiagnosticReceipts(doctrine, view).map(({ classification }) => classification))
+      .size > 1
+  );
+}
+
+function canDoctrineBuy(
+  doctrine: RescueDoctrine,
+  view: RescuePublicView,
+  serviceId: ServiceId,
+): boolean {
+  const service = rescueServices.find(({ id }) => id === serviceId)!;
+  const committedSpend = view.netResponseSpendCredits + view.reservedBudgetCredits;
+  return (
+    doctrine.constraints.allowedServiceIds.includes(serviceId) &&
+    service.priceCredits <= doctrine.constraints.maxServicePriceCredits &&
+    service.priceCredits <= view.availableBudgetCredits &&
+    committedSpend + service.priceCredits <= doctrine.constraints.investigationBudgetCredits
+  );
+}
+
+function doctrineContainmentAction(
+  doctrine: RescueDoctrine,
+  view: RescuePublicView,
+  receipt?: ServiceReceipt,
+): RescueAction | null {
+  if (doctrine.rules.containmentScope === "none" || view.pausedModules.length > 0) return null;
+  if (doctrine.rules.containmentScope === "protocol") return { type: "PAUSE_PROTOCOL" };
+  return receipt?.likelyAffectedModule
+    ? { type: "PAUSE_MODULE", module: receipt.likelyAffectedModule }
+    : null;
+}
+
+function doctrineFallbackDecision(
+  doctrine: RescueDoctrine,
+  view: RescuePublicView,
+  receipt?: ServiceReceipt,
+): RescueCommanderDecision {
+  if (doctrine.rules.budgetExhaustedAction === "contain") {
+    const action = doctrineContainmentAction(doctrine, view, receipt);
+    if (action) return { action, reasonCode: "budget-fallback-contain", confidencePpm: 500_000 };
+  }
+  if (doctrine.rules.budgetExhaustedAction === "wait" && view.actions.at(-1)?.type !== "WAIT") {
+    return {
+      action: { type: "WAIT", minutes: 5 },
+      reasonCode: "budget-fallback-wait",
+      confidencePpm: 400_000,
+    };
+  }
+  return {
+    action: { type: "CLOSE_INCIDENT" },
+    reasonCode: "budget-fallback-close",
+    confidencePpm: 400_000,
+  };
+}
+
+export function decideRescueDoctrine(
+  doctrineInput: unknown,
+  view: RescuePublicView,
+): RescueCommanderDecision {
+  const doctrine = normalizeRescueDoctrine(doctrineInput);
+  const credible = credibleDiagnosticReceipts(doctrine, view);
+  const latestCredible = credible.at(-1);
+
+  if (outstanding(view).length > 0) {
+    return {
+      action: waitForNextService(view),
+      reasonCode: "await-service-evidence",
+      confidencePpm: latestCredible?.confidencePpm ?? 300_000,
+    };
+  }
+
+  if (view.actions.some(({ type }) => type === "APPLY_PATCH")) {
+    if (
+      view.pausedModules.length > 0 &&
+      doctrine.constraints.allowedProtocolActions.includes("RESUME_PROTOCOL")
+    ) {
+      return {
+        action: { type: "RESUME_PROTOCOL" },
+        reasonCode: "resume-after-patch",
+        confidencePpm: 850_000,
+      };
+    }
+    return {
+      action: { type: "CLOSE_INCIDENT" },
+      reasonCode: "close-after-patch",
+      confidencePpm: 850_000,
+    };
+  }
+
+  const patch = latestPatch(view);
+  if (patch && doctrine.rules.requirePatchVerification) {
+    const verification = [...view.serviceReceipts]
+      .reverse()
+      .find(
+        ({ serviceId, patchId }) => serviceId === "patch-verifier" && patchId === patch.patchId,
+      );
+    if (!verification && canDoctrineBuy(doctrine, view, "patch-verifier")) {
+      return {
+        action: {
+          type: "BUY_SERVICE",
+          serviceId: "patch-verifier",
+          targetReceiptId: patch.receiptId,
+        },
+        reasonCode: "verify-patch-before-apply",
+        confidencePpm: patch.confidencePpm,
+      };
+    }
+    if (verification?.patchValid) {
+      return {
+        action: { type: "APPLY_PATCH", receiptId: patch.receiptId },
+        reasonCode: "apply-verified-patch",
+        confidencePpm: verification.confidencePpm,
+      };
+    }
+    return doctrineFallbackDecision(doctrine, view, latestCredible);
+  }
+
+  if (
+    patch &&
+    !doctrine.rules.requirePatchVerification &&
+    doctrine.constraints.allowedProtocolActions.includes("APPLY_PATCH")
+  ) {
+    return {
+      action: { type: "APPLY_PATCH", receiptId: patch.receiptId },
+      reasonCode: "apply-direct-patch",
+      confidencePpm: patch.confidencePpm,
+    };
+  }
+
+  const consensus = consensusFinding(doctrine, view);
+  if (consensus?.receipt.classification === "false-positive") {
+    if (
+      view.pausedModules.length > 0 &&
+      doctrine.constraints.allowedProtocolActions.includes("RESUME_PROTOCOL")
+    ) {
+      return {
+        action: { type: "RESUME_PROTOCOL" },
+        reasonCode: "resume-after-benign-consensus",
+        confidencePpm: consensus.receipt.confidencePpm,
+      };
+    }
+    return {
+      action: { type: "CLOSE_INCIDENT" },
+      reasonCode: "close-benign-consensus",
+      confidencePpm: consensus.receipt.confidencePpm,
+    };
+  }
+
+  if (consensus) {
+    const containment = doctrineContainmentAction(doctrine, view, consensus.receipt);
+    if (containment) {
+      return {
+        action: containment,
+        reasonCode: "contain-confirmed-incident",
+        confidencePpm: consensus.receipt.confidencePpm,
+      };
+    }
+    if (!bought(view, "patch-builder") && canDoctrineBuy(doctrine, view, "patch-builder")) {
+      return {
+        action: {
+          type: "BUY_SERVICE",
+          serviceId: "patch-builder",
+          targetModule: consensus.receipt.likelyAffectedModule,
+        },
+        reasonCode: "build-patch-after-consensus",
+        confidencePpm: consensus.receipt.confidencePpm,
+      };
+    }
+    return doctrineFallbackDecision(doctrine, view, consensus.receipt);
+  }
+
+  if (hasCredibleDisagreement(doctrine, view)) {
+    if (
+      doctrine.rules.disagreementAction === "second-opinion" &&
+      !bought(view, "second-opinion") &&
+      canDoctrineBuy(doctrine, view, "second-opinion")
+    ) {
+      return {
+        action: { type: "BUY_SERVICE", serviceId: "second-opinion" },
+        reasonCode: "resolve-evidence-disagreement",
+        confidencePpm: latestCredible?.confidencePpm ?? 500_000,
+      };
+    }
+    if (doctrine.rules.disagreementAction === "contain") {
+      const containment = doctrineContainmentAction(doctrine, view, latestCredible);
+      if (containment) {
+        return {
+          action: containment,
+          reasonCode: "contain-on-disagreement",
+          confidencePpm: latestCredible?.confidencePpm ?? 500_000,
+        };
+      }
+    }
+    if (doctrine.rules.disagreementAction === "wait" && view.actions.at(-1)?.type !== "WAIT") {
+      return {
+        action: { type: "WAIT", minutes: 5 },
+        reasonCode: "wait-on-disagreement",
+        confidencePpm: latestCredible?.confidencePpm ?? 500_000,
+      };
+    }
+  }
+
+  const nextServiceId = doctrine.rules.servicePriority.find(
+    (serviceId) => !bought(view, serviceId) && canDoctrineBuy(doctrine, view, serviceId),
+  );
+  if (nextServiceId) {
+    return {
+      action: { type: "BUY_SERVICE", serviceId: nextServiceId },
+      reasonCode: `gather-${nextServiceId}`,
+      confidencePpm: latestCredible?.confidencePpm ?? 300_000,
+    };
+  }
+
+  return doctrineFallbackDecision(doctrine, view, latestCredible);
+}
+
+export function createRescueDoctrinePolicy(doctrineInput: unknown): RescuePolicy {
+  const doctrine = normalizeRescueDoctrine(doctrineInput);
+  const doctrineHash = rescueDoctrineHash(doctrine);
+  return {
+    id: `doctrine-${doctrineHash.slice(2, 14)}`,
+    name: doctrine.name,
+    decide: (view) => decideRescueDoctrine(doctrine, view).action,
+  };
 }
 
 function createAlwaysPausePolicy(): RescuePolicy {
@@ -1650,6 +2205,16 @@ export const rescueRoomCommanderContext = {
 
 export const rescueRoomCommanderContextHash = hashValue(rescueRoomCommanderContext);
 
+export const rescueDoctrineContext = {
+  practiceContextHash: rescuePracticeContextHash,
+  interpreterVersion: rescueDoctrineInterpreterVersion,
+  doctrineSchemaVersion: "rescue-doctrine-v0",
+  decisionInterface: "public-view-to-one-structured-action",
+  actionSchemaVersion: "rescue-action-v0",
+} as const;
+
+export const rescueDoctrineContextHash = hashValue(rescueDoctrineContext);
+
 export const rescueRoomManifest = parseChallengeManifest({
   schemaVersion: "2",
   id: rescueRoomChallengeId,
@@ -1663,7 +2228,7 @@ export const rescueRoomManifest = parseChallengeManifest({
   },
   valueTension:
     "Protect users, keep the protocol available, and steward the response treasury without combining the outcomes into one score.",
-  artifactType: "rescue-commander-policy-v0",
+  artifactType: "rescue-doctrine-v0",
   hardConstraints: [
     "Use only the published Commander action schema",
     "Do not spend more than the 100 Rescue Credit Episode budget",
@@ -1890,6 +2455,19 @@ export function publicRescueRoomScenario() {
     horizonMinutes: rescueRoomHorizonMinutes,
     maximumDecisions: rescueRoomMaximumDecisions,
     modules: rescueModules,
+    doctrineRuntime: {
+      mode: "deterministic-rules" as const,
+      contextHash: rescueDoctrineContextHash,
+      interpreterVersion: rescueDoctrineInterpreterVersion,
+      doctrineSchema: rescueDoctrineJsonSchema,
+      presets: rescueDoctrinePresets.map((preset) => ({
+        ...preset,
+        doctrine: normalizeRescueDoctrine(preset.doctrine),
+        doctrineHash: rescueDoctrineHash(preset.doctrine),
+      })),
+      replayBoundary:
+        "The normalized Doctrine, public view, reason code, Action sequence, and outcome are deterministic.",
+    },
     commanderRuntime: {
       mode: "openai-agents-sdk" as const,
       status: "local-practice" as const,
@@ -1965,6 +2543,87 @@ function rescuePracticeEpisode(episodeId: string): RescueEpisodeDefinition {
   const episode = rescuePracticeEpisodes.find(({ publicId }) => publicId === episodeId);
   if (!episode) throw new Error("Unknown Rescue Room practice Episode");
   return episode;
+}
+
+function runRescueDoctrineEpisode(
+  episode: RescueEpisodeDefinition,
+  doctrineInput: unknown,
+): { outcome: RescueEpisodeOutcome; decisions: RescueCommanderDecisionEvidence[] } {
+  const doctrine = normalizeRescueDoctrine(doctrineInput);
+  const session = createRescueEpisodeSession(episode, doctrineAuthorizationPlaybook(doctrine));
+  const decisions: RescueCommanderDecisionEvidence[] = [];
+  while (!session.isComplete() && decisions.length < rescueRoomMaximumDecisions) {
+    const view = session.getPublicView();
+    const decision = decideRescueDoctrine(doctrine, view);
+    const step = session.takeAction(decision.action);
+    decisions.push({
+      ...decision,
+      decision: decisions.length + 1,
+      gameMinute: view.gameMinute,
+      publicViewHash: rescuePublicViewHash(view),
+      accepted: step.accepted,
+      invalidReason: step.invalidReason,
+    });
+  }
+  return { outcome: session.finish(), decisions };
+}
+
+export function replayRescueDoctrinePractice(
+  episodeId: string,
+  doctrineInput: unknown,
+  decisions: readonly RescueCommanderDecisionEvidence[],
+): RescueEpisodeOutcome {
+  const doctrine = normalizeRescueDoctrine(doctrineInput);
+  return replayRescuePracticeCommander(
+    episodeId,
+    doctrineAuthorizationPlaybook(doctrine),
+    decisions,
+  );
+}
+
+export function evaluateRescueDoctrinePracticeEpisode(doctrineInput: unknown, episodeId: string) {
+  const doctrine = normalizeRescueDoctrine(doctrineInput);
+  const episode = rescuePracticeEpisode(episodeId);
+  const { outcome, decisions } = runRescueDoctrineEpisode(episode, doctrine);
+  const replayedOutcome = replayRescueDoctrinePractice(episodeId, doctrine, decisions);
+  if (replayedOutcome.resultHash !== outcome.resultHash) {
+    throw new Error("Recorded Doctrine decisions do not reproduce the supplied outcome");
+  }
+  const resultWithoutHash = {
+    schemaVersion: "rescue-doctrine-practice-evaluation-v0" as const,
+    arenaId: rescueRoomChallengeId,
+    contextId: "public-practice-pack-v0" as const,
+    contextHash: rescuePracticeContextHash,
+    doctrineContextHash: rescueDoctrineContextHash,
+    manifestHash: rescueRoomManifestHash,
+    doctrine,
+    doctrineHash: rescueDoctrineHash(doctrine),
+    interpreterVersion: rescueDoctrineInterpreterVersion,
+    decisions,
+    episode: {
+      id: episode.publicId,
+      initialHeadline: episode.initialHeadline,
+      revealedAfterRun: {
+        incidentFamily: episode.incidentFamily,
+        incidentName: practiceFamilyNames[episode.incidentFamily],
+        severity: episode.severity,
+        affectedModule: episode.affectedModule,
+        validPatchId: episode.validPatchId,
+      },
+    },
+    outcome,
+    replay: {
+      deterministic: true as const,
+      actionCount: decisions.length,
+      resultHash: replayedOutcome.resultHash,
+      matchesRecordedOutcome: true as const,
+    },
+    rewardEligibility: {
+      eligible: false as const,
+      reason: "Controlled Practice only; hidden multi-Episode Final is not implemented.",
+    },
+  };
+  return { ...resultWithoutHash, evaluationHash: hashValue(resultWithoutHash) };
 }
 
 export function createRescuePracticeSession(

@@ -134,6 +134,9 @@ importers:
       '@frontier/microgrid-dispatch':
         specifier: workspace:*
         version: link:../../packages/microgrid-dispatch
+      '@frontier/ocean-commons':
+        specifier: workspace:*
+        version: link:../../packages/ocean-commons
       '@frontier/rescue-room':
         specifier: workspace:*
         version: link:../../packages/rescue-room
