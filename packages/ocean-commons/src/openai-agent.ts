@@ -17,6 +17,14 @@ export type OpenAiBackendOptions = {
   model?: string;
   /** Passed through when the model accepts it; ignored otherwise. */
   temperature?: number;
+  /**
+   * How much the model is allowed to think before answering.
+   *
+   * Reasoning is billed as output, and a 12-round match spent 87k output
+   * tokens against 33k of input — so this, not the prompt, is where the cost
+   * of a season actually sits.
+   */
+  reasoningEffort?: "minimal" | "low" | "medium" | "high";
 };
 
 export function openaiBackend(options: OpenAiBackendOptions = {}): DecisionBackend {
@@ -57,6 +65,9 @@ export function openaiBackend(options: OpenAiBackendOptions = {}): DecisionBacke
         ],
         tool_choice: { type: "function", function: { name: tool.name } },
         ...(options.temperature === undefined ? {} : { temperature: options.temperature }),
+        ...(options.reasoningEffort === undefined
+          ? {}
+          : { reasoning_effort: options.reasoningEffort }),
       });
 
       const usage: DecisionUsage = {
