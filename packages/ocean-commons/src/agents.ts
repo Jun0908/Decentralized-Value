@@ -252,10 +252,16 @@ export function standDownOffer(
   // using it does not force the buyer to wreck its own season to save the sea.
   const pool = observation.conservationFund;
   const inPool = pool?.members.includes(observation.self.id) ?? false;
+  // The per-deal ceiling protects members from one reckless commitment early
+  // on. Near the end there is no "later" left to protect, and an unspent pool
+  // protects no fish either, so the whole balance becomes committable.
+  const endgame = observation.roundsRemaining <= 4;
   const budget =
     options.budgetOverride ??
     (inPool && pool
-      ? Math.min(pool.standDownCap, pool.balance)
+      ? endgame
+        ? pool.balance
+        : Math.min(pool.standDownCap, pool.balance)
       : Math.min(
           policy.maxPaymentPerTransaction,
           observation.wallet.remaining,
@@ -451,7 +457,11 @@ export function brokerAgent(
       // per round left 46% of the pool unspent at the final whistle.
       const pool = observation.conservationFund;
       const pooled = pool?.members.includes(id) ?? false;
-      let purse = pooled && pool ? Math.min(pool.standDownCap, pool.balance) : budget;
+      let purse = pooled && pool
+        ? observation.roundsRemaining <= 4
+          ? pool.balance
+          : Math.min(pool.standDownCap, pool.balance)
+        : budget;
       const spokenFor: BoatId[] = [];
 
       for (let slot = 0; slot < 3; slot += 1) {

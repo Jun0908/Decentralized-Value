@@ -248,7 +248,12 @@ export function transition(
   // 6b. Conservation fund members pay their subscription every round. Unlike
   // mutual aid this pool never pays its own members — it buys other boats out
   // of the water, which is why it can act at a scale one wallet cannot.
-  if (state.conservationFund) {
+  //
+  // Collection stops before the final rounds. A stand-down needs rounds left to
+  // run, so money paid in at the whistle can never be committed to anything —
+  // it would only sit in the pool as a dead charge on its members.
+  const roundsLeft = scenario.rounds - state.round + 1;
+  if (state.conservationFund && roundsLeft > 2) {
     for (const boatId of state.conservationFund.members) {
       const boatState = state.boats[boatId];
       if (!boatState?.active) continue;

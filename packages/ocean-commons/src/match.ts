@@ -112,108 +112,115 @@ export function runMatch(
     options.wallets?.[boatId] ?? defaultWalletPolicy;
 
   for (let round = 1; round <= scenario.rounds; round += 1) {
-    const pending: Proposal[] = [];
-
-    // --- negotiation: gather offers -------------------------------------
+    // --- negotiation -----------------------------------------------------
+    //
+    // Each boat proposes and settles before the next one is asked. Gathering
+    // every offer first and settling afterwards let two members of the same
+    // conservation fund each commit the whole balance against a stale reading,
+    // and the loser's offer bounced as underfunded — 1.4 wasted offers per
+    // match. Settling in turn lets the second proposer price against what is
+    // actually left. Agent order is fixed, so replay is unaffected.
     if (enableNegotiation) {
-      for (const agent of agents) {
-        if (!state.boats[agent.id]?.active) continue;
-        const wallet = walletFor(agent.id);
-        const observation = buildObservation(
-          state,
-          scenario,
-          agent.id,
-          rounds,
-          [],
-          wallet,
-          spendByBoat[agent.id]!,
+      for (const proposer of agents) {
+        if (!state.boats[proposer.id]?.active) continue;
+        const proposerWallet = walletFor(proposer.id);
+        const { proposals } = proposer.negotiate(
+          buildObservation(
+            state,
+            scenario,
+            proposer.id,
+            rounds,
+            [],
+            proposerWallet,
+            spendByBoat[proposer.id]!,
+          ),
         );
-        const { proposals } = agent.negotiate(observation);
-        for (const proposal of proposals) {
-          const reason = walletViolation(proposal, wallet, spendByBoat[agent.id]!);
-          if (reason) {
+
+        for (const raw of proposals) {
+          const proposal: Proposal = { ...raw, round, proposer: proposer.id };
+
+          const violation = walletViolation(proposal, proposerWallet, spendByBoat[proposer.id]!);
+          if (violation) {
             rejectedProposals.push({
               round,
               proposalId: proposal.id,
-              proposer: agent.id,
-              reason,
+              proposer: proposer.id,
+              reason: violation,
               errors: [],
             });
             continue;
           }
-          pending.push({ ...proposal, round, proposer: agent.id });
+
+          const targets = agents.filter((agent) => proposal.counterparties.includes(agent.id));
+          if (targets.length === 0) continue;
+
+          const accepted = targets
+            .filter((agent) => {
+              if (!state.boats[agent.id]?.active) return false;
+              const wallet = walletFor(agent.id);
+              const { responses } = agent.negotiate(
+                buildObservation(
+                  state,
+                  scenario,
+                  agent.id,
+                  rounds,
+                  [proposal],
+                  wallet,
+                  spendByBoat[agent.id]!,
+                ),
+              );
+              const response = responses.find((candidate) => candidate.proposalId === proposal.id);
+              return response?.type === "ACCEPT";
+            })
+            .map((agent) => agent.id);
+
+          // A catch limit is a bilateral bargain and needs its counterparty. A
+          // fund and a stand-down are open offers: whoever takes the money is
+          // bound, and one hold-out must not veto the coalition that forms
+          // without it. The escrow then splits across the boats that signed.
+          const settled =
+            proposal.terms.kind === "CATCH_LIMIT"
+              ? accepted.length === proposal.counterparties.length
+              : accepted.length >= 1;
+
+          if (!settled) {
+            rejectedProposals.push({
+              round,
+              proposalId: proposal.id,
+              proposer: proposal.proposer,
+              reason: "COUNTERPARTY_REJECTED",
+              errors: [],
+            });
+            continue;
+          }
+
+          // Only the boats that said yes are bound. The transcript records the
+          // settled proposal, not the original offer, or a replay would bind
+          // boats that never agreed and diverge from the match it reproduces.
+          const settledProposal = { ...proposal, counterparties: accepted };
+
+          const { pact, errors } = acceptProposal(state, settledProposal, zoneIds);
+          if (!pact) {
+            rejectedProposals.push({
+              round,
+              proposalId: proposal.id,
+              proposer: proposal.proposer,
+              reason: "INVALID",
+              errors,
+            });
+            continue;
+          }
+
+          // A fund-financed deal spends the pool, not this boat's own mandate.
+          // The mandate governed the subscription when it joined.
+          if (proposal.fundedBy !== "CONSERVATION_FUND") {
+            spendByBoat[proposal.proposer] = stable(
+              (spendByBoat[proposal.proposer] ?? 0) + proposal.payment,
+            );
+          }
+          acceptedProposals.push(settledProposal);
         }
       }
-    }
-
-    // --- negotiation: counterparties answer ------------------------------
-    for (const proposal of pending) {
-      const targets = agents.filter((agent) => proposal.counterparties.includes(agent.id));
-      if (targets.length === 0) continue;
-
-      const accepted = targets
-        .filter((agent) => {
-          if (!state.boats[agent.id]?.active) return false;
-          const wallet = walletFor(agent.id);
-          const observation = buildObservation(
-            state,
-            scenario,
-            agent.id,
-            rounds,
-            [proposal],
-            wallet,
-            spendByBoat[agent.id]!,
-          );
-          const { responses } = agent.negotiate(observation);
-          const response = responses.find((candidate) => candidate.proposalId === proposal.id);
-          return response?.type === "ACCEPT";
-        })
-        .map((agent) => agent.id);
-
-      // A catch limit is a bilateral bargain and needs its counterparty. A fund
-      // and a stand-down are open offers: whoever takes the money is bound, and
-      // one hold-out must not be able to veto the coalition that forms without
-      // it. The escrow then splits across the boats that actually signed.
-      const settled =
-        proposal.terms.kind === "CATCH_LIMIT"
-          ? accepted.length === proposal.counterparties.length
-          : accepted.length >= 1;
-
-      if (!settled) {
-        rejectedProposals.push({
-          round,
-          proposalId: proposal.id,
-          proposer: proposal.proposer,
-          reason: "COUNTERPARTY_REJECTED",
-          errors: [],
-        });
-        continue;
-      }
-
-      // Only the boats that said yes are bound. The transcript must record the
-      // settled proposal, not the original offer, or a replay would bind boats
-      // that never agreed and diverge from the match it is meant to reproduce.
-      const settledProposal = { ...proposal, counterparties: accepted };
-
-      const { pact, errors } = acceptProposal(state, settledProposal, zoneIds);
-      if (!pact) {
-        rejectedProposals.push({
-          round,
-          proposalId: proposal.id,
-          proposer: proposal.proposer,
-          reason: "INVALID",
-          errors,
-        });
-        continue;
-      }
-      // A fund-financed deal spends the pool, not this boat's own mandate.
-      // The mandate governed the subscription when it joined.
-      if (proposal.fundedBy !== "CONSERVATION_FUND") {
-        spendByBoat[proposal.proposer] = stable(
-          (spendByBoat[proposal.proposer] ?? 0) + proposal.payment,
-        );
-      }
-      acceptedProposals.push(settledProposal);
     }
 
     // --- action ----------------------------------------------------------
