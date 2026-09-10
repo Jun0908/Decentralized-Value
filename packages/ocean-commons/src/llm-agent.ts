@@ -1,11 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { Observation, OceanAgent, NegotiationOutput } from "./agents";
-import { priceStandDown } from "./agents";
+import type { NegotiationOutput, Observation, OceanAgent } from "./agents";
 import type { OceanScenario } from "./scenario";
 import type { BoatId, FishingAction, Proposal, ProposalResponse } from "./types";
 
 /**
- * A boat run by Claude.
+ * A boat run by a language model.
  *
  * The model never touches the world. It answers two questions each round —
  * what to offer, and where to fish — and the engine resolves everything else.
@@ -30,33 +29,115 @@ export type LlmTurnRecord = {
   proposals?: Proposal[];
   /** Set when the model's reply could not be used and the fallback ran. */
   failure?: string;
-  usage?: { inputTokens: number; outputTokens: number; cacheReadTokens: number };
+  usage?: DecisionUsage;
 };
 
-export type LlmAgentOptions = {
-  /**
-   * The user's standing instruction to this boat — the whole of what a player
-   * writes. Not a per-round order: the model decides each round itself.
-   */
-  mission: string;
+// --- the seam between "what to ask" and "who to ask" -----------------------
+
+/**
+ * Everything that keeps a bad answer from corrupting the world — the schema,
+ * the validation, the fallbacks — lives on the agent side and is tested once.
+ * A backend only carries the question to a model and brings back the arguments
+ * it chose, so a second provider is a transport, not a second agent.
+ */
+export type DecisionTool = {
+  name: string;
+  description: string;
+  schema: Record<string, unknown>;
+};
+
+export type DecisionUsage = {
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+};
+
+export type DecisionResult =
+  | { ok: true; input: Record<string, unknown>; usage?: DecisionUsage }
+  | { ok: false; failure: string };
+
+export type DecisionBackend = (request: {
+  /** Stable across the whole match, so a backend can cache it. */
+  system: string;
+  /** This round's board. */
+  user: string;
+  tool: DecisionTool;
+}) => Promise<DecisionResult>;
+
+const CLAUDE_MODEL = "claude-opus-5";
+
+export type AnthropicBackendOptions = {
+  client?: Anthropic;
   model?: string;
   effort?: "low" | "medium" | "high" | "xhigh" | "max";
-  /** Injectable so a test can drive the agent without reaching the network. */
-  client?: Anthropic;
-  /** Receives one record per decision, for the replay panel and for audit. */
-  onTurn?: (record: LlmTurnRecord) => void;
 };
 
-const MODEL = "claude-opus-5";
+/** Claude. The default when no other backend is supplied. */
+export function anthropicBackend(options: AnthropicBackendOptions = {}): DecisionBackend {
+  const client =
+    options.client ??
+    (() => {
+      if (!process.env["ANTHROPIC_API_KEY"] && !process.env["ANTHROPIC_AUTH_TOKEN"]) {
+        throw new Error(
+          "anthropicBackend needs Claude credentials: set ANTHROPIC_API_KEY, or pass a " +
+            "configured client. Scripted baselines run without any.",
+        );
+      }
+      return new Anthropic();
+    })();
+  const model = options.model ?? CLAUDE_MODEL;
+  const effort = options.effort ?? "medium";
 
-/** The rules, written once. Stable across every round so it caches cleanly. */
-function systemPrompt(scenario: OceanScenario, mission: string): string {
+  return async ({ system, user, tool }) => {
+    try {
+      const response = await client.messages.create({
+        model,
+        max_tokens: 16000,
+        output_config: { effort },
+        // The rules never change during a match, so they cache; the board goes
+        // after the breakpoint because it changes every round.
+        system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
+        tools: [
+          {
+            name: tool.name,
+            description: tool.description,
+            strict: true,
+            input_schema: tool.schema as Anthropic.Tool["input_schema"],
+          },
+        ],
+        tool_choice: { type: "tool", name: tool.name },
+        messages: [{ role: "user", content: user }],
+      });
+
+      const usage: DecisionUsage = {
+        inputTokens: response.usage.input_tokens,
+        outputTokens: response.usage.output_tokens,
+        cacheReadTokens: response.usage.cache_read_input_tokens ?? 0,
+      };
+      const call = response.content.find(
+        (block): block is Anthropic.ToolUseBlock => block.type === "tool_use",
+      );
+      if (!call) {
+        return { ok: false, failure: `no tool call (stop_reason ${response.stop_reason})` };
+      }
+      return { ok: true, input: call.input as Record<string, unknown>, usage };
+    } catch (error) {
+      return { ok: false, failure: error instanceof Error ? error.message : String(error) };
+    }
+  };
+}
+
+// --- what the boat is told -------------------------------------------------
+
+/** The rules, written once. Identical every round so it caches cleanly. */
+export function systemPrompt(scenario: OceanScenario, mission: string): string {
   const zones = scenario.zones
     .map(
       (zone) =>
         `- ${zone.id} (${zone.name}): capacity ${zone.carryingCapacity}, regrowth ${zone.growthRate}, ` +
         `travel cost ${zone.travelCost}, yield per effort at full stock ${zone.catchEfficiency}, ` +
-        `storm exposure ${zone.stormExposure}${zone.reserve ? `, RESERVE — fined ${scenario.reserveFinePerEffort} per unit of effort` : ""}`,
+        `storm exposure ${zone.stormExposure}` +
+        (zone.reserve ? `, RESERVE — fined ${scenario.reserveFinePerEffort} per unit of effort` : ""),
     )
     .join("\n");
 
@@ -65,24 +146,23 @@ function systemPrompt(scenario: OceanScenario, mission: string): string {
 THE SEA
 ${zones}
 
-Fish landed per unit of effort falls as a ground is drawn down, so a stripped ground pays badly for everyone on it. Below a critical stock a ground stops recovering and dies for the rest of the match. The nursery reserve feeds the other grounds: fishing it is profitable now and quietly starves everything later. One market buys the whole fleet's catch, so a glut lowers the price you get too.
+Fish landed per unit of effort falls as a ground is drawn down, so a stripped ground pays badly for everyone on it. Below a critical stock a ground stops recovering and dies for the rest of the match. The nursery reserve feeds the other grounds: fishing it pays now and quietly starves everything later. One market buys the whole fleet's catch, so a glut lowers the price you get too.
 
 WHAT YOU CONTROL
 Each round you choose a ground and how hard to work it, and you may offer contracts to other boats:
 - CATCH_LIMIT: you pay them to land no more than a cap per round.
 - CONSERVATION_BUYOUT: you pay them to stay out of one ground, or out of the water entirely.
-- MUTUAL_AID / CONSERVATION_FUND: a pool everyone pays into each round.
 
-Money offered is locked in escrow when a contract is accepted. It is released round by round while the terms hold and refunded to you if they are broken. Compliance is measured by the engine from actual catches — nobody's word counts, including yours.
+Money offered is locked in escrow when a contract is accepted. It is released round by round while the terms hold, and refunded to you if they are broken. Compliance is measured by the engine from actual catches — nobody's word counts, including yours.
 
 YOUR OWNER'S STANDING INSTRUCTION
 ${mission}
 
-Answer only through the tool. Keep declaredReason to one plain sentence about what you are doing and why; it is shown to your owner and is never scored.`;
+Answer only through the tool. Keep declaredReason to one plain sentence about what you are doing and why; your owner reads it and it is never scored.`;
 }
 
-/** The board as this boat can see it. Volatile, so it goes after the cache point. */
-function renderObservation(observation: Observation): string {
+/** The board as this boat can see it. */
+export function renderObservation(observation: Observation): string {
   const stocks = observation.zones
     .map((zone) => {
       const stock = observation.stocks[zone.id] ?? 0;
@@ -98,7 +178,7 @@ function renderObservation(observation: Observation): string {
         `  ${other.id}: ${other.active ? (other.underRepair ? "under repair" : "fishing") : "bankrupt"}, ` +
         `landed ${other.lastCatch.toFixed(0)} last round in ${other.lastZoneId ?? "port"}, ` +
         `${other.totalCatch.toFixed(0)} in total, ${other.breaches} broken contracts` +
-        `${other.smallFleet ? ", small boat" : ""}`,
+        (other.smallFleet ? ", small boat" : ""),
     )
     .join("\n");
 
@@ -135,7 +215,7 @@ YOUR BOAT (${self.id})
   this hull cannot work water rougher than ${self.stormLimit} (zone storm exposure x storm severity)
 
 BUDGET YOUR OWNER ALLOWS
-  at most ${self.cash > 0 ? observation.wallet.policy.maxPaymentPerTransaction : 0} per contract, ${observation.wallet.remaining.toFixed(0)} left to spend this match
+  at most ${observation.wallet.policy.maxPaymentPerTransaction} per contract, ${observation.wallet.remaining.toFixed(0)} left to spend this match
 
 OTHER BOATS
 ${others}
@@ -147,11 +227,10 @@ OFFERS ON THE TABLE FOR YOU
 ${offers.length > 0 ? offers.join("\n") : "  none"}`;
 }
 
-const ACT_TOOL: Anthropic.Tool = {
+export const ACT_TOOL: DecisionTool = {
   name: "set_course",
   description: "Choose where to fish this round and how hard.",
-  strict: true,
-  input_schema: {
+  schema: {
     type: "object",
     additionalProperties: false,
     required: ["zoneId", "effort", "reasonCode", "declaredReason"],
@@ -170,11 +249,10 @@ const ACT_TOOL: Anthropic.Tool = {
   },
 };
 
-const NEGOTIATE_TOOL: Anthropic.Tool = {
+export const NEGOTIATE_TOOL: DecisionTool = {
   name: "answer_offers",
   description: "Accept or refuse the offers on the table, and optionally make one of your own.",
-  strict: true,
-  input_schema: {
+  schema: {
     type: "object",
     additionalProperties: false,
     required: ["responses", "offer", "reasonCode", "declaredReason"],
@@ -218,6 +296,24 @@ const NEGOTIATE_TOOL: Anthropic.Tool = {
   },
 };
 
+// --- the agent -------------------------------------------------------------
+
+export type LlmAgentOptions = {
+  /**
+   * The user's standing instruction to this boat — the whole of what a player
+   * writes. Not a per-round order: the model decides each round itself.
+   */
+  mission: string;
+  /** Which model answers. Defaults to Claude; see `openaiBackend` for the other. */
+  backend?: DecisionBackend;
+  model?: string;
+  effort?: "low" | "medium" | "high" | "xhigh" | "max";
+  /** Injectable so a test can drive the agent without reaching the network. */
+  client?: Anthropic;
+  /** Receives one record per decision, for the replay panel and for audit. */
+  onTurn?: (record: LlmTurnRecord) => void;
+};
+
 function idleAction(observation: Observation): FishingAction {
   return { boatId: observation.self.id, zoneId: observation.zones[0]!.id, effort: 0 };
 }
@@ -228,29 +324,23 @@ export function llmAgent(
   scenario: OceanScenario,
   options: LlmAgentOptions,
 ): OceanAgent {
-  // Fail here rather than mid-match: a fleet that dies on round 4 for want of
-  // a key has already burned the rounds before it.
-  const client =
-    options.client ??
-    (() => {
-      if (!process.env["ANTHROPIC_API_KEY"] && !process.env["ANTHROPIC_AUTH_TOKEN"]) {
-        throw new Error(
-          "llmAgent needs Claude credentials: set ANTHROPIC_API_KEY, or pass a configured client. " +
-            "Scripted baselines run without any.",
-        );
-      }
-      return new Anthropic();
-    })();
+  // Built here rather than on first use: a fleet that dies on round 4 for want
+  // of a key has already wasted the rounds before it.
+  const backend =
+    options.backend ??
+    anthropicBackend({
+      ...(options.client ? { client: options.client } : {}),
+      ...(options.model ? { model: options.model } : {}),
+      ...(options.effort ? { effort: options.effort } : {}),
+    });
 
-  const model = options.model ?? MODEL;
-  const effort = options.effort ?? "medium";
   const system = systemPrompt(scenario, options.mission);
 
   async function decide<T>(
     observation: Observation,
     phase: "negotiate" | "act",
-    tool: Anthropic.Tool,
-    apply: (input: Record<string, unknown>) => T,
+    tool: DecisionTool,
+    apply: (input: Record<string, unknown>, record: LlmTurnRecord) => T,
     fallback: T,
   ): Promise<T> {
     const record: LlmTurnRecord = {
@@ -260,41 +350,23 @@ export function llmAgent(
       reasonCode: "NONE",
       declaredReason: "",
     };
-    try {
-      const response = await client.messages.create({
-        model,
-        max_tokens: 16000,
-        output_config: { effort },
-        system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
-        tools: [tool],
-        tool_choice: { type: "tool", name: tool.name },
-        messages: [{ role: "user", content: renderObservation(observation) }],
-      });
 
-      record.usage = {
-        inputTokens: response.usage.input_tokens,
-        outputTokens: response.usage.output_tokens,
-        cacheReadTokens: response.usage.cache_read_input_tokens ?? 0,
-      };
-
-      const call = response.content.find(
-        (block): block is Anthropic.ToolUseBlock => block.type === "tool_use",
-      );
-      if (!call) {
-        record.failure = `no tool call (stop_reason ${response.stop_reason})`;
-        options.onTurn?.(record);
-        return fallback;
-      }
-
-      const input = call.input as Record<string, unknown>;
-      record.reasonCode = String(input["reasonCode"] ?? "NONE");
-      record.declaredReason = String(input["declaredReason"] ?? "");
-      const result = apply(input);
+    const result = await backend({ system, user: renderObservation(observation), tool });
+    if (!result.ok) {
+      record.failure = result.failure;
       options.onTurn?.(record);
-      return result;
+      return fallback;
+    }
+    if (result.usage) record.usage = result.usage;
+
+    record.reasonCode = String(result.input["reasonCode"] ?? "NONE");
+    record.declaredReason = String(result.input["declaredReason"] ?? "");
+    try {
+      const applied = apply(result.input, record);
+      options.onTurn?.(record);
+      return applied;
     } catch (error) {
-      // A boat whose agent fails stays in port. The match continues and the
-      // failure is on the record rather than silently reshaping the world.
+      // A model can satisfy the schema and still describe something impossible.
       record.failure = error instanceof Error ? error.message : String(error);
       options.onTurn?.(record);
       return fallback;
@@ -312,39 +384,27 @@ export function llmAgent(
       // Skip the call entirely when there is nothing to decide.
       if (observation.incomingProposals.length === 0 && !canOffer) return nothing;
 
-      const record: LlmTurnRecord = {
-        round: observation.round,
-        boatId: id,
-        phase: "negotiate",
-        reasonCode: "NONE",
-        declaredReason: "",
-      };
-
       return decide<NegotiationOutput>(
         observation,
         "negotiate",
         NEGOTIATE_TOOL,
-        (input) => {
+        (input, record) => {
           const answers = Array.isArray(input["responses"]) ? input["responses"] : [];
           const responses: ProposalResponse[] = [];
           for (const raw of answers as Record<string, unknown>[]) {
             const proposalId = String(raw["proposalId"] ?? "");
-            const known = observation.incomingProposals.some((p) => p.id === proposalId);
-            if (!known) continue;
+            if (!observation.incomingProposals.some((p) => p.id === proposalId)) continue;
             responses.push(
               raw["accept"] === true
                 ? { type: "ACCEPT", proposalId }
                 : { type: "REJECT", proposalId, reasonCode: "DECLINED" },
             );
           }
-          // Anything left unanswered is a refusal: silence must not bind a boat.
+          // Anything left unanswered is a refusal: silence must not bind a boat,
+          // or dropping a reply would be a way to hold someone to terms.
           for (const proposal of observation.incomingProposals) {
             if (!responses.some((r) => r.proposalId === proposal.id)) {
-              responses.push({
-                type: "REJECT",
-                proposalId: proposal.id,
-                reasonCode: "NO_ANSWER",
-              });
+              responses.push({ type: "REJECT", proposalId: proposal.id, reasonCode: "NO_ANSWER" });
             }
           }
 
@@ -369,13 +429,16 @@ export function llmAgent(
 
             if (targetExists && payment > 0) {
               if (kind === "CATCH_LIMIT") {
-                const cap = Math.max(0, Number(offer["capPerRound"]) || 0);
                 proposals.push({
                   id: `${id}-llm-r${observation.round}`,
                   round: observation.round,
                   proposer: id,
                   counterparties: [target],
-                  terms: { kind: "CATCH_LIMIT", capPerRound: cap, zoneId },
+                  terms: {
+                    kind: "CATCH_LIMIT",
+                    capPerRound: Math.max(0, Number(offer["capPerRound"]) || 0),
+                    zoneId,
+                  },
                   payment,
                   durationRounds,
                   reasonCode: record.reasonCode,
@@ -406,21 +469,21 @@ export function llmAgent(
         observation,
         "act",
         ACT_TOOL,
-        (input) => {
-          const zoneRaw = String(input["zoneId"] ?? "");
-          const zone = observation.zones.find((candidate) => candidate.id === zoneRaw);
+        (input, record) => {
+          const zone = observation.zones.find(
+            (candidate) => candidate.id === String(input["zoneId"] ?? ""),
+          );
           if (!zone) return idleAction(observation);
           const effort = Math.max(
             0,
             Math.min(Number(input["effort"]) || 0, observation.self.effortCapacity),
           );
-          return { boatId: id, zoneId: zone.id, effort };
+          const action: FishingAction = { boatId: id, zoneId: zone.id, effort };
+          record.action = action;
+          return action;
         },
         idleAction(observation),
       );
     },
   };
 }
-
-/** What a stand-down of this boat would fairly cost, for prompting a price. */
-export { priceStandDown };

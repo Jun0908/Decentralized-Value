@@ -69,7 +69,7 @@ describe("llm agent", () => {
     const agent = llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, {
       mission: MISSION,
       client,
-      onTurn: (record) => records.push(record),
+      onTurn: (record: LlmTurnRecord) => records.push(record),
     });
 
     const log = await runMatch(scenario, [agent]);
@@ -131,7 +131,7 @@ describe("llm agent", () => {
     const agent = llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, {
       mission: MISSION,
       client,
-      onTurn: (record) => records.push(record),
+      onTurn: (record: LlmTurnRecord) => records.push(record),
     });
 
     const log = await runMatch(scenario, [agent]);
@@ -148,7 +148,7 @@ describe("llm agent", () => {
     const agent = llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, {
       mission: MISSION,
       client,
-      onTurn: (record) => records.push(record),
+      onTurn: (record: LlmTurnRecord) => records.push(record),
     });
 
     await runMatch(scenario, [agent]);

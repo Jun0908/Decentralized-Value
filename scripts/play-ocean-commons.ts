@@ -10,10 +10,12 @@
  * the one sentence it gave for doing it, what money moved, and what the sea did
  * in response. The model's reasoning is never shown or scored.
  *
- *   ANTHROPIC_API_KEY=... npx tsx scripts/play-ocean-commons.ts [seed] [rounds]
+ *   OPENAI_API_KEY=...    npx tsx scripts/play-ocean-commons.ts [seed] [rounds]
+ *   ANTHROPIC_API_KEY=... OCEAN_PROVIDER=anthropic npx tsx scripts/play-ocean-commons.ts
  */
 
 import {
+  anthropicBackend,
   brokerAgent,
   cautiousAgent,
   evaluateMatch,
@@ -21,6 +23,7 @@ import {
   greedyAgent,
   llmAgent,
   opportunistAgent,
+  openaiBackend,
   runMatch,
   scoreCooperation,
   type LlmTurnRecord,
@@ -39,6 +42,7 @@ You may pay other boats to hold back, and you may take their money to hold back
 yourself, when the arithmetic favours it. Judge each offer on what it is worth,
 not on whether cooperating sounds virtuous.`;
 
+const PROVIDER = process.env["OCEAN_PROVIDER"] ?? "openai";
 const scenario = generateScenario(SEED, { vary: true, rounds: ROUNDS });
 const [focal, b, c, d, e] = scenario.boats;
 
@@ -46,7 +50,7 @@ const turns: LlmTurnRecord[] = [];
 const fleet: OceanAgent[] = [
   llmAgent(focal!.id, focal!.name, scenario, {
     mission: MISSION,
-    effort: "medium",
+    backend: PROVIDER === "anthropic" ? anthropicBackend({ effort: "medium" }) : openaiBackend(),
     onTurn: (record) => turns.push(record),
   }),
   brokerAgent(b!.id, b!.name, scenario),
@@ -135,12 +139,11 @@ const usage = turns.reduce(
   }),
   { input: 0, output: 0, cached: 0 },
 );
-// Claude Opus 5 list price, for a rough per-match figure.
-const cost = (usage.input * 5 + usage.output * 25 + usage.cached * 0.5) / 1_000_000;
+
 console.log(
   `\nModel calls           ${turns.length} (${turns.filter((t) => t.failure).length} failed)  ` +
     `${elapsed.toFixed(1)}s wall clock`,
 );
 console.log(
-  `Tokens                ${usage.input} in (${usage.cached} cached), ${usage.output} out  ≈ $${cost.toFixed(3)} per match`,
+  `Tokens                ${usage.input} in (${usage.cached} cached), ${usage.output} out`,
 );
