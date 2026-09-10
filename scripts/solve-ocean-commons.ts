@@ -73,8 +73,8 @@ for (let seedIndex = 0; seedIndex < SEEDS; seedIndex += 1) {
       tunableAgent(focal.id, focal.name, scenario, GRID[g]!),
       ...background(scenario),
     ];
-    const full = evaluateMatch(runMatch(scenario, build()));
-    const solo = evaluateMatch(runMatch(scenario, build(), { excludeContractsFor: focal.id }));
+    const full = evaluateMatch(await runMatch(scenario, build()));
+    const solo = evaluateMatch(await runMatch(scenario, build(), { excludeContractsFor: focal.id }));
     scores.livelihood[g]!.push(full.livelihood);
     scores.stewardship[g]!.push(full.stewardship);
     scores.cooperation[g]!.push(scoreCooperation(full, solo, focal.id).efficacy);

@@ -80,14 +80,21 @@ export type NegotiationOutput = {
 /**
  * The agent interface. An LLM-backed agent and a scripted baseline implement
  * the same two methods, so they are directly comparable in one match.
+ *
+ * Both may return a promise. A scripted policy answers immediately and a
+ * model-backed one goes over the network, but the match loop awaits either,
+ * so the two are interchangeable in the same fleet. The world stays
+ * deterministic regardless: the engine only ever sees the actions that came
+ * back, and a transcript of those actions replays to the same final state
+ * whether a rule or a model produced them.
  */
 export type OceanAgent = {
   id: BoatId;
   name: string;
   /** Called before acting: answer offers, and optionally make your own. */
-  negotiate(observation: Observation): NegotiationOutput;
+  negotiate(observation: Observation): NegotiationOutput | Promise<NegotiationOutput>;
   /** Called after negotiation: where to fish and how hard. */
-  act(observation: Observation): FishingAction;
+  act(observation: Observation): FishingAction | Promise<FishingAction>;
 };
 
 // --- shared helpers -------------------------------------------------------

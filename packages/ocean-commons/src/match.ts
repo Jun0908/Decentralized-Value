@@ -102,11 +102,11 @@ function buildObservation(
   };
 }
 
-export function runMatch(
+export async function runMatch(
   scenario: OceanScenario,
   agents: readonly OceanAgent[],
   options: MatchOptions = {},
-): MatchLog {
+): Promise<MatchLog> {
   const enableNegotiation = options.enableNegotiation ?? true;
   let state = createInitialState(scenario);
   const rounds: RoundRecord[] = [];
@@ -133,7 +133,7 @@ export function runMatch(
         if (!state.boats[proposer.id]?.active) continue;
         if (proposer.id === options.excludeContractsFor) continue;
         const proposerWallet = walletFor(proposer.id);
-        const { proposals } = proposer.negotiate(
+        const { proposals } = await proposer.negotiate(
           buildObservation(
             state,
             scenario,
@@ -163,26 +163,28 @@ export function runMatch(
           const targets = agents.filter((agent) => proposal.counterparties.includes(agent.id));
           if (targets.length === 0) continue;
 
-          const accepted = targets
-            .filter((agent) => {
-              if (!state.boats[agent.id]?.active) return false;
-              if (agent.id === options.excludeContractsFor) return false;
-              const wallet = walletFor(agent.id);
-              const { responses } = agent.negotiate(
-                buildObservation(
-                  state,
-                  scenario,
-                  agent.id,
-                  rounds,
-                  [proposal],
-                  wallet,
-                  spendByBoat[agent.id]!,
-                ),
-              );
-              const response = responses.find((candidate) => candidate.proposalId === proposal.id);
-              return response?.type === "ACCEPT";
-            })
-            .map((agent) => agent.id);
+          // Answers are gathered in a fixed order rather than in parallel:
+          // a model-backed counterparty must see the same board as a scripted
+          // one, and Promise.all would leave the order of side effects open.
+          const accepted: BoatId[] = [];
+          for (const agent of targets) {
+            if (!state.boats[agent.id]?.active) continue;
+            if (agent.id === options.excludeContractsFor) continue;
+            const wallet = walletFor(agent.id);
+            const { responses } = await agent.negotiate(
+              buildObservation(
+                state,
+                scenario,
+                agent.id,
+                rounds,
+                [proposal],
+                wallet,
+                spendByBoat[agent.id]!,
+              ),
+            );
+            const response = responses.find((candidate) => candidate.proposalId === proposal.id);
+            if (response?.type === "ACCEPT") accepted.push(agent.id);
+          }
 
           // A catch limit is a bilateral bargain and needs its counterparty. A
           // fund and a stand-down are open offers: whoever takes the money is
@@ -247,7 +249,7 @@ export function runMatch(
         wallet,
         spendByBoat[agent.id]!,
       );
-      actions.push(agent.act(observation));
+      actions.push(await agent.act(observation));
     }
 
     const result = transition(state, actions, scenario);

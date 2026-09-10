@@ -1482,3 +1482,70 @@ Cooperation        53%
 - 艦隊倍率は 2.0 を採用。2.5〜3.0 は Livelihood 識別力と引き換えに海が崩壊するため、Phase 1 の結果を見て判断する
 - Final Pack は 20 試合を基準とする
 - `enforcerAgent` / `territorialAgent` / `crowdAverseAgent` / `tunableAgent` は Baseline 兼 Reference として維持する
+
+---
+
+## 40. Phase 1a — LLM Agent Runtime
+
+Phase 0 が答えられなかった問い（§39.8 の4）に取り組む段階である。UI も Sepolia も作らない。**実際の Claude Agent を艦隊に入れて、固定設定に勝てるかを見る**ことだけを行う。
+
+### 40.1 Agent Interface を非同期にした
+
+`OceanAgent` の `negotiate` / `act` が同期関数だったため、モデル呼び出しを入れられなかった。両者を `T | Promise<T>` に変え、`runMatch` を `async` にした。
+
+Scripted Baseline は値を直接返すので `await` がそのまま通り、**両者が同じ艦隊に混在できる**。全25箇所の呼び出しを更新し、テスト22件と判定10項目はすべて元の結果を維持している。
+
+交渉フェーズの相手の応答は `Promise.all` ではなく**固定順の逐次**で集める。モデル側の相手も Scripted と同じ盤面を見る必要があり、並列では副作用の順序が不定になるためである。
+
+**決定論は保たれる。** Engine が見るのは返ってきた Action だけであり、Transcript にはその Action が記録される。モデルが動かした Match も、ルールが動かした Match とまったく同じように Replay できる（テストで担保）。
+
+### 40.2 llmAgent の設計
+
+```text
+packages/ocean-commons/src/llm-agent.ts
+```
+
+- **Model:** `claude-opus-5`、`output_config.effort` は既定 `medium`
+- **出力は Tool Call のみ。** `strict: true` の Tool を2つ（`set_course` / `answer_offers`）定義し、`tool_choice` で強制する。自由文が State Transition に入る経路は存在しない
+- **Prompt Caching:** 海のルールと Mission は毎Round同一なので `cache_control` を付けて先頭に置き、変動する盤面はその後ろに置く。テストで「systemが全Round同一であること」を検証している
+- **Provenance:** `Observation / Action / reasonCode / declaredReason / Payment / Result` のみを記録する。内部の思考は要求も保存もしない（Plan10 §8.3）
+- **Seed は渡さない。** テストで漏洩がないことを検証している
+
+### 40.3 壊れた応答で世界を壊さない
+
+モデルは何を返すか分からない。**すべての応答を検証し、通らなければ記録付きで安全な既定へ落とす。**
+
+| 起きたこと | 結果 |
+| --- | --- |
+| 存在しない漁場を指定 | 出港せず、`clampReason` に記録 |
+| 能力を超えるEffort | 能力上限へclamp |
+| Tool を呼ばずに終了 | 出港せず、`failure: no tool call` を記録 |
+| API 呼び出しが例外 | 出港せず、`failure` に例外を記録。Match は継続 |
+| 提案への応答を返さない | **全件拒否として扱う。** 沈黙が契約を成立させてはならない |
+| 存在しない船へ提案 | 破棄 |
+| 認証情報がない | **Agent 構築時に例外。** Match 途中で落ちない |
+
+最後の2つは特に重要である。沈黙で拘束されない設計にしないと、応答を落とすだけで相手を縛れてしまう。認証がない場合に開始時点で失敗するのは、4Round進んでから落ちれば その4Roundが無駄になるためである。
+
+11件のテストがこれらを**APIキーなしで**検証する。
+
+### 40.4 実行方法
+
+```bash
+ANTHROPIC_API_KEY=... npx tsx scripts/play-ocean-commons.ts [seed] [rounds]
+```
+
+Plan10 §8.3 の Replay Panel を出力する。1 Match あたりのトークン数と概算コストも表示するので、Tournament の運用コストが見積もれる。
+
+**現時点では未実行である。** このリポジトリに Claude の認証情報が設定されていないため、実際のモデルを動かした結果はまだない。`.env` にも `ANTHROPIC_API_KEY` は存在しない。
+
+### 40.5 Phase 1a で答えるべきこと
+
+実行できるようになった時点で測る。判定方法は**実行前に固定する**。
+
+1. **固定設定に勝てるか。** §39 の最良固定設定（`e1 storm-only none` ほか）と同一Seedで対戦させ、勝率を測る。20試合以内に有意差が出るか
+2. **群れるか散るか。** §35.5 の群れ行動が LLM Agent でも起きるか。起きなければ §37 の Baseline 多様化は不要になる
+3. **相手を読むか。** §39.4 では相手を知る利得がゼロだったが、艦隊倍率2倍の現行設定では +15.8% ある。モデルがそれを取りに行くか
+4. **Livelihood の識別力（27%）** が LLM Agent 込みで改善するか（§39.7）
+
+いずれも Scripted Baseline では原理的に測れなかったものである。

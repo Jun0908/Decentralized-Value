@@ -38,23 +38,23 @@ function mixedFleet(scenario: ReturnType<typeof generateScenario>): OceanAgent[]
   ];
 }
 
-describe("determinism", () => {
-  it("produces an identical weather sequence for the same seed", () => {
+describe("determinism", async () => {
+  it("produces an identical weather sequence for the same seed", async () => {
     const ids = ["a", "b", "c"];
     expect(generateWeather("seed-1", 12, ids)).toEqual(generateWeather("seed-1", 12, ids));
     expect(generateWeather("seed-1", 12, ids)).not.toEqual(generateWeather("seed-2", 12, ids));
   });
 
-  it("draws the same random stream for the same seed", () => {
+  it("draws the same random stream for the same seed", async () => {
     const left = createRng("x");
     const right = createRng("x");
     expect([left(), left(), left()]).toEqual([right(), right(), right()]);
   });
 
-  it("returns the same final state and hash for the same scenario and agents", () => {
+  it("returns the same final state and hash for the same scenario and agents", async () => {
     const scenario = generateScenario("determinism", { vary: true });
-    const first = runMatch(scenario, mixedFleet(scenario));
-    const second = runMatch(scenario, mixedFleet(scenario));
+    const first = await runMatch(scenario, mixedFleet(scenario));
+    const second = await runMatch(scenario, mixedFleet(scenario));
 
     expect(second.finalState).toEqual(first.finalState);
     expect(hashResult(second.finalState, evaluateMatch(second))).toEqual(
@@ -62,9 +62,9 @@ describe("determinism", () => {
     );
   });
 
-  it("replays a transcript to the same final state without any agent", () => {
+  it("replays a transcript to the same final state without any agent", async () => {
     const scenario = generateScenario("replay", { vary: true });
-    const log = runMatch(scenario, mixedFleet(scenario));
+    const log = await runMatch(scenario, mixedFleet(scenario));
     const transcript = toTranscript(log);
 
     const replayed = replayTranscript(scenario, transcript);
@@ -78,7 +78,7 @@ describe("determinism", () => {
     expect(hashTranscript(toTranscript(log))).toEqual(hashTranscript(transcript));
   });
 
-  it("does not leak the seed or future weather into an observation", () => {
+  it("does not leak the seed or future weather into an observation", async () => {
     const scenario = generateScenario("leak");
     const seen: Observation[] = [];
     const probe: OceanAgent = {
@@ -90,7 +90,7 @@ describe("determinism", () => {
         return { boatId: observation.self.id, zoneId: observation.zones[0]!.id, effort: 1 };
       },
     };
-    runMatch(scenario, [probe]);
+    await runMatch(scenario, [probe]);
 
     expect(seen).toHaveLength(scenario.rounds);
     for (const observation of seen) {
@@ -107,8 +107,8 @@ describe("determinism", () => {
   });
 });
 
-describe("engine", () => {
-  it("never lands more fish than a zone holds", () => {
+describe("engine", async () => {
+  it("never lands more fish than a zone holds", async () => {
     const scenario = generateScenario("exhaust");
     const state = createInitialState(scenario);
     const zone = scenario.zones[0]!;
@@ -125,7 +125,7 @@ describe("engine", () => {
     expect(landed).toBeLessThanOrEqual(5 + 1e-6);
   });
 
-  it("keeps a bankrupt boat out of every later round", () => {
+  it("keeps a bankrupt boat out of every later round", async () => {
     const scenario = generateScenario("bankrupt");
     const state = createInitialState(scenario);
     const victim = scenario.boats[0]!;
@@ -145,7 +145,7 @@ describe("engine", () => {
     expect(entry.clampReason).toBe("BANKRUPT");
   });
 
-  it("clamps effort to the hull capacity", () => {
+  it("clamps effort to the hull capacity", async () => {
     const scenario = generateScenario("capacity");
     const state = createInitialState(scenario);
     const boat = scenario.boats[0]!;
@@ -162,7 +162,7 @@ describe("engine", () => {
   });
 });
 
-describe("contracts", () => {
+describe("contracts", async () => {
   function catchLimitProposal(
     scenario: ReturnType<typeof generateScenario>,
     overrides: Partial<Proposal> = {},
@@ -180,7 +180,7 @@ describe("contracts", () => {
     };
   }
 
-  it("locks the payment out of the proposer's cash on acceptance", () => {
+  it("locks the payment out of the proposer's cash on acceptance", async () => {
     const scenario = generateScenario("escrow");
     const state = createInitialState(scenario);
     const before = state.boats[scenario.boats[0]!.id]!.cash;
@@ -192,7 +192,7 @@ describe("contracts", () => {
     expect(pact!.escrowRemaining).toBe(20);
   });
 
-  it("refuses a promise the proposer cannot fund", () => {
+  it("refuses a promise the proposer cannot fund", async () => {
     const scenario = generateScenario("underfunded");
     const state = createInitialState(scenario);
     state.boats[scenario.boats[0]!.id]!.cash = 5;
@@ -203,7 +203,7 @@ describe("contracts", () => {
     expect(errors.map((error) => error.code)).toContain("INSUFFICIENT_FUNDS");
   });
 
-  it("releases escrow round by round while the cap is honoured", () => {
+  it("releases escrow round by round while the cap is honoured", async () => {
     const scenario = generateScenario("release");
     const state = createInitialState(scenario);
     const payee = scenario.boats[1]!.id;
@@ -218,7 +218,7 @@ describe("contracts", () => {
     expect(state.pacts[0]!.escrowRemaining).toBeCloseTo(10, 6);
   });
 
-  it("refunds the remaining escrow to the payer on a breach", () => {
+  it("refunds the remaining escrow to the payer on a breach", async () => {
     const scenario = generateScenario("breach");
     const state = createInitialState(scenario);
     const payer = scenario.boats[0]!.id;
@@ -238,17 +238,17 @@ describe("contracts", () => {
     expect(state.pacts[0]!.escrowRemaining).toBe(0);
   });
 
-  it("never lets escrow go negative across a full match", () => {
+  it("never lets escrow go negative across a full match", async () => {
     const scenario = generateScenario("escrow-floor", { vary: true });
-    const log = runMatch(scenario, mixedFleet(scenario));
+    const log = await runMatch(scenario, mixedFleet(scenario));
     for (const pact of log.finalState.pacts) {
       expect(pact.escrowRemaining).toBeGreaterThanOrEqual(0);
     }
   });
 });
 
-describe("wallet policy", () => {
-  it("rejects a proposal above the per-transaction limit", () => {
+describe("wallet policy", async () => {
+  it("rejects a proposal above the per-transaction limit", async () => {
     const scenario = generateScenario("wallet-tx");
     const tight: WalletPolicy = { ...defaultWalletPolicy, maxPaymentPerTransaction: 5 };
     const spender: OceanAgent = {
@@ -276,13 +276,13 @@ describe("wallet policy", () => {
       }),
     };
 
-    const log = runMatch(scenario, [spender], { wallets: { [spender.id]: tight } });
+    const log = await runMatch(scenario, [spender], { wallets: { [spender.id]: tight } });
 
     expect(log.acceptedProposals).toHaveLength(0);
     expect(log.rejectedProposals.every((entry) => entry.reason === "OVER_PER_TX_LIMIT")).toBe(true);
   });
 
-  it("stops an agent once the match budget is exhausted", () => {
+  it("stops an agent once the match budget is exhausted", async () => {
     const scenario = generateScenario("wallet-budget");
     const capped: WalletPolicy = {
       ...defaultWalletPolicy,
@@ -318,7 +318,7 @@ describe("wallet policy", () => {
     };
     const acceptor = cautiousAgent(scenario.boats[1]!.id, "acceptor", scenario);
 
-    const log = runMatch(scenario, [spender, acceptor], { wallets: { [spender.id]: capped } });
+    const log = await runMatch(scenario, [spender, acceptor], { wallets: { [spender.id]: capped } });
 
     expect(log.spendByBoat[spender.id]).toBeLessThanOrEqual(20);
     expect(
@@ -326,7 +326,7 @@ describe("wallet policy", () => {
     ).toBe(true);
   });
 
-  it("refuses a purpose the user did not allow", () => {
+  it("refuses a purpose the user did not allow", async () => {
     const scenario = generateScenario("wallet-purpose");
     const noAid: WalletPolicy = { ...defaultWalletPolicy, allowedPurposes: ["CATCH_LIMIT"] };
     const proposer: OceanAgent = {
@@ -354,7 +354,7 @@ describe("wallet policy", () => {
       }),
     };
 
-    const log = runMatch(scenario, [proposer], { wallets: { [proposer.id]: noAid } });
+    const log = await runMatch(scenario, [proposer], { wallets: { [proposer.id]: noAid } });
 
     expect(log.finalState.fund).toBeNull();
     expect(
@@ -363,14 +363,14 @@ describe("wallet policy", () => {
   });
 });
 
-describe("cooperation axis", () => {
-  it("credits a boat only for what its own contracts changed", () => {
+describe("cooperation axis", async () => {
+  it("credits a boat only for what its own contracts changed", async () => {
     const scenario = generateScenario("attribution", { vary: true });
     const broker = scenario.boats[0]!.id;
 
-    const full = evaluateMatch(runMatch(scenario, mixedFleet(scenario)));
+    const full = evaluateMatch(await runMatch(scenario, mixedFleet(scenario)));
     const without = evaluateMatch(
-      runMatch(scenario, mixedFleet(scenario), { excludeContractsFor: broker }),
+      await runMatch(scenario, mixedFleet(scenario), { excludeContractsFor: broker }),
     );
     const score = scoreCooperation(full, without, broker);
 
@@ -380,12 +380,12 @@ describe("cooperation axis", () => {
     expect(score.efficacy).toBeCloseTo((score.stewardshipDelta * 1000) / score.spent, 6);
   });
 
-  it("credits the payer, not the boat that was paid to stand down", () => {
+  it("credits the payer, not the boat that was paid to stand down", async () => {
     const scenario = generateScenario("hostage", { vary: true });
     const paid = scenario.boats[1]!.id;
-    const full = evaluateMatch(runMatch(scenario, mixedFleet(scenario)));
+    const full = evaluateMatch(await runMatch(scenario, mixedFleet(scenario)));
     const without = evaluateMatch(
-      runMatch(scenario, mixedFleet(scenario), { excludeContractsFor: paid }),
+      await runMatch(scenario, mixedFleet(scenario), { excludeContractsFor: paid }),
     );
 
     // A boat that only ever received money has spent nothing, so however much
@@ -396,12 +396,12 @@ describe("cooperation axis", () => {
     expect(scoreCooperation(receiver, without, paid).efficacy).toBe(0);
   });
 
-  it("scores a boat that never contracted at zero, not at infinity", () => {
+  it("scores a boat that never contracted at zero, not at infinity", async () => {
     const scenario = generateScenario("abstainer", { vary: true });
     const loner = scenario.boats[1]!.id;
-    const full = evaluateMatch(runMatch(scenario, mixedFleet(scenario)));
+    const full = evaluateMatch(await runMatch(scenario, mixedFleet(scenario)));
     const without = evaluateMatch(
-      runMatch(scenario, mixedFleet(scenario), { excludeContractsFor: loner }),
+      await runMatch(scenario, mixedFleet(scenario), { excludeContractsFor: loner }),
     );
 
     const score = scoreCooperation({ ...full, boats: full.boats.map((b) =>
@@ -411,10 +411,10 @@ describe("cooperation axis", () => {
   });
 });
 
-describe("outcomes", () => {
-  it("keeps the three outcomes separate and never aggregates them", () => {
+describe("outcomes", async () => {
+  it("keeps the three outcomes separate and never aggregates them", async () => {
     const scenario = generateScenario("outcomes", { vary: true });
-    const outcomes = evaluateMatch(runMatch(scenario, mixedFleet(scenario)));
+    const outcomes = evaluateMatch(await runMatch(scenario, mixedFleet(scenario)));
     const point = toOutcomePoint("mixed", "Mixed fleet", outcomes, 0.1);
 
     expect(Object.keys(point.values).sort()).toEqual([
@@ -426,9 +426,9 @@ describe("outcomes", () => {
     expect(point.values).not.toHaveProperty("score");
   });
 
-  it("scores stewardship on the lowest stock, not the final stock", () => {
+  it("scores stewardship on the lowest stock, not the final stock", async () => {
     const scenario = generateScenario("min-stock", { vary: true });
-    const outcomes = evaluateMatch(runMatch(scenario, mixedFleet(scenario)));
+    const outcomes = evaluateMatch(await runMatch(scenario, mixedFleet(scenario)));
 
     expect(outcomes.stewardship).toBeCloseTo(
       outcomes.evidence.minTotalStock / outcomes.evidence.totalCapacity,
@@ -439,13 +439,14 @@ describe("outcomes", () => {
     );
   });
 
-  it("builds a frontier that is independent of submission order", () => {
+  it("builds a frontier that is independent of submission order", async () => {
     const scenario = generateScenario("frontier", { vary: true });
-    const points = ["a", "b", "c"].map((tag, index) => {
+    const points = [];
+    for (const [index, tag] of ["a", "b", "c"].entries()) {
       const agents = mixedFleet(scenario);
-      const log = runMatch(scenario, agents, { enableNegotiation: index !== 1 });
-      return toOutcomePoint(tag, tag, evaluateMatch(log), index * 0.05);
-    });
+      const log = await runMatch(scenario, agents, { enableNegotiation: index !== 1 });
+      points.push(toOutcomePoint(tag, tag, evaluateMatch(log), index * 0.05));
+    }
 
     const forward = oceanFrontier(points).map((point) => point.id);
     const reversed = oceanFrontier([...points].reverse()).map((point) => point.id);

@@ -6,3 +6,4 @@ export * from "./negotiation";
 export * from "./agents";
 export * from "./match";
 export * from "./evaluator";
+export * from "./llm-agent";

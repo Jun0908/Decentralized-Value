@@ -272,8 +272,8 @@ for (let index = 0; index < SEEDS; index += 1) {
   const scenario = generateScenario(seed, { vary: true, rounds: ROUNDS });
 
   for (const lineup of lineups()) {
-    const first = runMatch(scenario, agentsFor(lineup, scenario, seed));
-    const second = runMatch(scenario, agentsFor(lineup, scenario, seed));
+    const first = await runMatch(scenario, agentsFor(lineup, scenario, seed));
+    const second = await runMatch(scenario, agentsFor(lineup, scenario, seed));
     const outcomes = evaluateMatch(first);
 
     const deterministic =
@@ -284,7 +284,7 @@ for (let index = 0; index < SEEDS; index += 1) {
       (zone) => Math.abs((replayed.stocks[zone.id] ?? 0) - (first.finalState.stocks[zone.id] ?? 0)) < 1e-6,
     );
 
-    const without = runMatch(scenario, agentsFor(lineup, scenario, seed), {
+    const without = await runMatch(scenario, agentsFor(lineup, scenario, seed), {
       enableNegotiation: false,
     });
 
@@ -294,24 +294,25 @@ for (let index = 0; index < SEEDS; index += 1) {
     const focalSeat = lineup.id.startsWith("small-") ? scenario.boats.length - 1 : 0;
     const focalBoat = scenario.boats[focalSeat]!.id;
     const soloOut = evaluateMatch(
-      runMatch(scenario, agentsFor(lineup, scenario, seed), { excludeContractsFor: focalBoat }),
+      await runMatch(scenario, agentsFor(lineup, scenario, seed), { excludeContractsFor: focalBoat }),
     );
     const cooperation = scoreCooperation(outcomes, soloOut, focalBoat).efficacy;
     // Same world, same policies — only the money behind each promise changes.
     // Sweeping below 1x as well as above gives the dose-response curve room to
     // show itself; a thick escrow can suppress defection so completely that a
     // further doubling has nothing left to move.
-    const escrowCurve = [0.5, 2].map((multiplier) => {
-      const run = runMatch(scenario, agentsFor(lineup, scenario, seed, multiplier), {
+    const escrowCurve: { multiplier: number; breached: number; binding: number }[] = [];
+    for (const multiplier of [0.5, 2]) {
+      const run = await runMatch(scenario, agentsFor(lineup, scenario, seed, multiplier), {
         wallets: multiplier > 1 ? doubledWallets(scenario) : {},
       });
       const outcome = evaluateMatch(run);
-      return {
+      escrowCurve.push({
         multiplier,
         breached: outcome.contracts.breached,
         binding: outcome.contracts.bindingAccepted,
-      };
-    });
+      });
+    }
 
     rows.push({
       seed,
