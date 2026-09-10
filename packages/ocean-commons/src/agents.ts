@@ -227,7 +227,14 @@ export function priceStandDown(
 export function standDownOffer(
   observation: Observation,
   proposerId: BoatId,
-  options: { priceMultiplier?: number; rounds?: number } = {},
+  options: {
+    priceMultiplier?: number;
+    rounds?: number;
+    /** Boats already spoken for by an offer made earlier this round. */
+    exclude?: readonly BoatId[];
+    /** Pool left after those earlier offers, so one round can buy several. */
+    budgetOverride?: number;
+  } = {},
 ): Proposal | null {
   const policy = observation.wallet.policy;
   if (!policy.allowedPurposes.includes("CONSERVATION_BUYOUT")) return null;
@@ -245,13 +252,15 @@ export function standDownOffer(
   // using it does not force the buyer to wreck its own season to save the sea.
   const pool = observation.conservationFund;
   const inPool = pool?.members.includes(observation.self.id) ?? false;
-  const budget = inPool && pool
-    ? Math.min(pool.standDownCap, pool.balance)
-    : Math.min(
-        policy.maxPaymentPerTransaction,
-        observation.wallet.remaining,
-        Math.max(0, observation.self.cash - observation.self.upkeepPerRound * 2),
-      );
+  const budget =
+    options.budgetOverride ??
+    (inPool && pool
+      ? Math.min(pool.standDownCap, pool.balance)
+      : Math.min(
+          policy.maxPaymentPerTransaction,
+          observation.wallet.remaining,
+          Math.max(0, observation.self.cash - observation.self.upkeepPerRound * 2),
+        ));
   const rounds = Math.min(options.rounds ?? 3, observation.roundsRemaining);
   const multiplier = options.priceMultiplier ?? 1;
   const isBound = (boatId: BoatId) =>
@@ -261,8 +270,12 @@ export function standDownOffer(
 
   // Take the heaviest boat that can actually be afforded rather than always
   // bidding for the biggest: the largest extractor is also the dearest to stop.
+  const spokenFor = new Set(options.exclude ?? []);
   const affordable = [...observation.others]
-    .filter((other) => other.active && !isBound(other.id) && other.lastCatch > 0)
+    .filter(
+      (other) =>
+        other.active && !isBound(other.id) && !spokenFor.has(other.id) && other.lastCatch > 0,
+    )
     .sort((left, right) => right.lastCatch - left.lastCatch)
     .map((other) => ({
       other,
@@ -272,7 +285,7 @@ export function standDownOffer(
   if (!affordable) return null;
 
   return {
-    id: `${proposerId}-standdown-r${observation.round}`,
+    id: `${proposerId}-standdown-r${observation.round}-${spokenFor.size}`,
     round: observation.round,
     proposer: proposerId,
     counterparties: [affordable.other.id],
@@ -433,11 +446,30 @@ export function brokerAgent(
         });
       }
 
-      const standDown = standDownOffer(observation, id, { priceMultiplier });
+      // Idle as many boats as the pool can carry this round. Money that sits
+      // in the fund protects nothing: measured over 200 seeds, a single offer
+      // per round left 46% of the pool unspent at the final whistle.
+      const pool = observation.conservationFund;
+      const pooled = pool?.members.includes(id) ?? false;
+      let purse = pooled && pool ? Math.min(pool.standDownCap, pool.balance) : budget;
+      const spokenFor: BoatId[] = [];
 
-      if (standDown) {
-        proposals.push(standDown);
-      } else if (pressure < 0.7 && budget >= 10 && observation.roundsRemaining >= 3) {
+      for (let slot = 0; slot < 3; slot += 1) {
+        const offer = standDownOffer(observation, id, {
+          priceMultiplier,
+          exclude: spokenFor,
+          budgetOverride: purse,
+        });
+        if (!offer) break;
+        proposals.push(offer);
+        spokenFor.push(...offer.counterparties);
+        purse = Math.max(0, purse - offer.payment);
+        if (!pooled) break;
+      }
+
+      const boughtStandDown = spokenFor.length > 0;
+
+      if (!boughtStandDown && pressure < 0.7 && budget >= 10 && observation.roundsRemaining >= 3) {
         // Otherwise fall back to capping whoever is landing the most.
         const target = [...observation.others]
           .filter((other) => other.active && other.breaches === 0 && !bound(other.id))
