@@ -61,6 +61,14 @@ The current Gate verification is offchain. No Sepolia Semaphore group, Gate cont
 
 The participant-addressed payout is enabled through a dedicated, limited Sepolia relayer. It owns the `FrontierRewardPool` but not the token, so it cannot mint. The server verifies pool ownership and chain, enforces a per-reward cap, checks the finite prefunded balance, commits a participant-specific allocation, distributes once, waits for confirmation, and persists the receipt in Redis.
 
+## Rescue Room Agent boundary — local OpenAI Controlled Practice
+
+Rescue Room keeps deterministic Reference Commanders and also exposes a local participant Playbook path through `@openai/agents 0.17.2` and fixed model `gpt-5.6-luna`. The API key is read only by the server. The browser submits a Playbook and Episode id; the model receives only the current public state and produces one structured Action per independent turn. Model, SDK, Prompt version, response/request ids, token usage, Public View Hash, and Action are retained as provenance. Chain of Thought is neither requested nor stored.
+
+The local credential was used for a successful real-API smoke run on 2026-09-10. This does not imply that the current public Vercel deployment has the credential. Missing credentials fail with `COMMANDER_UNCONFIGURED`; AI runs are limited to three per client per ten minutes. OpenAI execution is an observed inference boundary, while the resulting Action sequence is the input to deterministic replay.
+
+Service Agent outputs still come from the committed simulator, and reserve/release/refund events use Rescue Credits in an offchain game ledger. Rescue Credits are not tokens. No Commander wallet delegation, Service Agent wallet, Escrow contract, Sepolia Service transaction, ENS provider discovery, Hidden Final, or reward settlement is configured. Payment states must remain labeled `simulated` and `game-credits`, never `committed` or `paid`.
+
 ## Ledger — archived and unused
 
 Ledger hardware is not available and is not required by the public application, evaluator, or Sepolia reward path. The historical adapter remains in the repository only as prior optional work. Do not reintroduce Ledger configuration, signing claims, or recovery steps into the main demo unless the project owner explicitly restores that scope and real device evidence is produced.

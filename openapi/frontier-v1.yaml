@@ -359,6 +359,63 @@ paths:
           "200": { description: Measured three-axis outcome and result hash },
           "400": { $ref: "#/components/responses/BadRequest" },
         }
+  /v1/rescue-room:
+    get:
+      operationId: getRescueRoomScenario
+      description: Returns the deterministic Practice pack, ambiguous public alerts, curated Service Agent catalog, Reference Commander outcomes, Pareto frontier, and four independent Value Pool previews. Hidden incident state and practice seeds are omitted.
+      responses: { "200": { description: Public Rescue Room Practice context } }
+  /v1/rescue-room/starter-kit:
+    get:
+      operationId: downloadRescueRoomStarterKit
+      description: Downloads the public alerts, Service Agent catalog, Commander Playbook schema, fixed runtime contract, and an example request. Hidden incident state is excluded.
+      responses:
+        {
+          "200":
+            {
+              description: Rescue Room Controlled Practice Starter Kit,
+              content: { application/zip: { schema: { type: string, format: binary } } },
+            },
+        }
+  /v1/rescue-room/evaluations:
+    post:
+      operationId: evaluateRescueRoomPracticeEpisode
+      description: Runs one Reference Commander against one deterministic simulated incident and returns its Action, Service Receipt, game-credit Payment, Protocol State, and outcome Replay. The true incident is revealed after the run.
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                { schema: { $ref: "#/components/schemas/RescueRoomEvaluationInput" } },
+            },
+        }
+      responses:
+        {
+          "200": { description: Simulated Episode Replay and three-axis Practice outcome },
+          "400": { $ref: "#/components/responses/BadRequest" },
+        }
+  /v1/rescue-room/commander-evaluations:
+    post:
+      operationId: evaluateRescueRoomAiCommander
+      description: Runs one participant-authored Commander Playbook through the fixed OpenAI Agents SDK runtime against one public Practice Episode. Returns model and token provenance plus hash-bound Action evidence whose deterministic replay must reproduce the outcome. This is Controlled Practice and is not reward-eligible.
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                { schema: { $ref: "#/components/schemas/RescueRoomCommanderEvaluationInput" } },
+            },
+        }
+      responses:
+        {
+          "200": { description: Simulated outcome with AI provenance and verified Action replay },
+          "400": { $ref: "#/components/responses/BadRequest" },
+          "429": { description: AI Commander rate limit exceeded },
+          "502": { description: OpenAI Commander execution failed },
+          "503": { description: OpenAI Commander runtime is not configured },
+          "504": { description: OpenAI Commander Episode timed out },
+        }
   /v2/sandbox/participants/register:
     post:
       operationId: registerSandboxParticipant
@@ -651,6 +708,87 @@ components:
         allocations:
           type: object
           additionalProperties: { type: integer, minimum: 0, maximum: 1000000 }
+      additionalProperties: false
+    RescueRoomEvaluationInput:
+      type: object
+      required: [policyId, episodeId]
+      properties:
+        policyId:
+          {
+            type: string,
+            enum:
+              [
+                always-pause,
+                never-pause,
+                monitor-first,
+                audit-everything,
+                cheapest-service,
+                spend-everything,
+                patch-immediately,
+                simple-adaptive,
+              ],
+          }
+        episodeId: { type: string, minLength: 1 }
+      additionalProperties: false
+    RescueRoomCommanderEvaluationInput:
+      type: object
+      required: [episodeId, playbook]
+      properties:
+        episodeId: { type: string, minLength: 1 }
+        playbook: { $ref: "#/components/schemas/RescueCommanderPlaybook" }
+      additionalProperties: false
+    RescueCommanderPlaybook:
+      type: object
+      required:
+        [
+          schemaVersion,
+          name,
+          instructions,
+          allowedServiceIds,
+          allowedProtocolActions,
+          maxServicePriceCredits,
+        ]
+      properties:
+        schemaVersion: { type: string, enum: [rescue-commander-playbook-v0] }
+        name: { type: string, minLength: 3, maxLength: 80 }
+        instructions: { type: string, minLength: 40, maxLength: 4000 }
+        allowedServiceIds:
+          type: array
+          uniqueItems: true
+          maxItems: 6
+          items:
+            {
+              type: string,
+              enum:
+                [
+                  pulse-monitor,
+                  trace-audit,
+                  accounting-audit,
+                  second-opinion,
+                  patch-builder,
+                  patch-verifier,
+                ],
+            }
+        allowedProtocolActions:
+          type: array
+          uniqueItems: true
+          minItems: 1
+          maxItems: 7
+          items:
+            {
+              type: string,
+              enum:
+                [
+                  PAUSE_MODULE,
+                  PAUSE_PROTOCOL,
+                  APPLY_PATCH,
+                  RESUME_MODULE,
+                  RESUME_PROTOCOL,
+                  WAIT,
+                  CLOSE_INCIDENT,
+                ],
+            }
+        maxServicePriceCredits: { type: integer, minimum: 0, maximum: 100 }
       additionalProperties: false
     SandboxRegistration:
       type: object

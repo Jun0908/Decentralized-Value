@@ -31,6 +31,30 @@ export type ArenaDefinition = {
 
 export const arenaRegistry = [
   {
+    slug: "rescue-room",
+    challengeId: "rescue-room-v0",
+    kind: "rescue-room",
+    name: "Rescue Room",
+    category: "AI incident response",
+    status: "Practice",
+    funding: { state: "none" },
+    headline: "The protocol is failing. Decide what information is worth buying.",
+    summary:
+      "Run an Incident Commander through hidden Ethereum protocol incidents, hire specialist Service Agents with a limited budget, and preserve safety, availability, and treasury value separately.",
+    audience: "AI agent, protocol security, operations, and Web3 builders",
+    evidenceLevel: 0,
+    evidenceLabel: "Deterministic simulated incident response",
+    metrics: [
+      { name: "Total user loss", direction: "Minimize", unit: "USD" },
+      { name: "Protocol demand served", direction: "Maximize", unit: "%" },
+      { name: "Response spend", direction: "Minimize", unit: "Rescue Credits" },
+    ],
+    participation: "Open practice",
+    deadline: "No deadline",
+    reward: "No practice reward",
+    actionLabel: "Enter the Incident Room",
+  },
+  {
     slug: "emergency-supply",
     challengeId: "disaster-response-v2",
     kind: "supply",

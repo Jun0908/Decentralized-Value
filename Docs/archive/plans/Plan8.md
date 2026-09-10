@@ -1,5 +1,7 @@
 # Frontier Protocol 計画8 — Secret Gate
 
+> **Archived 2026-09-10:** 本物のoff-chain Secret Gate参照実装は完成した。LatencyとMemoryの安定した独立Tradeoffを確認できなかったため、競技化は`PIVOT`として終了した。後継のActive Planは[`../../Plan9.md`](../../Plan9.md)。
+
 **作成日:** 2026-09-09
 **状態:** Gateデモ公開済み・Phase 0は`PIVOT`・競技化とSepolia公開は保留
 **最重要方針:** 本物のSemaphoreを使ったSecret Gateは作る。ただし、証明生成を最適化する競技は、速度とメモリの間に安定したトレードオフを実測できた場合にだけ作る。
@@ -608,7 +610,7 @@ Phase 2完成後は、まず「AI-assisted strategy challenge」と表現する�
 - [x] 検証済みDemo手順を`Docs/DEMO.md`へ追加する
 - [x] 各Phase判定後に`Docs/STATUS.md`を更新する
 - [x] Public JourneyのDeploy後にだけroot `README.md`を更新する
-- [ ] 完了または中止後、このPlanを`Docs/archive/plans/`へ移す
+- [x] 完了または中止後、このPlanを`Docs/archive/plans/`へ移す
 
 ## 23. 全体の検証
 

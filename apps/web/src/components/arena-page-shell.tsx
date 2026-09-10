@@ -10,41 +10,44 @@ export function ArenaPageShell({
   children: ReactNode;
 }) {
   const hasDemoSettlement = arena.challengeId === "disaster-response-v2";
+  const hasCustomHero = arena.slug === "rescue-room";
   return (
     <main className="page-shell detail-page platform-arena-page">
-      <header className="platform-arena-hero">
-        <div className="arena-breadcrumb">
-          <Link href="/arenas">Arenas</Link>
-          <span aria-hidden="true">/</span>
-          <span>{arena.category}</span>
-        </div>
-        <div className="platform-arena-heading">
-          <div>
-            <div className="arena-labels">
-              <span className="arena-status">{arena.status}</span>
-              <span className="evidence-level">
-                Evidence L{arena.evidenceLevel} ·
-                {arena.evidenceLabel ?? "Deterministic public evaluator"}
-              </span>
-            </div>
-            <h1>{arena.headline}</h1>
-            <p>{arena.summary}</p>
+      {!hasCustomHero ? (
+        <header className="platform-arena-hero">
+          <div className="arena-breadcrumb">
+            <Link href="/arenas">Arenas</Link>
+            <span aria-hidden="true">/</span>
+            <span>{arena.category}</span>
           </div>
-          <aside>
-            <p className="eyebrow">{arena.metrics.length} independent axes</p>
-            <dl>
-              {arena.metrics.map((metric) => (
-                <div key={metric.name}>
-                  <dt>{metric.name}</dt>
-                  <dd>
-                    {metric.direction} · {metric.unit}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </aside>
-        </div>
-      </header>
+          <div className="platform-arena-heading">
+            <div>
+              <div className="arena-labels">
+                <span className="arena-status">{arena.status}</span>
+                <span className="evidence-level">
+                  Evidence L{arena.evidenceLevel} ·
+                  {arena.evidenceLabel ?? "Deterministic public evaluator"}
+                </span>
+              </div>
+              <h1>{arena.headline}</h1>
+              <p>{arena.summary}</p>
+            </div>
+            <aside>
+              <p className="eyebrow">{arena.metrics.length} independent axes</p>
+              <dl>
+                {arena.metrics.map((metric) => (
+                  <div key={metric.name}>
+                    <dt>{metric.name}</dt>
+                    <dd>
+                      {metric.direction} · {metric.unit}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </aside>
+          </div>
+        </header>
+      ) : null}
       {children}
       <details className="protocol-details">
         <summary>Challenge lifecycle and immutable terms</summary>

@@ -84,12 +84,32 @@ State clearly that this is a completed Sepolia demonstration payout, not a compl
 | A wallet can connect through Privy | The connection is a tournament entry or payout approval |
 | The instant demo reveals a precommitted final scenario set | A scheduled hidden-final tournament has run |
 | Secret Gate generates a real Semaphore proof in the browser and verifies it offchain | The proof was verified on Ethereum or establishes a real identity |
+| The local Rescue Room Controlled Practice can run a real OpenAI Commander whose Actions purchase simulated Service Agents | The Service Agent was an external autonomous provider, payment was onchain, or the undeployed public site has this runtime |
 
 ## Optional Secret Gate walkthrough
 
 After the primary demo, open **Secret Gate** and create a disposable identity. Explain that the secret remains in the browser and only its commitment joins an eight-member synthetic group snapshot. Create the snapshot, press **Prove and enter**, and show the offchain verification receipt. Press it again to demonstrate nullifier replay rejection.
 
 The personal-device benchmark runs real proofs but is not an official competition result. The first controlled feasibility run was a `PIVOT`, so do not describe the latency-memory frontier or proposed Value Pools as settled competition evidence.
+
+## Optional Rescue Room walkthrough
+
+Open **Rescue Room** and first point to the ambiguous alert: the Commander cannot see the true incident, severity, or correct patch. Choose **Simple Adaptive** and press **Run Commander**.
+
+Let the Incident Room replay these records in order:
+
+1. the Commander buys a specialist Service;
+2. Rescue Credits move from available to reserved;
+3. simulated delivery time advances while user loss and served demand accumulate;
+4. the Service Receipt enters the Evidence Inbox and the simulated payment is released;
+5. the Commander chooses whether to pause, patch, resume, or close;
+6. three independent outcomes and the previously hidden state appear after evaluation.
+
+Compare the Service-aware Commander with the no-Service control across the same 35 Episodes. Then show the four Practice Value Pools. They read the same evidence but use different public eligibility and allocation rules; there is no weighted score or overall winner. Download the **Context + Result Evidence** JSON and use **Replay evidence timeline** if asked.
+
+When demonstrating the current local branch, switch to **AI Playbook**, edit the Commander instructions or service permissions, and run one Episode. Explain that the real OpenAI model selects structured Actions, while the Service outputs and Rescue Credit payments remain deterministic simulations. Show the model/token provenance and verified Action replay, then download the Starter Kit. Do not use this step against the public deployment until it is deployed and reverified.
+
+State clearly that Rescue Credits are not tokens and no hidden Final or Sepolia Service Payment has run. Reference Mode is a deterministic policy; AI Playbook Mode is a real external inference path whose recorded Actions—not a repeated LLM call—are the reproducible evaluator input.
 
 ## Recovery
 

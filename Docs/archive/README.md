@@ -2,7 +2,7 @@
 
 These files preserve the project's planning and review history. They are not current implementation instructions.
 
-- `plans/` contains concise English records of completed or superseded numbered plans and task lists. Plans 2 through 7 are retained only as implementation history.
+- `plans/` contains records of completed or superseded numbered plans and task lists. Plans 2 through 8 are retained only as implementation history.
 - `reviews/` contains point-in-time design and whitepaper gap analyses.
 - `legacy/` contains earlier sponsor briefs, integration runbooks, architecture drafts, and demo material that has been consolidated into the active documents one level above.
 

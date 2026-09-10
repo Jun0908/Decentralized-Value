@@ -17,8 +17,11 @@
     "@frontier/emergency-supply": "workspace:*",
     "@frontier/ens-adapter": "workspace:*",
     "@frontier/microgrid-dispatch": "workspace:*",
+    "@frontier/rescue-room": "workspace:*",
     "@frontier/secret-gate": "workspace:*",
     "@frontier/shared": "workspace:*",
+    "@openai/agents": "0.17.2",
+    "dotenv": "17.4.2",
     "fflate": "^0.8.3",
     "viem": "2.56.3",
     "zod": "4.5.4"

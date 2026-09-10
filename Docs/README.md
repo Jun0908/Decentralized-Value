@@ -7,7 +7,7 @@ This directory contains the current product and engineering reference. Start wit
 | Document | Use it for |
 | --- | --- |
 | [STATUS.md](STATUS.md) | Current capabilities, gaps, and next boundary |
-| [Plan8.md](Plan8.md) | Active Secret Gate feasibility and implementation plan |
+| [Plan9.md](Plan9.md) | Active Rescue Room feasibility and staged implementation plan |
 | [PRODUCT.md](PRODUCT.md) | Product model, terminology, and competition rules |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Runtime structure, evidence chain, and trust boundaries |
 | [DEMO.md](DEMO.md) | Public walkthrough, safe claims, and recovery |
@@ -27,4 +27,4 @@ The repository-root [`README.md`](../README.md) is the public project entry poin
 - External-service state: `INTEGRATIONS.md`
 - Evaluator rules: the matching file under `arenas/` plus tests
 
-Plan 8 is the current user-requested implementation plan. Completed plans and point-in-time reviews live under [`archive/`](archive/). Temporary notes belong in the ignored `tmp/` directory.
+Plan 9 is the current user-requested implementation plan. Completed and superseded plans, including the Secret Gate Plan 8 `PIVOT`, live under [`archive/`](archive/). Temporary notes belong in the ignored `tmp/` directory.

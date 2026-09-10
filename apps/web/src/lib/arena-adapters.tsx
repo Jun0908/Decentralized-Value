@@ -72,11 +72,26 @@ const secretGateAdapter: ArenaAdapter = {
   },
 };
 
+const rescueRoomAdapter: ArenaAdapter = {
+  kind: "rescue-room",
+  challengeId: "rescue-room-v0",
+  async renderWorkbench() {
+    const [{ publicRescueRoomScenario }, { RescueRoomWorkbench }] = await Promise.all([
+      import("@frontier/rescue-room"),
+      import("@/components/rescue-room-workbench"),
+    ]);
+    return <RescueRoomWorkbench scenario={publicRescueRoomScenario()} />;
+  },
+  async loadManifest() {
+    const { rescueRoomManifest, rescueRoomManifestHash } = await import("@frontier/rescue-room");
+    return { manifest: rescueRoomManifest, manifestHash: rescueRoomManifestHash };
+  },
+};
+
 export const arenaAdapters: ReadonlyMap<string, ArenaAdapter> = new Map(
-  [supplyAdapter, calldataAdapter, microgridAdapter, secretGateAdapter].map((adapter) => [
-    adapter.kind,
-    adapter,
-  ]),
+  [supplyAdapter, calldataAdapter, microgridAdapter, secretGateAdapter, rescueRoomAdapter].map(
+    (adapter) => [adapter.kind, adapter],
+  ),
 );
 
 export function getArenaAdapter(kind: string): ArenaAdapter | undefined {

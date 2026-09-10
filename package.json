@@ -10,6 +10,9 @@
   },
   "scripts": {
     "benchmark:orderbook": "tsx benchmarks/evm-orderbook/src/run.ts",
+    "benchmark:rescue-room": "tsx scripts/benchmark-rescue-room.ts",
+    "smoke:rescue-room-agent": "tsx scripts/smoke-rescue-room-agent.ts",
+    "verify:rescue-room-ui": "tsx scripts/verify-rescue-room-ui.ts",
     "benchmark:secret-gate": "tsx scripts/benchmark-secret-gate.ts",
     "build": "pnpm build:contracts && pnpm --filter @frontier/web build",
     "build:contracts": "forge build --root packages/contracts",

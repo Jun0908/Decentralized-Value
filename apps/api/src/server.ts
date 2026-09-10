@@ -1,14 +1,20 @@
 import { createServer } from "node:http";
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { Readable } from "node:stream";
 import { EnsRunnerDirectory, ViemEnsRecordReader } from "@frontier/ens-adapter";
 import { parseEnvironment } from "@frontier/shared";
+import { config } from "dotenv";
 import { createPublicClient, http } from "viem";
 import { sepolia } from "viem/chains";
 import { createApi } from "./index";
 
 const root = resolve(import.meta.dirname, "../../..");
+for (const filename of [".env.local", ".env"]) {
+  const path = resolve(root, filename);
+  if (existsSync(path)) config({ path, override: false, quiet: true });
+}
 const benchmark = JSON.parse(
   await readFile(resolve(root, "benchmarks/evm-orderbook/results/latest.json"), "utf8"),
 );
