@@ -27,6 +27,13 @@ import type { BoatId, FishingAction, OceanState, Proposal } from "./types";
  * Stewardship is measured at the *lowest* point of the match, not the end, so
  * that draining the sea and letting it rebound in the final rounds does not
  * read as good stewardship.
+ *
+ * It is a fraction of the scenario's carrying capacity, not a fish count. The
+ * generator varies zone sizes by ±20%, so raw counts are not comparable across
+ * scenarios: measured absolutely, 89% of the spread came from which seed was
+ * drawn and only 9% from how the fleet behaved. As a fraction those become 52%
+ * and 42% — the same matches, measured by a yardstick that answers the
+ * question actually being asked.
  */
 export const oceanMetrics = [
   {
@@ -41,17 +48,17 @@ export const oceanMetrics = [
     key: "stewardship",
     name: "Commons stewardship",
     direction: "MAXIMIZE",
-    unit: "fish",
+    unit: "share of capacity",
     lowerBound: 0,
-    upperBound: 1900,
+    upperBound: 1,
   },
   {
     key: "resilience",
     name: "Small fleet resilience",
     direction: "MAXIMIZE",
-    unit: "DemoUSD",
+    unit: "share of starting capital",
     lowerBound: 0,
-    upperBound: 600,
+    upperBound: 2,
   },
 ] as const satisfies readonly OutcomeMetric[];
 
@@ -73,11 +80,22 @@ export type MatchOutcomes = {
   boats: BoatOutcome[];
   /** Axis 1 — the median active boat's final cash. */
   livelihood: number;
-  /** Axis 2 — the lowest total stock seen at any point in the match. */
+  /**
+   * Axis 2 — the lowest total stock seen at any point in the match, as a share
+   * of carrying capacity so that scenarios of different sizes compare.
+   */
   stewardship: number;
-  /** Axis 3 — the worst-off boat's final cash, floored at zero. */
+  /**
+   * Axis 3 — the weakest small operator's final capital as a share of what it
+   * started with, floored at zero. Absolute cash rewarded fleets that fished
+   * hard: everyone ended richer, including the worst-off boat, so restraint
+   * scored *lower* on resilience than greed. A ratio asks the intended
+   * question — did the smallest operator stay viable — and a bankrupt boat
+   * scores zero however well the rest of the fleet did.
+   */
   resilience: number;
   evidence: {
+    totalCapacity: number;
     finalTotalStock: number;
     minTotalStock: number;
     nurseryFinalStock: number;
@@ -134,6 +152,7 @@ export function evaluateMatch(log: MatchLog): MatchOutcomes {
   );
   const finalTotalStock = totals[totals.length - 1] ?? 0;
   const minTotalStock = totals.length > 0 ? Math.min(...totals) : 0;
+  const totalCapacity = scenario.zones.reduce((sum, zone) => sum + zone.carryingCapacity, 0);
 
   const zoneRoundChoices: Record<string, number> = {};
   for (const zone of scenario.zones) zoneRoundChoices[zone.id] = 0;
@@ -160,16 +179,24 @@ export function evaluateMatch(log: MatchLog): MatchOutcomes {
     .reduce((sum, payout) => sum + payout.amount, 0);
 
   const activeCash = boats.filter((boat) => boat.survived).map((boat) => boat.finalCash);
-  const worstCash = boats.length > 0 ? Math.min(...boats.map((boat) => boat.finalCash)) : 0;
+  const smallRatios = boats
+    .filter((boat) => boat.smallFleet)
+    .map((boat) => {
+      const start = boatsById.get(boat.boatId)?.startingCash ?? 0;
+      if (!boat.survived || start <= 0) return 0;
+      return Math.max(0, boat.finalCash / start);
+    });
+  const worstSmall = smallRatios.length > 0 ? Math.min(...smallRatios) : 0;
 
   return {
     scenarioId: scenario.scenarioId,
     seed: scenario.seed,
     boats,
     livelihood: stable(Math.max(0, median(activeCash))),
-    stewardship: stable(minTotalStock),
-    resilience: stable(Math.max(0, worstCash)),
+    stewardship: totalCapacity === 0 ? 0 : stable(minTotalStock / totalCapacity),
+    resilience: stable(worstSmall),
     evidence: {
+      totalCapacity,
       finalTotalStock,
       minTotalStock,
       nurseryFinalStock: stable(

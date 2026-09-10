@@ -43,6 +43,13 @@ export type Boat = {
   effortCapacity: number;
   /** Fixed operating cost per round, paid even when idle. */
   upkeepPerRound: number;
+  /**
+   * The roughest water this hull will work, as zone exposure × storm severity.
+   * A small boat is driven inshore by weather a big one shrugs off — and if the
+   * inshore ground has already been stripped, it has nowhere left to fish. This
+   * is what ties a small operator's survival to how the fleet treated the sea.
+   */
+  stormLimit: number;
   /** Small boats have less buffer; used by the resilience outcome. */
   smallFleet: boolean;
 };

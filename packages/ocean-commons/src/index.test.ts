@@ -381,8 +381,13 @@ describe("outcomes", () => {
     const scenario = generateScenario("min-stock", { vary: true });
     const outcomes = evaluateMatch(runMatch(scenario, mixedFleet(scenario)));
 
-    expect(outcomes.stewardship).toBe(outcomes.evidence.minTotalStock);
-    expect(outcomes.stewardship).toBeLessThanOrEqual(outcomes.evidence.finalTotalStock + 1e-6);
+    expect(outcomes.stewardship).toBeCloseTo(
+      outcomes.evidence.minTotalStock / outcomes.evidence.totalCapacity,
+      6,
+    );
+    expect(outcomes.evidence.minTotalStock).toBeLessThanOrEqual(
+      outcomes.evidence.finalTotalStock + 1e-6,
+    );
   });
 
   it("builds a frontier that is independent of submission order", () => {

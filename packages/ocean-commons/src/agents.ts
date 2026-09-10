@@ -1,4 +1,4 @@
-import { effortForCatch, yieldPerEffort } from "./engine";
+import { effortForCatch, tooRough, yieldPerEffort } from "./engine";
 import { capInForce, closedZones, standDownRequired } from "./negotiation";
 import type { OceanScenario } from "./scenario";
 import type {
@@ -141,6 +141,7 @@ function bestZone(
   for (const zone of observation.zones) {
     if (zone.reserve && !options.allowReserve) continue;
     if (closed.has(zone.id)) continue;
+    if (tooRough(zone, observation.weather, observation.self)) continue;
     const stock = observation.stocks[zone.id] ?? 0;
     const cap = capInForce(observationStateShim(observation), observation.self.id, zone.id);
     let effort = Math.min(observation.self.effortCapacity, options.effortCap ?? Infinity);

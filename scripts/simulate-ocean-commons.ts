@@ -369,7 +369,7 @@ for (const check of checks) {
 }
 
 console.log(`\n--- 補足統計 ---`);
-console.log(`Stewardship 中央値   契約あり ${stewardshipWith.toFixed(1)} / 契約なし ${stewardshipWithout.toFixed(1)}  (制約付き契約が成立した ${treated.length}/${rows.length} 件で比較)`);
+console.log(`Stewardship 中央値   契約あり ${stewardshipWith.toFixed(3)} / 契約なし ${stewardshipWithout.toFixed(3)}  (制約付き契約が成立した ${treated.length}/${rows.length} 件で比較)`);
 console.log(
   `Escrow-違反率曲線    0.5x ${(half.rate * 100).toFixed(1)}% (${half.breached}/${half.binding})` +
     `  ->  1x ${(rateBase * 100).toFixed(1)}% (${breachesBase}/${bindingBase})` +

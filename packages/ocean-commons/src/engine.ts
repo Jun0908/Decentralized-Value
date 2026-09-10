@@ -3,6 +3,7 @@ import { stable } from "./rng";
 import type { OceanScenario } from "./scenario";
 import type {
   AidPayout,
+  Boat,
   BoatRoundEntry,
   BoatState,
   FishingAction,
@@ -49,6 +50,15 @@ export function createInitialState(scenario: OceanScenario): OceanState {
     conservationFund: null,
     price: scenario.price.basePrice,
   };
+}
+
+/**
+ * Whether this hull can work this ground today. A big boat rides out weather
+ * that drives a small one home, so a storm does not merely reduce the catch —
+ * it decides who is allowed at sea at all.
+ */
+export function tooRough(zone: Zone, weather: RoundWeather, boat: Boat): boolean {
+  return zone.stormExposure * weather.stormSeverity > boat.stormLimit;
 }
 
 /** How much a storm suppresses fishing in a zone. Never below 10%. */
@@ -161,6 +171,13 @@ export function transition(
     const zone = zonesById.get(action.zoneId);
     if (!zone) {
       entry.clampReason = "UNKNOWN_ZONE";
+      planned.push({ entry, zone: null });
+      continue;
+    }
+
+    // Weather the hull cannot work keeps it in port, whatever it intended.
+    if (tooRough(zone, weather, boat)) {
+      entry.clampReason = "TOO_ROUGH";
       planned.push({ entry, zone: null });
       continue;
     }

@@ -53,7 +53,7 @@ export const baseZones: readonly Zone[] = [
     id: "coastal",
     name: "Coastal shelf",
     carryingCapacity: 420,
-    growthRate: 0.22,
+    growthRate: 0.220,
     collapseThreshold: 0.25,
     initialStock: 380,
     travelCost: 4,
@@ -65,7 +65,7 @@ export const baseZones: readonly Zone[] = [
     id: "offshore",
     name: "Offshore bank",
     carryingCapacity: 900,
-    growthRate: 0.16,
+    growthRate: 0.160,
     collapseThreshold: 0.25,
     initialStock: 820,
     travelCost: 15,
@@ -99,6 +99,7 @@ export const baseBoats: readonly Boat[] = [
     startingCash: 500,
     effortCapacity: 18,
     upkeepPerRound: 12,
+    stormLimit: 0.72,
     smallFleet: false,
   },
   {
@@ -107,6 +108,7 @@ export const baseBoats: readonly Boat[] = [
     startingCash: 520,
     effortCapacity: 22,
     upkeepPerRound: 16,
+    stormLimit: 0.85,
     smallFleet: false,
   },
   {
@@ -115,6 +117,7 @@ export const baseBoats: readonly Boat[] = [
     startingCash: 480,
     effortCapacity: 18,
     upkeepPerRound: 12,
+    stormLimit: 0.72,
     smallFleet: false,
   },
   {
@@ -123,6 +126,7 @@ export const baseBoats: readonly Boat[] = [
     startingCash: 300,
     effortCapacity: 12,
     upkeepPerRound: 8,
+    stormLimit: 0.34,
     smallFleet: true,
   },
   {
@@ -131,6 +135,7 @@ export const baseBoats: readonly Boat[] = [
     startingCash: 250,
     effortCapacity: 10,
     upkeepPerRound: 7,
+    stormLimit: 0.28,
     smallFleet: true,
   },
 ] as const;
