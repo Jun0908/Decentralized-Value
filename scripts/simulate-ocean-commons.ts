@@ -106,12 +106,25 @@ const FOCAL_POLICIES: PolicyName[] = [
 type Lineup = { id: string; policies: PolicyName[] };
 
 function lineups(): Lineup[] {
-  const focal = FOCAL_POLICIES.map((policy) => ({
+  // The focal policy is evaluated twice: once in the first seat, which is a
+  // large boat, and once in the last, which is the smallest hull in the fleet.
+  //
+  // With the focal policy only ever on a big boat, resilience — the weakest
+  // small operator's survival — could only pick up its second-hand effects,
+  // and 95% of that axis was down to which seed was drawn. Seated on a small
+  // boat, a policy decides its own survival. The same five policies are in the
+  // water either way; only the seating changes, so the runs stay comparable.
+  const large = FOCAL_POLICIES.map((policy) => ({
     id: `focal-${policy}`,
     policies: [policy, ...BACKGROUND],
   }));
+  const small = FOCAL_POLICIES.map((policy) => ({
+    id: `small-${policy}`,
+    policies: [...BACKGROUND, policy],
+  }));
   return [
-    ...focal,
+    ...large,
+    ...small,
     { id: "all-greedy", policies: Array(5).fill("greedy") as PolicyName[] },
     { id: "all-cautious", policies: Array(5).fill("cautious") as PolicyName[] },
   ];
