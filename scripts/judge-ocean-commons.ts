@@ -38,6 +38,7 @@
  *   OPENAI_API_KEY=... npx tsx scripts/judge-ocean-commons.ts [seeds] [effort] [concurrency]
  */
 
+import { writeFileSync } from "node:fs";
 import {
   brokerAgent,
   cautiousAgent,
@@ -50,7 +51,9 @@ import {
   recordedActionsFor,
   recordedAgent,
   runMatch,
+  oceanFrontier,
   scoreCooperation,
+  toOutcomePoint,
   tunableAgent,
   type LlmTurnRecord,
   type OceanAgent,
@@ -284,3 +287,60 @@ console.log(
     `入力 ${usage.input} / 出力 ${usage.output} トークン`,
 );
 console.log(`実時間            ${elapsed.toFixed(0)}秒  (${(elapsed / SEEDS).toFixed(0)}秒/seed)`);
+
+// The per-axis test above asks whether the model beats each axis's specialist.
+// A balanced entrant cannot win that by construction — a boat that barely
+// fishes will always hold more stewardship, and one that contracts every round
+// will always score higher on cooperation. What the arena actually rewards is
+// a point no other entry dominates, so record the raw scores here and let the
+// frontier check run against the full grid for free afterwards.
+writeFileSync(
+  "benchmarks/ocean-commons/judgement.json",
+  JSON.stringify(
+    {
+      effort: EFFORT,
+      seeds: SEEDS,
+      champions: CHAMPION,
+      rows: rows.map((row, index) => ({
+        seed: `judge-${index}`,
+        model: {
+          livelihood: row.model.livelihood,
+          stewardship: row.model.stewardship,
+          cooperation: row.model.cooperation,
+          zoneChoices: row.model.zoneChoices,
+        },
+        fixed: Object.fromEntries(
+          AXES.map((axis) => [
+            axis,
+            {
+              livelihood: row.fixed[axis]!.livelihood,
+              stewardship: row.fixed[axis]!.stewardship,
+              cooperation: row.fixed[axis]!.cooperation,
+            },
+          ]),
+        ),
+      })),
+    },
+    null,
+    1,
+  ),
+);
+console.log(`
+生スコアを benchmarks/ocean-commons/judgement.json に保存した。`);
+
+// Frontier membership against the three champions, computed here because it is
+// free; the full 60-vector check is a separate, also-free pass.
+let onFrontier = 0;
+for (const [index, row] of rows.entries()) {
+  const points = [
+    toOutcomePoint("model", "model", { ...row.model, boats: [] } as never, row.model.cooperation),
+    ...AXES.map((axis) =>
+      toOutcomePoint(axis, axis, { ...row.fixed[axis]!, boats: [] } as never, row.fixed[axis]!.cooperation),
+    ),
+  ];
+  if (oceanFrontier(points).some((point) => point.id === "model")) onFrontier += 1;
+  void index;
+}
+console.log(
+  `3体の専門家に対して model が Pareto Frontier に残る割合  ${onFrontier}/${rows.length}`,
+);
