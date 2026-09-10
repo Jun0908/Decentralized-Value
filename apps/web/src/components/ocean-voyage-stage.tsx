@@ -268,6 +268,15 @@ export function OceanVoyageStage({ voyage }: { voyage: Voyage }) {
               }`}
               stroke={BOND_COLOR[bond.kind] ?? "var(--ocean-bond-limit)"}
               strokeWidth={bond.broken ? 0.7 : Math.max(0.5, Math.min(2.2, bond.escrowRemaining / 60))}
+              strokeDasharray={
+                bond.broken
+                  ? "1.2 1.6"
+                  : bond.kind === "CONSERVATION_FUND"
+                    ? "2.6 1.4"
+                    : bond.kind === "SOUNDING_EXCHANGE"
+                      ? "0.6 1.1"
+                      : undefined
+              }
               d={`M${a.x} ${a.y} Q${(a.x + b.x) / 2} ${Math.min(a.y, b.y) - lift} ${b.x} ${b.y}`}
             >
               <title>
@@ -288,8 +297,8 @@ export function OceanVoyageStage({ voyage }: { voyage: Voyage }) {
             <rect x="0" y="0" width="100" height="72" className="ocean-gale-veil" />
             {/* A badge, not a watermark: the weather should darken the scene,
                 not compete with the boats for the reader's attention. */}
-            <rect x="62" y="64" width="36" height="6" rx="1" className="ocean-gale-badge" />
-            <text x="80" y="68" className="ocean-gale-word">
+            <rect x="70" y="65" width="28" height="4.8" rx="0.8" className="ocean-gale-badge" />
+            <text x="84" y="68.3" className="ocean-gale-word">
               GALE · BANK SHUT
             </text>
           </g>
@@ -307,7 +316,21 @@ export function OceanVoyageStage({ voyage }: { voyage: Voyage }) {
           ] as const
         ).map(([kind, label]) => (
           <span key={kind}>
-            <i style={{ background: BOND_COLOR[kind] }} aria-hidden="true" />
+            <i
+              className={
+                kind === "CONSERVATION_FUND"
+                  ? "dashed-fund"
+                  : kind === "SOUNDING_EXCHANGE"
+                    ? "dashed-sounding"
+                    : undefined
+              }
+              style={
+                kind === "CONSERVATION_FUND" || kind === "SOUNDING_EXCHANGE"
+                  ? undefined
+                  : { background: BOND_COLOR[kind] }
+              }
+              aria-hidden="true"
+            />
             {label}
           </span>
         ))}

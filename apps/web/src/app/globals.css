@@ -8122,13 +8122,13 @@ a.table-row:hover {
    as absence of knowledge and never look like decoration. */
 
 .ocean-workbench {
-  --ocean-deep: #071a26;
-  --ocean-shelf: #0d3247;
+  --ocean-deep: #080a0d;
+  --ocean-shelf: #0d1013;
   --ocean-bond-limit: #c7ff45;
   --ocean-bond-buyout: #ff7849;
-  --ocean-bond-aid: #6fd3ff;
-  --ocean-bond-fund: #d59bff;
-  --ocean-bond-sounding: #ffd166;
+  --ocean-bond-aid: #f4f1e8;
+  --ocean-bond-fund: #8fae3c;
+  --ocean-bond-sounding: #c9a227;
   display: grid;
   gap: 2rem;
 }
@@ -8162,35 +8162,35 @@ a.table-row:hover {
 
 .ocean-map { display: block; width: 100%; height: auto; }
 .ocean-water { fill: var(--ocean-deep); }
-.ocean-ground { fill: var(--ocean-shelf); stroke: #14506e; stroke-width: 0.3; }
+.ocean-ground { fill: var(--ocean-shelf); stroke: var(--line); stroke-width: 0.3; }
 .ocean-ground.reserve { stroke: var(--lime); stroke-width: 0.5; stroke-dasharray: 1.6 1.1; }
-.ocean-ground-name { fill: #9fd4ee; font-size: 1.9px; letter-spacing: 0.09em; font-weight: 700; paint-order: stroke; stroke: #030a10; stroke-width: 0.5px; }
-.ocean-ground-read { fill: #7fa9bf; font-size: 1.7px; paint-order: stroke; stroke: #030a10; stroke-width: 0.5px; }
-.ocean-port-quay { fill: #12222b; stroke: var(--line); stroke-width: 0.3; }
+.ocean-ground-name { fill: var(--muted); font-size: 1.9px; letter-spacing: 0.09em; font-weight: 700; paint-order: stroke; stroke: #050608; stroke-width: 0.5px; }
+.ocean-ground-read { fill: #8a9096; font-size: 1.7px; paint-order: stroke; stroke: #050608; stroke-width: 0.5px; }
+.ocean-port-quay { fill: #0d1013; stroke: var(--line); stroke-width: 0.3; }
 
-.ocean-fish { fill: #7ff0c8; opacity: 0.85; }
-.ocean-shoal.collapsed .ocean-fish { fill: #ff6b6b; opacity: 0.5; }
-.ocean-fog { fill: #030a10; pointer-events: none; }
+.ocean-fish { fill: var(--lime); opacity: 0.85; }
+.ocean-shoal.collapsed .ocean-fish { fill: var(--orange); opacity: 0.5; }
+.ocean-fog { fill: #050608; pointer-events: none; }
 
 .ocean-hull-body { fill: #f4f1e8; }
 .ocean-hull-mast { stroke: #f4f1e8; stroke-width: 0.5; }
 .ocean-hull-sail { fill: var(--lime); }
-.ocean-hull-name { fill: #d7e4ea; font-size: 4.2px; text-anchor: middle; }
-.ocean-hull-dry .ocean-hull-sail { fill: #6b6b6b; }
+.ocean-hull-name { fill: var(--ink); font-size: 4.2px; text-anchor: middle; }
+.ocean-hull-dry .ocean-hull-sail { fill: #656c70; }
 .ocean-hull-repair .ocean-hull-sail { fill: var(--orange); }
 .ocean-hull-sunk { opacity: 0.28; }
-.ocean-net-line { stroke: #cfe6f2; stroke-width: 0.35; fill: none; }
-.ocean-net-bag { fill: #0d3247; stroke: #7ff0c8; stroke-width: 0.35; }
-.ocean-net-count { fill: #7ff0c8; font-size: 4.6px; text-anchor: middle; font-weight: 700; }
-.ocean-fuel-track { fill: #1b2b33; }
-.ocean-fuel-fill { fill: #6fd3ff; }
+.ocean-net-line { stroke: var(--muted); stroke-width: 0.35; fill: none; }
+.ocean-net-bag { fill: #0d1013; stroke: var(--lime); stroke-width: 0.35; }
+.ocean-net-count { fill: var(--lime); font-size: 4.6px; text-anchor: middle; font-weight: 700; }
+.ocean-fuel-track { fill: #1a1d21; }
+.ocean-fuel-fill { fill: var(--muted); }
 .ocean-fuel-fill.low { fill: var(--orange); }
 
 .ocean-bond { fill: none; opacity: 0.9; }
 .ocean-bond.broken { stroke-dasharray: 1.2 1.6; opacity: 0.65; }
-.ocean-map.gale .ocean-water { fill: #04101a; }
+.ocean-map.gale .ocean-water { fill: #050608; }
 .ocean-gale-veil { fill: #000; opacity: 0.42; }
-.ocean-gale-badge { fill: #1a0f08; stroke: var(--orange); stroke-width: 0.3; }
+.ocean-gale-badge { fill: #150c07; stroke: var(--orange); stroke-width: 0.3; }
 .ocean-gale-word {
   fill: var(--orange); font-size: 2.4px; font-weight: 800;
   text-anchor: middle; letter-spacing: 0.16em;
@@ -8203,7 +8203,7 @@ a.table-row:hover {
 }
 .ocean-legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
 .ocean-legend i { width: 0.85rem; height: 0.2rem; border-radius: 1px; display: inline-block; }
-.ocean-legend-fog { background: #030a10; border: 1px solid var(--line); height: 0.7rem !important; width: 0.7rem !important; }
+.ocean-legend-fog { background: #050608; border: 1px solid var(--line); height: 0.7rem !important; width: 0.7rem !important; }
 
 .ocean-scrub { display: flex; flex-wrap: wrap; gap: 0.3rem; list-style: none; margin: 0; padding: 0.7rem 1rem; border-top: 1px solid var(--line); }
 .ocean-scrub button {
@@ -8278,13 +8278,13 @@ a.table-row:hover {
    tokens were scoped to a wrapper that no longer exists, so they are re-scoped
    here; the rules above still style the voyage stage itself. */
 .ocean-competition {
-  --ocean-deep: #071a26;
-  --ocean-shelf: #0d3247;
+  --ocean-deep: #080a0d;
+  --ocean-shelf: #0d1013;
   --ocean-bond-limit: #c7ff45;
   --ocean-bond-buyout: #ff7849;
-  --ocean-bond-aid: #6fd3ff;
-  --ocean-bond-fund: #d59bff;
-  --ocean-bond-sounding: #ffd166;
+  --ocean-bond-aid: #f4f1e8;
+  --ocean-bond-fund: #8fae3c;
+  --ocean-bond-sounding: #c9a227;
   display: grid;
   gap: 1.75rem;
 }
@@ -8859,128 +8859,6 @@ a.table-row:hover {
    eyebrow and heading land underneath the bar the reader just clicked. */
 .ocean-competition > section[id] {
   scroll-margin-top: 4.5rem;
-}
-
-/* Ocean Commons, moved onto the shared `competition-*` vocabulary. The colour
-   tokens were scoped to a wrapper that no longer exists, so they are re-scoped
-   here; the rules above still style the voyage stage itself. */
-.ocean-competition {
-  --ocean-deep: #071a26;
-  --ocean-shelf: #0d3247;
-  --ocean-bond-limit: #c7ff45;
-  --ocean-bond-buyout: #ff7849;
-  --ocean-bond-aid: #6fd3ff;
-  --ocean-bond-fund: #d59bff;
-  --ocean-bond-sounding: #ffd166;
-  display: grid;
-  gap: 1.75rem;
-}
-.ocean-story,
-.ocean-rules-section,
-.ocean-values,
-.ocean-replay-section {
-  border-top: 1px solid var(--line);
-  padding-top: 1.75rem;
-  display: grid;
-  gap: 1rem;
-}
-.ocean-story h2,
-.ocean-values h2,
-.ocean-replay-section h2 {
-  margin: 0;
-  font-size: clamp(1.35rem, 3vw, 2rem);
-  line-height: 1.15;
-}
-.ocean-story > p {
-  margin: 0;
-  max-width: 68ch;
-  color: var(--muted);
-}
-.ocean-story-facts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  gap: 0.75rem;
-}
-.ocean-story-facts article {
-  border: 1px solid var(--line);
-  padding: 0.85rem;
-}
-.ocean-story-facts span {
-  display: block;
-  font-size: 1.7rem;
-  font-weight: 700;
-  line-height: 1.1;
-}
-.ocean-story-facts small {
-  color: var(--muted);
-  letter-spacing: 0.08em;
-  font-size: 0.66rem;
-}
-
-/* Five columns of numbers need a floor width or they wrap into mush. */
-.ocean-leaderboard .leaderboard-row {
-  grid-template-columns: minmax(11rem, 2fr) repeat(3, minmax(5.5rem, 1fr)) minmax(9rem, 1.4fr);
-}
-.ocean-leaderboard .leaderboard-row.mine {
-  border-left: 2px solid var(--lime);
-}
-.ocean-leaderboard .leaderboard-row small {
-  display: block;
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-.ocean-competition .mono {
-  font-family: ui-monospace, monospace;
-  font-size: 0.85rem;
-  word-break: break-all;
-}
-
-/* Hulls glide between grounds rather than teleporting, so a viewer can follow
-   one boat from round to round. */
-.ocean-hull {
-  transition: transform 420ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-.ocean-fuel-fill {
-  transition: width 420ms ease;
-}
-.ocean-fog {
-  transition: opacity 320ms ease;
-}
-.ocean-approaches button:hover {
-  border-color: #4a5257;
-}
-.ocean-scrub button:hover {
-  border-color: #4a5257;
-  color: var(--ink);
-}
-.ocean-stage-controls button:hover {
-  border-color: var(--lime);
-  color: var(--lime);
-}
-
-@media (max-width: 720px) {
-  .ocean-reading-key {
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-  .ocean-leaderboard .leaderboard-row {
-    grid-template-columns: 1fr 1fr;
-    gap: 0.3rem 0.8rem;
-  }
-  .ocean-leaderboard .leaderboard-head {
-    display: none;
-  }
-  .ocean-stage-head {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ocean-hull,
-  .ocean-fog,
-  .ocean-fuel-fill {
-    transition: none;
-  }
 }
 
 
