@@ -85,6 +85,17 @@ yourself, when the arithmetic favours it.`;
 
 const SEEDS = Array.from({ length: 8 }, (_, index) => `ocean-practice-v1:${index}`);
 
+/**
+ * How many seasons make a result.
+ *
+ * One season is close to one hand of poker: the draw accounts for a fifth to
+ * nearly two fifths of an outcome, and detecting a real edge on livelihood
+ * takes dozens of seasons (Plan 10 §67). Showing a visitor a single season and
+ * calling it a result invites them to read luck as judgement. A scripted season
+ * resolves in well under a millisecond, so a whole match costs nothing.
+ */
+const MATCH_SEASONS = 7;
+
 type Scores = {
   livelihood: number;
   restraint: number;
@@ -97,6 +108,8 @@ type Entry = Scores & {
   label: string;
   note: string;
   frontier: boolean;
+  /** Seasons this approach took each axis, out of the whole match. */
+  won: { livelihood: number; restraint: number; cooperation: number };
 };
 
 type MissionRun = {
@@ -216,18 +229,59 @@ export function OceanCommonsWorkbench({
       const seat = scenario.boats[0]!;
       const chosen = APPROACHES.find((one) => one.id === approach)!;
 
-      // Every approach sails the same seed, so the table below is a real answer
-      // rather than a decoration.
-      const scored = await Promise.all(
-        APPROACHES.map(async (one) => ({ one, scores: await sail(scenario, one.params) })),
+      // Every approach sails the same seasons, so the table is a real answer
+      // rather than a decoration — and it is a match rather than one season,
+      // because one season is mostly the draw.
+      const matchSeeds = SEEDS.slice(0, MATCH_SEASONS);
+      const perSeason = await Promise.all(
+        APPROACHES.map(async (one) => ({
+          one,
+          seasons: await Promise.all(
+            matchSeeds.map((each) => sail(generateScenario(each, { vary: true }), one.params)),
+          ),
+        })),
       );
-      const all = scored.map(({ scores }) => scores);
-      const board: Entry[] = scored.map(({ one, scores }) => ({
+
+      const median = (values: number[]) => {
+        const sorted = [...values].sort((l, r) => l - r);
+        const middle = sorted.length >> 1;
+        return sorted.length % 2 === 0
+          ? (sorted[middle - 1]! + sorted[middle]!) / 2
+          : sorted[middle]!;
+      };
+      const summarised = perSeason.map(({ one, seasons }) => ({
+        one,
+        seasons,
+        scores: {
+          livelihood: median(seasons.map((x) => x.livelihood)),
+          restraint: median(seasons.map((x) => x.restraint)),
+          forgone: median(seasons.map((x) => x.forgone)),
+          cooperation: median(seasons.map((x) => x.cooperation)),
+        } satisfies Scores,
+      }));
+
+      // Seasons taken, axis by axis: the part that tells a visitor whether a
+      // lead is a habit or a lucky draw.
+      const countWins = (key: "livelihood" | "restraint" | "cooperation", index: number) =>
+        matchSeeds.filter((_, season) =>
+          summarised.every(
+            (other, rival) =>
+              rival === index || summarised[index]!.seasons[season]![key] >= other.seasons[season]![key],
+          ),
+        ).length;
+
+      const all = summarised.map(({ scores }) => scores);
+      const board: Entry[] = summarised.map(({ one, scores }, index) => ({
         ...scores,
         id: one.id,
         label: one.label,
         note: one.note,
         frontier: onFrontier(scores, all),
+        won: {
+          livelihood: countWins("livelihood", index),
+          restraint: countWins("restraint", index),
+          cooperation: countWins("cooperation", index),
+        },
       }));
 
       const log = await runMatch(scenario, [
@@ -620,16 +674,16 @@ export function OceanCommonsWorkbench({
         <div className="section-title">
           <div>
             <p className="eyebrow">05 · SOLUTION LANDSCAPE</p>
-            <h2>Compare trade-offs without forcing a single rank.</h2>
+            <h2>Seven seasons, because one season is mostly the draw.</h2>
           </div>
-          <span>No overall winner</span>
+          <span>Best of {MATCH_SEASONS} · no overall winner</span>
         </div>
         <div className="leaderboard-table ocean-leaderboard">
           <div className="leaderboard-row leaderboard-head">
             <span>Approach</span>
-            <span>Livelihood</span>
-            <span>Restraint</span>
-            <span>Cooperation</span>
+            <span>Livelihood · median</span>
+            <span>Restraint · median</span>
+            <span>Cooperation · median</span>
             <span>Standing</span>
           </div>
           {result ? (
@@ -644,9 +698,24 @@ export function OceanCommonsWorkbench({
                   <strong>{entry.label}</strong>
                   <small>{entry.id === approach ? "Your approach" : entry.note}</small>
                 </span>
-                <span>{cash(entry.livelihood)}</span>
-                <span>{pct(entry.restraint)}</span>
-                <span>{entry.cooperation.toFixed(3)}</span>
+                <span>
+                  {cash(entry.livelihood)}
+                  <small>
+                    {entry.won.livelihood} of {MATCH_SEASONS} seasons
+                  </small>
+                </span>
+                <span>
+                  {pct(entry.restraint)}
+                  <small>
+                    {entry.won.restraint} of {MATCH_SEASONS} seasons
+                  </small>
+                </span>
+                <span>
+                  {entry.cooperation.toFixed(3)}
+                  <small>
+                    {entry.won.cooperation} of {MATCH_SEASONS} seasons
+                  </small>
+                </span>
                 <span>{entry.frontier ? "On the frontier" : "Beaten on all three"}</span>
               </div>
             ))
@@ -655,9 +724,12 @@ export function OceanCommonsWorkbench({
           )}
         </div>
         <p className="lever-explanation">
-          An approach stays on the frontier unless another beats it on all three axes at once. More
-          than one usually survives, which is the point: there is no single best season, only
-          seasons that are good at different things.
+          Each approach sails the same {MATCH_SEASONS} seasons; the figure is its median and the
+          line beneath counts the seasons it took that axis. An approach stays on the frontier
+          unless another beats it on all three at once, and more than one usually survives — there
+          is no single best season, only seasons that are good at different things. Watch the
+          season counts rather than the medians: a lead held in one season out of seven is the
+          draw, and a lead held in five is a habit.
         </p>
       </section>
 
@@ -715,10 +787,12 @@ export function OceanCommonsWorkbench({
           })}
         </div>
         <p className="lever-explanation">
-          No pool is funded. This Arena publishes its own feasibility gate — does every axis have a
-          best play that sits somewhere in the middle and moves with the season — and passes on two
-          of three. The third is still maximised at a dial&apos;s end, so it does not separate a
-          careful skipper from a careless one. Until that is fixed there is no ranking and no money.
+          No pool is funded, because one season decides very little. Measured across 7,200 scripted
+          seasons, the draw accounts for 20–38% of an outcome and a fixed policy for only 3–8%; the
+          rest — 54–77% — is which policy suited which season, and that is the part only a skipper
+          who reads the water can reach. Picking the right approach per season, with hindsight, beats
+          the best single approach by 36% to 286%. So a single result here is closer to one hand of
+          poker than to a race, and nothing is ranked on one.
         </p>
       </section>
 
