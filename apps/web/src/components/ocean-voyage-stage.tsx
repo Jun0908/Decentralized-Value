@@ -116,7 +116,7 @@ function Shoal({ ground, seed }: { ground: VoyageGround; seed: number }) {
         flip: index % 2 === 0,
       };
     });
-  }, [ground.believedShare, ground.zoneId, seed, box.x, box.y, box.w, box.h]);
+  }, [ground.believedShare, seed, box.x, box.y, box.w, box.h]);
 
   return (
     <g className={ground.collapsed ? "ocean-shoal collapsed" : "ocean-shoal"}>

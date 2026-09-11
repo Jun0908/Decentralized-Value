@@ -1,4 +1,4 @@
-import { capInForce, closedZones, settleRound, type ComplianceInput } from "./negotiation";
+import { capInForce, settleRound, type ComplianceInput } from "./negotiation";
 import { stable } from "./rng";
 import type { OceanScenario } from "./scenario";
 import type {

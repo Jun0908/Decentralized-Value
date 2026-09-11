@@ -2,7 +2,6 @@
 
 import {
   brokerAgent,
-  cautiousAgent,
   evaluateMatch,
   generateScenario,
   greedyAgent,
@@ -20,7 +19,7 @@ import {
   type TunableParams,
   type Voyage,
 } from "@frontier/ocean-commons";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { OceanVoyageStage } from "@/components/ocean-voyage-stage";
 
 /**
@@ -110,6 +109,8 @@ type Result = {
   fuelLeft: number;
   contracts: number;
   scenarioSeed: string;
+  /** Which approach and season produced this, so a stale run can be discarded. */
+  key: string;
 };
 
 /** The four rivals, rebuilt per replay so no state leaks between runs. */
@@ -173,73 +174,83 @@ export function OceanCommonsWorkbench({
   const [mission, setMission] = useState(DEFAULT_MISSION);
   const [seed, setSeed] = useState(SEEDS[0]!);
   const [result, setResult] = useState<Result | null>(null);
-  const [busy, setBusy] = useState(true);
   // Every season already sailed this visit. Seeing your own runs side by side
   // is what turns three buttons into an experiment.
   const [tried, setTried] = useState<
     { key: string; approach: string; seed: string; rounds: number; scores: Scores }[]
   >([]);
 
-  const run = useCallback(async () => {
-    setBusy(true);
-    const scenario = generateScenario(seed, { vary: true });
-    const seat = scenario.boats[0]!;
-
-    // Every approach sails the same seed, so the table below is a real answer
-    // rather than a decoration.
-    const scored = await Promise.all(
-      APPROACHES.map(async (one) => ({ one, scores: await sail(scenario, one.params) })),
-    );
-    const all = scored.map(({ scores }) => scores);
-    const board: Entry[] = scored.map(({ one, scores }) => ({
-      ...scores,
-      id: one.id,
-      label: one.label,
-      note: one.note,
-      frontier: onFrontier(scores, all),
-    }));
-
-    const chosen = APPROACHES.find((one) => one.id === approach)!;
-    const log = await runMatch(scenario, [
-      tunableAgent(seat.id, seat.name, scenario, chosen.params),
-      ...rivalsFor(scenario),
-    ]);
-    const full = evaluateMatch(log);
-
-    setResult({
-      // Fog is drawn from this seat, so the replay shows the season the entrant
-      // actually experienced rather than the one the engine ran.
-      voyage: toVoyage(log, seat.id),
-      scores: board.find((entry) => entry.id === approach)!,
-      board,
-      survived: full.boats.filter((boat) => boat.survived).length,
-      fleet: full.boats.length,
-      seasonRounds: log.rounds.length,
-      fuelLeft: log.finalState.boats[seat.id]?.fuelRemaining ?? 0,
-      contracts: full.contracts.accepted,
-      scenarioSeed: scenario.seed,
-    });
-    const mine = board.find((entry) => entry.id === approach)!;
-    setTried((history) => {
-      const key = `${approach}@${seed}`;
-      if (history.some((entry) => entry.key === key)) return history;
-      return [
-        ...history,
-        {
-          key,
-          approach: chosen.label,
-          seed: seed.replace("ocean-practice-v1:", "season "),
-          rounds: log.rounds.length,
-          scores: mine,
-        },
-      ];
-    });
-    setBusy(false);
-  }, [approach, seed]);
+  const runKey = `${approach}@${seed}`;
+  // Derived rather than stored: a `busy` flag set from inside the effect would
+  // be a synchronous setState on every render pass, which cascades.
+  const busy = result?.key !== runKey;
 
   useEffect(() => {
-    void run();
-  }, [run]);
+    // A visitor can change approach mid-season; the run that finishes second
+    // must not overwrite the one they are now waiting for.
+    let cancelled = false;
+
+    void (async () => {
+      const scenario = generateScenario(seed, { vary: true });
+      const seat = scenario.boats[0]!;
+      const chosen = APPROACHES.find((one) => one.id === approach)!;
+
+      // Every approach sails the same seed, so the table below is a real answer
+      // rather than a decoration.
+      const scored = await Promise.all(
+        APPROACHES.map(async (one) => ({ one, scores: await sail(scenario, one.params) })),
+      );
+      const all = scored.map(({ scores }) => scores);
+      const board: Entry[] = scored.map(({ one, scores }) => ({
+        ...scores,
+        id: one.id,
+        label: one.label,
+        note: one.note,
+        frontier: onFrontier(scores, all),
+      }));
+
+      const log = await runMatch(scenario, [
+        tunableAgent(seat.id, seat.name, scenario, chosen.params),
+        ...rivalsFor(scenario),
+      ]);
+      const full = evaluateMatch(log);
+      if (cancelled) return;
+
+      const mine = board.find((entry) => entry.id === approach)!;
+      setResult({
+        // Fog is drawn from this seat, so the replay shows the season the
+        // entrant actually experienced rather than the one the engine ran.
+        voyage: toVoyage(log, seat.id),
+        scores: mine,
+        board,
+        survived: full.boats.filter((boat) => boat.survived).length,
+        fleet: full.boats.length,
+        seasonRounds: log.rounds.length,
+        fuelLeft: log.finalState.boats[seat.id]?.fuelRemaining ?? 0,
+        contracts: full.contracts.accepted,
+        scenarioSeed: scenario.seed,
+        key: `${approach}@${seed}`,
+      });
+      setTried((history) =>
+        history.some((entry) => entry.key === `${approach}@${seed}`)
+          ? history
+          : [
+              ...history,
+              {
+                key: `${approach}@${seed}`,
+                approach: chosen.label,
+                seed: seed.replace("ocean-practice-v1:", "season "),
+                rounds: log.rounds.length,
+                scores: mine,
+              },
+            ],
+      );
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [approach, seed]);
 
   const chosen = APPROACHES.find((one) => one.id === approach)!;
 

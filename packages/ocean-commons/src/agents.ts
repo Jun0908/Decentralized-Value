@@ -518,7 +518,6 @@ export function brokerAgent(
         observation.activePacts.some(
           (pact) => pact.status === "ACTIVE" && pact.counterparties.includes(boatId),
         );
-      const reserve = observation.zones.find((zone) => zone.reserve);
 
       // Buy eyes before buying restraint.
       //
