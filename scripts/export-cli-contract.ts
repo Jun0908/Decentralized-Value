@@ -1,9 +1,10 @@
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { resolve } from "node:path";
 import { parseDocument } from "yaml";
 import { format, resolveConfig } from "prettier";
 import { cliJsonSchemas } from "../apps/api/src/cli-response-schemas";
+import { syncGeneratedOutputs } from "./generated-output";
 
 const root = resolve(import.meta.dirname, "..");
 const path = resolve(root, "openapi/frontier-v1.yaml");
@@ -178,35 +179,36 @@ for (const [action, method, input, result, auth] of authPaths) {
   }
   doc.setIn(["paths", `/v1/cli/auth/${action}`, method], operation);
 }
-await writeFile(
-  path,
-  await format(doc.toString({ lineWidth: 100 }), {
-    ...(await resolveConfig(path)),
-    parser: "yaml",
-  }),
-  "utf8",
+const openapi = await format(doc.toString({ lineWidth: 100 }), {
+  ...(await resolveConfig(path)),
+  parser: "yaml",
+});
+const schemas = await format(
+  JSON.stringify({ $schema: "https://json-schema.org/draft/2020-12/schema", $defs: schemaMap }),
+  { ...(await resolveConfig(path)), parser: "json" },
 );
-const output = resolve(root, "openapi/generated");
-await mkdir(output, { recursive: true });
-await writeFile(
-  resolve(output, "cli.schemas.json"),
-  await format(
-    JSON.stringify({ $schema: "https://json-schema.org/draft/2020-12/schema", $defs: schemaMap }),
-    { ...(await resolveConfig(path)), parser: "json" },
-  ),
-);
-await writeFile(
-  resolve(output, "cli.contract.json"),
+const contract =
   JSON.stringify(
     {
       schemaVersion: "1",
       generator: "export-cli-contract-v1",
-      openapiSha256: createHash("sha256")
-        .update(await readFile(path))
-        .digest("hex"),
+      openapiSha256: createHash("sha256").update(openapi).digest("hex"),
     },
     null,
     2,
-  ) + "\n",
+  ) + "\n";
+const check = process.argv.includes("--check");
+await syncGeneratedOutputs(
+  root,
+  new Map([
+    ["openapi/frontier-v1.yaml", openapi],
+    ["openapi/generated/cli.schemas.json", schemas],
+    ["openapi/generated/cli.contract.json", contract],
+  ]),
+  check,
 );
-process.stdout.write("Updated CLI OpenAPI contracts and generated schema snapshot.\n");
+process.stdout.write(
+  check
+    ? "CLI OpenAPI contract is current.\n"
+    : "Updated CLI OpenAPI contracts and generated schema snapshot.\n",
+);

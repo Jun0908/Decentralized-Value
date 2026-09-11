@@ -11,6 +11,16 @@ import {
 import { keccak256, stringToHex, type Hex } from "viem";
 import { z } from "zod";
 
+export {
+  createRescuePaymentPolicyState,
+  reserveRescuePaymentIntent,
+  rescuePaymentPolicySchema,
+  type RescuePaymentIntent,
+  type RescuePaymentPolicy,
+  type RescuePaymentPolicyState,
+  type RescuePaymentPurchase,
+} from "./payment-policy";
+
 export const rescueRoomChallengeId = "rescue-room-v0" as const;
 export const rescueRoomGeneratorVersion = "rescue-room-generator-v0" as const;
 export const rescueRoomEvaluatorVersion = "rescue-room-evaluator-v2" as const;

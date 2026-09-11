@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1",
+  "generator": { "openapi-typescript": "7.13.0", "typescript": "6.0.3" },
+  "sources": {
+    "openapi/frontier-v1.yaml": "371112b34d728274b0511cbf06f2e58cd8822b1739e34bb3b132f098a6937835",
+    "openapi/generated/cli.schemas.json": "850d27e067e8fd7fdf5fffc32c04213b24e205a67aa416531ce14dedcfb85d91",
+    "openapi/generated/cli.contract.json": "64d30a13fda750a50d12036ec051811d0d4fb997dc4526945dc00efb9091dfd2",
+    "apps/api/src/plan6-competition.ts": "60b7395bda0cc03a0e5bf3bc59fea3864c103c08e9b4e0a8fcf3e31aef74a698",
+    "apps/api/src/cli-manifest.ts": "163ea388de89c1a8aa75480715760a4496f0b01af93e892f8a783b163e5deb83",
+    "apps/api/src/cli-response-schemas.ts": "196f5275536e9046f3d359d2464ec38f6a0238460637269bdd51ea962c9cf928",
+    "packages/shared/src/cli.ts": "b1b33d1df244695ad10f0b2e74e5a7f1b9a69a7591fc5eabcd217ee68cc05cd9",
+    "packages/shared/src/multiobjective.ts": "ba7058e580d92659712e52e59174a5ac02ce4934d38a21929426b011299a0c20",
+    "packages/disaster-response/src/index.ts": "68e38458e4d283084d4d2b627efb39c5b5904ec6df2d5453a6db34e28a27383f",
+    "packages/rescue-room/src/index.ts": "ae579bbeeec294879f962ce410b769573ad943d99df5eb5e3c0b96feb06e289f"
+  }
+}

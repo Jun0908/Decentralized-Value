@@ -2,11 +2,21 @@
 
 - **Last verified:** 2026-09-11
 - **Public application:** <https://web-rho-seven-d6te7t3f0y.vercel.app>
-- **Active plan:** [`Plan9.md`](Plan9.md) — Rescue Room feasibility, deterministic incident simulation, and conditional Agent-to-Agent service market
+- **Active plans:** [`Plan9.md`](Plan9.md) (Rescue Room), [`Plan11.md`](Plan11.md) (Sponsor integration), [`Plan12.md`](Plan12.md) (API / SDK / CLI). Parallel ownership and current batch: [`PARALLEL_IMPLEMENTATION.md`](PARALLEL_IMPLEMENTATION.md).
 
 This document records the current capability boundary. Product rules live in [`PRODUCT.md`](PRODUCT.md), the active Rescue Room work is scoped in [`Plan9.md`](Plan9.md), and completed or superseded plans live under [`archive/`](archive/).
 
 ## Working now
+
+### Parallel foundations — local only, not deployed
+
+- Rescue payment preparation now validates an operator-owned Sepolia policy, curated Service/provider bindings, accepted Game Order hashes, per-order/cumulative limits, policy nonce and explicit wall-clock deadlines. It returns an unsigned `fundOrder` reservation intent with `paymentState: not-requested`. The immutable in-process snapshots are not durable atomic reservations; signing, RPC, approvals, receipts and actual payment remain unconnected.
+- New versioned Evaluation Request / Result / Execution Evidence schemas preserve independent metrics and bind artifact, evaluator, context, aggregation and optional round/snapshot references. The new hash format uses locale-independent key ordering without changing legacy hashes. Execution records remain `unverified`; schema/hash checks are not signature, ENS, CRE or payment verification.
+- A local public single-Episode Rescue adapter evaluates actual Doctrine inputs, checks replay, and wraps the result. `pnpm verify:rescue-envelope` compares native Node, a browser-target bundle in V8, and Bun when installed. This is not an official CRE/QuickJS run, a hidden Final, or an API endpoint.
+- `contracts:cli:check` and `contracts:sdk:check` now detect generated-contract drift without modifying files. SDK generation preserves canonical Zod refinements and refreshes Practice fixtures. `verify:packages` installs freshly packed shared/SDK/CLI tarballs into an isolated consumer for ESM, NodeNext and CLI checks. The SDK's direct `viem` runtime dependency is declared.
+- Existing Web/API response shapes, game outcomes and legacy hashes are unchanged by these foundations. Ocean API coverage, persistent AI Jobs, saved Rescue entries, real Sponsor execution and live Service payments are still pending.
+
+Integrated Windows verification: tooling build, full workspace typecheck, 453 passing TypeScript tests (11 opt-in Redis cases skipped), both non-mutating contract checks, five CLI workflows, isolated package consumer verification, the production Web build, scoped ESLint/Prettier and diff checks. After concurrent heavy checks caused two existing CLI HTTP cases to exceed their 5-second limit, the unchanged suite passed when rerun alone. Foundry, real Redis, official CRE and live payments were not run. Details and remaining gates are recorded in the parallel implementation document. No package publication, deployment or payment was performed.
 
 ### Local SDK and CLI integration (not deployed)
 

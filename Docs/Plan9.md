@@ -1102,6 +1102,10 @@ Game内Service購入に意味があると確認できた後だけ開始する。
 
 2026-09-11時点で、`RescueUSDDemo`、`IRescueServiceEscrow`、`RescueServiceEscrow`、Deploy Script、Contract Test、決定論的Payment Evidence、UIのPayment Journeyまで実装した。Sepolia Deploy、Wallet割当、Policy Executor、Transaction送信、実Receipt検証は未実施である。したがって現在の公開状態は引き続き`simulated`であり、`committed`または`paid`とは表示しない。
 
+同日の計画11 / 12との並行実装で、Policy Executorの**ローカル送信準備層**を追加した。`payment-policy.ts`は固定Sepolia / Token / Escrow / Commander、Service別Provider、Order / Episode上限、既存Hash、Nonce、Wall Clock期限を検証し、未署名の`fundOrder`予約Intentを返す。22の新規テストと既存Rescueテストを通過した。API・Wallet・署名・RPCへは接続していない。
+
+この層の不変Snapshotは永続的・原子的な予算予約ではない。再起動やSnapshot分岐を含む二重支出対策には、wallet + Episode Contextで署名前にCAS予約する層が別途必要となる。Policy nonceはEthereum account nonceではなく、出力は`not-requested`である。§24.8 / §24.10の実Executor・Showcase完了チェックはまだ付けない。分担と統合検証は[`PARALLEL_IMPLEMENTATION.md`](PARALLEL_IMPLEMENTATION.md)を参照。
+
 ### 24.1 3つの残高とPayment状態を混同しない
 
 | 層 | 表示名 | 実体 | 用途 | 許可する表現 |

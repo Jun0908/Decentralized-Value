@@ -8,6 +8,9 @@ This directory contains the current product and engineering reference. Start wit
 | --- | --- |
 | [STATUS.md](STATUS.md) | Current capabilities, gaps, and next boundary |
 | [Plan9.md](Plan9.md) | Active Rescue Room feasibility and staged implementation plan |
+| [Plan11.md](Plan11.md) | Japanese implementation prerequisites and staged plan for ENSv2, Bazantic, and Chainlink CRE sponsor integrations |
+| [Plan12.md](Plan12.md) | Japanese API, SDK, and CLI gap analysis and implementation plan, including reuse of the separate SDK repository |
+| [PARALLEL_IMPLEMENTATION.md](PARALLEL_IMPLEMENTATION.md) | Ownership, integration boundaries, and verification for parallel Plan9 / Plan11 / Plan12 work |
 | [PRODUCT.md](PRODUCT.md) | Product model, terminology, and competition rules |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Runtime structure, evidence chain, and trust boundaries |
 | [DEMO.md](DEMO.md) | Public walkthrough, safe claims, and recovery |

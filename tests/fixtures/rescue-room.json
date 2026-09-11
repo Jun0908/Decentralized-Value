@@ -201,7 +201,7 @@
     },
     "starter": {
       "path": "/v1/rescue-room/starter-kit",
-      "sha256": "78cf9fcc9a277b3b47b64143a518412d2f15cb2896be9881eb77616d64cead4d"
+      "sha256": "1408c34f5564e6beb06c64a4be146c5267984af7f91965e656c08ec7d0fccb45"
     },
     "episodes": [
       {
@@ -450,7 +450,7 @@
         "confidencePpm": 300000,
         "decision": 2,
         "gameMinute": 1,
-        "publicViewHash": "0x973ebe67b62e61542b1acff228d8ce917de883aaaebfbec590483313a1be6eb3",
+        "publicViewHash": "0x62ef170748f1fda345633a1ff6d9621daaee19cc91f722102cf050b54cd02c0b",
         "accepted": true,
         "invalidReason": null
       },
@@ -463,7 +463,7 @@
         "confidencePpm": 300000,
         "decision": 3,
         "gameMinute": 6,
-        "publicViewHash": "0x44af9849d6633544ca627a14150c17ee1bb047b6763719a4c8412640d893e513",
+        "publicViewHash": "0x86b662f494991632e595d1b5f157b4deec2d9d20ba79925a1bd5c98a3f2f5d55",
         "accepted": true,
         "invalidReason": null
       },
@@ -476,7 +476,7 @@
         "confidencePpm": 300000,
         "decision": 4,
         "gameMinute": 7,
-        "publicViewHash": "0x51c8625db1f008d4f65ec923d33dea2e9b2ad2c96cb439f0a4672dc7f761305a",
+        "publicViewHash": "0x29d775c7b3e7d7354914608d60b5bf52dadb1285480dd39be9def3edd1885c87",
         "accepted": true,
         "invalidReason": null
       },
@@ -489,7 +489,7 @@
         "confidencePpm": 300000,
         "decision": 5,
         "gameMinute": 13,
-        "publicViewHash": "0x00bfe53806c5f7b120280a911e92839688a6068beccf046c57b79cf4ebefc0f8",
+        "publicViewHash": "0x404b77875b657c78404502e0860d34520202808c13ea1a273c5221f155e2558f",
         "accepted": true,
         "invalidReason": null
       },
@@ -502,7 +502,7 @@
         "confidencePpm": 300000,
         "decision": 6,
         "gameMinute": 14,
-        "publicViewHash": "0xa9336924ab8e3d81d98129c5c724cb54ab0f5a27c8b293b4ca6d03c63fc77bca",
+        "publicViewHash": "0x1a05e8947559de16a92349b3a6c4169a1b849dc21f263af47f1db27f67405a94",
         "accepted": true,
         "invalidReason": null
       },
@@ -515,7 +515,7 @@
         "confidencePpm": 800000,
         "decision": 7,
         "gameMinute": 17,
-        "publicViewHash": "0xc02aa7fbd186db72f538c3db7ea7c11120aa0abaf1ff3f633eea410a0aba06cd",
+        "publicViewHash": "0x5a397e0c4b2d3732ee167c55d645a1e955354c916d4bf4b66be91f6bf44f0b10",
         "accepted": true,
         "invalidReason": null
       },
@@ -528,7 +528,7 @@
         "confidencePpm": 800000,
         "decision": 8,
         "gameMinute": 18,
-        "publicViewHash": "0xf0de93da4bdd536f4b885b7ecb4a5ec98b4e5bb1888e61392c8035b3d0ec09a2",
+        "publicViewHash": "0xfb34b4e47fd18126b2e9520ded4af66e73c34e92534a312bfeb7946eb63a0eb7",
         "accepted": true,
         "invalidReason": null
       },
@@ -541,7 +541,7 @@
         "confidencePpm": 500000,
         "decision": 9,
         "gameMinute": 19,
-        "publicViewHash": "0x71b6398219c492b818935b70b88978240237b24442d817d5014a37142938942c",
+        "publicViewHash": "0xa390e0cc58ebf57890f10168801c5e309b56e985d6a16d5500b42d70a9d8848c",
         "accepted": true,
         "invalidReason": null
       },
@@ -553,7 +553,7 @@
         "confidencePpm": 400000,
         "decision": 10,
         "gameMinute": 20,
-        "publicViewHash": "0x80f92a8d8495f5bd186d67e72cfb1263e3758be023db3c7b665123537e8768b9",
+        "publicViewHash": "0x802e3a28bc5c5b34e55b22599a0d784622384e59072970597a77b4c76ed79bb2",
         "accepted": true,
         "invalidReason": null
       }
@@ -569,6 +569,100 @@
         "validPatchId": "no-patch"
       }
     },
+    "paymentEvidence": {
+      "schemaVersion": "rescue-run-payment-evidence-v0",
+      "evidenceState": "simulated",
+      "gameLedger": {
+        "unit": "Rescue Credits",
+        "initialBalance": 100,
+        "availableBalance": 54,
+        "reservedBalance": 0,
+        "spentBalance": 46
+      },
+      "orders": [
+        {
+          "orderId": "0x811fae3098241d94e2b566a4564e731e129ca6770bd4dce6da5ea5a144d3b455",
+          "episodeContextHash": "0xae1cde1ca3f419732dd3a0e939faacef698dc2f817f1f949baedcb8d533c3608",
+          "episodeHash": "0x1d3e493a6733935ee56c9ef412cd9e1d316987d3fe7410494cabd78dde3f9093",
+          "commanderActionHash": "0xb103b7d7e38cea206a4e16411aef646c53c25d1463c7eb426a6a1f5957678687",
+          "serviceManifestHash": "0xa8ecf2a4be8fd2c0350c1119121e087411127b6070e035395a1a332dc7b8c56a",
+          "serviceId": "trace-audit",
+          "amountCredits": 16,
+          "orderedAtMinute": 0,
+          "dueAtMinute": 6,
+          "resolvedAtMinute": 6,
+          "gamePaymentState": "released",
+          "deliverableHash": "0xb0effce0d53bea1cf77c1330f73dfc6a6ad7054eaa58dd4e5411d377b9898c4a",
+          "receiptHash": "0x8bbee7be1f0a8982a45cb84e6d24585f1e5da0e47a159c71962e2fcb0bd489a3",
+          "acceptanceHash": "0xbac1cfb206cca6ac28e18b5dde93eabde7d2f9381b471dc3c1c6d0421fa8aa3f"
+        },
+        {
+          "orderId": "0xd09dc67810488e0188a833d1cfd6ae62d4e9fbf22f27e53d728f279bda3336c9",
+          "episodeContextHash": "0xae1cde1ca3f419732dd3a0e939faacef698dc2f817f1f949baedcb8d533c3608",
+          "episodeHash": "0x1d3e493a6733935ee56c9ef412cd9e1d316987d3fe7410494cabd78dde3f9093",
+          "commanderActionHash": "0x261fa88e6697be50c4b46afe6940578d27bce51a0cb54f4a03da16d401656fd1",
+          "serviceManifestHash": "0x2b35b1082abd511b67231bec9748823d40a896030a4efb3d0c0cbb37eff6993f",
+          "serviceId": "accounting-audit",
+          "amountCredits": 18,
+          "orderedAtMinute": 6,
+          "dueAtMinute": 13,
+          "resolvedAtMinute": 13,
+          "gamePaymentState": "released",
+          "deliverableHash": "0xacaedd193075eb08c237b411b70c158dfb493b37741ec27ad4e8948156c0592b",
+          "receiptHash": "0xf761e536fa7fbb2f88bb2dc019e4d960ebf848fe2cfc1aeeb2054327469b34ad",
+          "acceptanceHash": "0xfb64fc6d81590d0aa45dac396d4da68e1761c7014dc865ea6a2853ab76f5e520"
+        },
+        {
+          "orderId": "0x91c1c1b4d3d513e4d4284e23387e7b8b96e3820e8e7612b82727ea0a9f7c792c",
+          "episodeContextHash": "0xae1cde1ca3f419732dd3a0e939faacef698dc2f817f1f949baedcb8d533c3608",
+          "episodeHash": "0x1d3e493a6733935ee56c9ef412cd9e1d316987d3fe7410494cabd78dde3f9093",
+          "commanderActionHash": "0xcd3e57ff6d8b7dbbdb1beeb28baf10e728124bc0866746ddf8671ba910bac3f1",
+          "serviceManifestHash": "0x93f9e0cd3a9884dc40c303afd3f15a2e74a6439036ad1508d7eab01044197593",
+          "serviceId": "second-opinion",
+          "amountCredits": 12,
+          "orderedAtMinute": 13,
+          "dueAtMinute": 17,
+          "resolvedAtMinute": 17,
+          "gamePaymentState": "released",
+          "deliverableHash": "0x1216c8d041b51b33730b044b27efc2ea446d3ca9920d877c703147806471304a",
+          "receiptHash": "0xba8d7d3f8fee3ee4e1af8ca212d72cfc9880905616d08cf5d72cdc593ce9e5dd",
+          "acceptanceHash": "0xa10633d76c2fb32f5bb4bbca74b2d2a2c54b0d73fd9227bbf83ffe047706a22a"
+        },
+        {
+          "orderId": "0x207f438df88ce9efccc08e9b5dbb0d7b12f9c9fa235e13e83275a648c78e3f48",
+          "episodeContextHash": "0xae1cde1ca3f419732dd3a0e939faacef698dc2f817f1f949baedcb8d533c3608",
+          "episodeHash": "0x1d3e493a6733935ee56c9ef412cd9e1d316987d3fe7410494cabd78dde3f9093",
+          "commanderActionHash": "0x736a108ac74b51beab2a5d0bd81e615b5af096e8739ed100cfd255805efabd50",
+          "serviceManifestHash": "0x7269047d9ed68d94f2c9c94de95c13cc8ab7247c9f45eaa1393450e82a888099",
+          "serviceId": "pulse-monitor",
+          "amountCredits": 5,
+          "orderedAtMinute": 17,
+          "dueAtMinute": 19,
+          "resolvedAtMinute": 19,
+          "gamePaymentState": "refunded",
+          "deliverableHash": null,
+          "receiptHash": null,
+          "acceptanceHash": null
+        }
+      ],
+      "onchainMirror": {
+        "network": "sepolia",
+        "chainId": 11155111,
+        "paymentState": "not-requested",
+        "token": {
+          "name": "RescueUSD Demo",
+          "symbol": "rUSD-DEMO",
+          "decimals": 6,
+          "network": "sepolia",
+          "chainId": 11155111,
+          "monetaryValueClaim": false,
+          "address": null
+        },
+        "escrowAddress": null,
+        "reason": "Sepolia payment mirror is not deployed for Controlled Practice."
+      },
+      "evidenceHash": "0xd61f458e824e96c37437d3f0c9726ff039ab9b28a004c530142c8d839776d450"
+    },
     "outcome": {
       "episodeId": "episode-fabafc1906b4",
       "episodeHash": "0x1d3e493a6733935ee56c9ef412cd9e1d316987d3fe7410494cabd78dde3f9093",
@@ -576,7 +670,7 @@
       "invalidReason": null,
       "userLossUsd": 0,
       "servedProtocolDemandPpm": 845915,
-      "netResponseSpendCredits": 51,
+      "netResponseSpendCredits": 46,
       "incidentResolved": true,
       "finalMinute": 60,
       "actionCount": 10,
@@ -616,10 +710,13 @@
           "gameMinute": 0,
           "type": "PAYMENT_RESERVED",
           "data": {
-            "orderId": "order-1",
+            "orderId": "0x811fae3098241d94e2b566a4564e731e129ca6770bd4dce6da5ea5a144d3b455",
             "serviceId": "trace-audit",
             "credits": 16,
-            "dueAtMinute": 6
+            "dueAtMinute": 6,
+            "episodeHash": "0x1d3e493a6733935ee56c9ef412cd9e1d316987d3fe7410494cabd78dde3f9093",
+            "commanderActionHash": "0xb103b7d7e38cea206a4e16411aef646c53c25d1463c7eb426a6a1f5957678687",
+            "serviceManifestHash": "0xa8ecf2a4be8fd2c0350c1119121e087411127b6070e035395a1a332dc7b8c56a"
           }
         },
         {
@@ -650,21 +747,11 @@
         {
           "sequence": 5,
           "gameMinute": 6,
-          "type": "PAYMENT_RELEASED",
-          "data": {
-            "orderId": "order-1",
-            "serviceId": "trace-audit",
-            "credits": 16
-          }
-        },
-        {
-          "sequence": 6,
-          "gameMinute": 6,
           "type": "SERVICE_RECEIPT",
           "data": {
             "receipt": {
-              "receiptId": "receipt-order-1",
-              "orderId": "order-1",
+              "receiptId": "receipt-0x811fae3098241d94e2b566a4564e731e129ca6770bd4dce6da5ea5a144d3b455",
+              "orderId": "0x811fae3098241d94e2b566a4564e731e129ca6770bd4dce6da5ea5a144d3b455",
               "serviceId": "trace-audit",
               "task": "TRACE_EXECUTION",
               "deliveredAtMinute": 6,
@@ -675,8 +762,24 @@
               "patchId": null,
               "patchValid": null,
               "summary": "Trace Audit classified the event as oracle-manipulation.",
-              "receiptHash": "0x2d508e28fc8b95f2259d90891dd34af4b3e138f207306962519dd0d8ab93a1bc"
+              "deliverableHash": "0xb0effce0d53bea1cf77c1330f73dfc6a6ad7054eaa58dd4e5411d377b9898c4a",
+              "receiptHash": "0x8bbee7be1f0a8982a45cb84e6d24585f1e5da0e47a159c71962e2fcb0bd489a3"
             }
+          }
+        },
+        {
+          "sequence": 6,
+          "gameMinute": 6,
+          "type": "PAYMENT_RELEASED",
+          "data": {
+            "orderId": "0x811fae3098241d94e2b566a4564e731e129ca6770bd4dce6da5ea5a144d3b455",
+            "serviceId": "trace-audit",
+            "credits": 16,
+            "episodeHash": "0x1d3e493a6733935ee56c9ef412cd9e1d316987d3fe7410494cabd78dde3f9093",
+            "commanderActionHash": "0xb103b7d7e38cea206a4e16411aef646c53c25d1463c7eb426a6a1f5957678687",
+            "serviceManifestHash": "0xa8ecf2a4be8fd2c0350c1119121e087411127b6070e035395a1a332dc7b8c56a",
+            "deliverableHash": "0xb0effce0d53bea1cf77c1330f73dfc6a6ad7054eaa58dd4e5411d377b9898c4a",
+            "receiptHash": "0x8bbee7be1f0a8982a45cb84e6d24585f1e5da0e47a159c71962e2fcb0bd489a3"
           }
         },
         {
@@ -685,14 +788,14 @@
           "type": "OBSERVATION",
           "data": {
             "observation": {
-              "id": "observation-receipt-order-1",
+              "id": "observation-receipt-0x811fae3098241d94e2b566a4564e731e129ca6770bd4dce6da5ea5a144d3b455",
               "gameMinute": 6,
               "source": "SERVICE",
               "headline": "Trace Audit classified the event as oracle-manipulation.",
               "facts": [
                 "Service: trace-audit",
                 "Confidence: 520000 ppm",
-                "Receipt: 0x2d508e28fc8b95f2259d90891dd34af4b3e138f207306962519dd0d8ab93a1bc"
+                "Receipt: 0x8bbee7be1f0a8982a45cb84e6d24585f1e5da0e47a159c71962e2fcb0bd489a3"
               ]
             }
           }
@@ -727,10 +830,13 @@
           "gameMinute": 6,
           "type": "PAYMENT_RESERVED",
           "data": {
-            "orderId": "order-2",
+            "orderId": "0xd09dc67810488e0188a833d1cfd6ae62d4e9fbf22f27e53d728f279bda3336c9",
             "serviceId": "accounting-audit",
             "credits": 18,
-            "dueAtMinute": 13
+            "dueAtMinute": 13,
+            "episodeHash": "0x1d3e493a6733935ee56c9ef412cd9e1d316987d3fe7410494cabd78dde3f9093",
+            "commanderActionHash": "0x261fa88e6697be50c4b46afe6940578d27bce51a0cb54f4a03da16d401656fd1",
+            "serviceManifestHash": "0x2b35b1082abd511b67231bec9748823d40a896030a4efb3d0c0cbb37eff6993f"
           }
         },
         {
@@ -761,21 +867,11 @@
         {
           "sequence": 13,
           "gameMinute": 13,
-          "type": "PAYMENT_RELEASED",
-          "data": {
-            "orderId": "order-2",
-            "serviceId": "accounting-audit",
-            "credits": 18
-          }
-        },
-        {
-          "sequence": 14,
-          "gameMinute": 13,
           "type": "SERVICE_RECEIPT",
           "data": {
             "receipt": {
-              "receiptId": "receipt-order-2",
-              "orderId": "order-2",
+              "receiptId": "receipt-0xd09dc67810488e0188a833d1cfd6ae62d4e9fbf22f27e53d728f279bda3336c9",
+              "orderId": "0xd09dc67810488e0188a833d1cfd6ae62d4e9fbf22f27e53d728f279bda3336c9",
               "serviceId": "accounting-audit",
               "task": "CHECK_ACCOUNTING",
               "deliveredAtMinute": 13,
@@ -786,8 +882,24 @@
               "patchId": null,
               "patchValid": null,
               "summary": "Accounting Audit classified the event as compromised-key.",
-              "receiptHash": "0x3d5420c406927cf23e5f9b47d1da9bf866ecf93ea3bc9d5763c99c2c343d1253"
+              "deliverableHash": "0xacaedd193075eb08c237b411b70c158dfb493b37741ec27ad4e8948156c0592b",
+              "receiptHash": "0xf761e536fa7fbb2f88bb2dc019e4d960ebf848fe2cfc1aeeb2054327469b34ad"
             }
+          }
+        },
+        {
+          "sequence": 14,
+          "gameMinute": 13,
+          "type": "PAYMENT_RELEASED",
+          "data": {
+            "orderId": "0xd09dc67810488e0188a833d1cfd6ae62d4e9fbf22f27e53d728f279bda3336c9",
+            "serviceId": "accounting-audit",
+            "credits": 18,
+            "episodeHash": "0x1d3e493a6733935ee56c9ef412cd9e1d316987d3fe7410494cabd78dde3f9093",
+            "commanderActionHash": "0x261fa88e6697be50c4b46afe6940578d27bce51a0cb54f4a03da16d401656fd1",
+            "serviceManifestHash": "0x2b35b1082abd511b67231bec9748823d40a896030a4efb3d0c0cbb37eff6993f",
+            "deliverableHash": "0xacaedd193075eb08c237b411b70c158dfb493b37741ec27ad4e8948156c0592b",
+            "receiptHash": "0xf761e536fa7fbb2f88bb2dc019e4d960ebf848fe2cfc1aeeb2054327469b34ad"
           }
         },
         {
@@ -796,14 +908,14 @@
           "type": "OBSERVATION",
           "data": {
             "observation": {
-              "id": "observation-receipt-order-2",
+              "id": "observation-receipt-0xd09dc67810488e0188a833d1cfd6ae62d4e9fbf22f27e53d728f279bda3336c9",
               "gameMinute": 13,
               "source": "SERVICE",
               "headline": "Accounting Audit classified the event as compromised-key.",
               "facts": [
                 "Service: accounting-audit",
                 "Confidence: 520000 ppm",
-                "Receipt: 0x3d5420c406927cf23e5f9b47d1da9bf866ecf93ea3bc9d5763c99c2c343d1253"
+                "Receipt: 0xf761e536fa7fbb2f88bb2dc019e4d960ebf848fe2cfc1aeeb2054327469b34ad"
               ]
             }
           }
@@ -838,10 +950,13 @@
           "gameMinute": 13,
           "type": "PAYMENT_RESERVED",
           "data": {
-            "orderId": "order-3",
+            "orderId": "0x91c1c1b4d3d513e4d4284e23387e7b8b96e3820e8e7612b82727ea0a9f7c792c",
             "serviceId": "second-opinion",
             "credits": 12,
-            "dueAtMinute": 17
+            "dueAtMinute": 17,
+            "episodeHash": "0x1d3e493a6733935ee56c9ef412cd9e1d316987d3fe7410494cabd78dde3f9093",
+            "commanderActionHash": "0xcd3e57ff6d8b7dbbdb1beeb28baf10e728124bc0866746ddf8671ba910bac3f1",
+            "serviceManifestHash": "0x93f9e0cd3a9884dc40c303afd3f15a2e74a6439036ad1508d7eab01044197593"
           }
         },
         {
@@ -872,21 +987,11 @@
         {
           "sequence": 21,
           "gameMinute": 17,
-          "type": "PAYMENT_RELEASED",
-          "data": {
-            "orderId": "order-3",
-            "serviceId": "second-opinion",
-            "credits": 12
-          }
-        },
-        {
-          "sequence": 22,
-          "gameMinute": 17,
           "type": "SERVICE_RECEIPT",
           "data": {
             "receipt": {
-              "receiptId": "receipt-order-3",
-              "orderId": "order-3",
+              "receiptId": "receipt-0x91c1c1b4d3d513e4d4284e23387e7b8b96e3820e8e7612b82727ea0a9f7c792c",
+              "orderId": "0x91c1c1b4d3d513e4d4284e23387e7b8b96e3820e8e7612b82727ea0a9f7c792c",
               "serviceId": "second-opinion",
               "task": "SECOND_OPINION",
               "deliveredAtMinute": 17,
@@ -897,8 +1002,24 @@
               "patchId": null,
               "patchValid": null,
               "summary": "Second Opinion classified the event as false-positive.",
-              "receiptHash": "0x0d5cd7537c606baf651a63f68d12a9ca99db3a6110048a0fe40efca04a64c2b2"
+              "deliverableHash": "0x1216c8d041b51b33730b044b27efc2ea446d3ca9920d877c703147806471304a",
+              "receiptHash": "0xba8d7d3f8fee3ee4e1af8ca212d72cfc9880905616d08cf5d72cdc593ce9e5dd"
             }
+          }
+        },
+        {
+          "sequence": 22,
+          "gameMinute": 17,
+          "type": "PAYMENT_RELEASED",
+          "data": {
+            "orderId": "0x91c1c1b4d3d513e4d4284e23387e7b8b96e3820e8e7612b82727ea0a9f7c792c",
+            "serviceId": "second-opinion",
+            "credits": 12,
+            "episodeHash": "0x1d3e493a6733935ee56c9ef412cd9e1d316987d3fe7410494cabd78dde3f9093",
+            "commanderActionHash": "0xcd3e57ff6d8b7dbbdb1beeb28baf10e728124bc0866746ddf8671ba910bac3f1",
+            "serviceManifestHash": "0x93f9e0cd3a9884dc40c303afd3f15a2e74a6439036ad1508d7eab01044197593",
+            "deliverableHash": "0x1216c8d041b51b33730b044b27efc2ea446d3ca9920d877c703147806471304a",
+            "receiptHash": "0xba8d7d3f8fee3ee4e1af8ca212d72cfc9880905616d08cf5d72cdc593ce9e5dd"
           }
         },
         {
@@ -907,14 +1028,14 @@
           "type": "OBSERVATION",
           "data": {
             "observation": {
-              "id": "observation-receipt-order-3",
+              "id": "observation-receipt-0x91c1c1b4d3d513e4d4284e23387e7b8b96e3820e8e7612b82727ea0a9f7c792c",
               "gameMinute": 17,
               "source": "SERVICE",
               "headline": "Second Opinion classified the event as false-positive.",
               "facts": [
                 "Service: second-opinion",
                 "Confidence: 800000 ppm",
-                "Receipt: 0x0d5cd7537c606baf651a63f68d12a9ca99db3a6110048a0fe40efca04a64c2b2"
+                "Receipt: 0xba8d7d3f8fee3ee4e1af8ca212d72cfc9880905616d08cf5d72cdc593ce9e5dd"
               ]
             }
           }
@@ -949,10 +1070,13 @@
           "gameMinute": 17,
           "type": "PAYMENT_RESERVED",
           "data": {
-            "orderId": "order-4",
+            "orderId": "0x207f438df88ce9efccc08e9b5dbb0d7b12f9c9fa235e13e83275a648c78e3f48",
             "serviceId": "pulse-monitor",
             "credits": 5,
-            "dueAtMinute": 19
+            "dueAtMinute": 19,
+            "episodeHash": "0x1d3e493a6733935ee56c9ef412cd9e1d316987d3fe7410494cabd78dde3f9093",
+            "commanderActionHash": "0x736a108ac74b51beab2a5d0bd81e615b5af096e8739ed100cfd255805efabd50",
+            "serviceManifestHash": "0x7269047d9ed68d94f2c9c94de95c13cc8ab7247c9f45eaa1393450e82a888099"
           }
         },
         {
@@ -983,55 +1107,18 @@
         {
           "sequence": 29,
           "gameMinute": 19,
-          "type": "PAYMENT_RELEASED",
+          "type": "PAYMENT_REFUNDED",
           "data": {
-            "orderId": "order-4",
+            "orderId": "0x207f438df88ce9efccc08e9b5dbb0d7b12f9c9fa235e13e83275a648c78e3f48",
             "serviceId": "pulse-monitor",
-            "credits": 5
+            "credits": 5,
+            "episodeHash": "0x1d3e493a6733935ee56c9ef412cd9e1d316987d3fe7410494cabd78dde3f9093",
+            "commanderActionHash": "0x736a108ac74b51beab2a5d0bd81e615b5af096e8739ed100cfd255805efabd50",
+            "serviceManifestHash": "0x7269047d9ed68d94f2c9c94de95c13cc8ab7247c9f45eaa1393450e82a888099"
           }
         },
         {
           "sequence": 30,
-          "gameMinute": 19,
-          "type": "SERVICE_RECEIPT",
-          "data": {
-            "receipt": {
-              "receiptId": "receipt-order-4",
-              "orderId": "order-4",
-              "serviceId": "pulse-monitor",
-              "task": "SCAN_ACTIVITY",
-              "deliveredAtMinute": 19,
-              "classification": "accounting-drift",
-              "likelyAffectedModule": "withdrawals",
-              "severity": 1,
-              "confidencePpm": 520000,
-              "patchId": null,
-              "patchValid": null,
-              "summary": "Pulse Monitor classified the event as accounting-drift.",
-              "receiptHash": "0xb94b1fcc2bbb2bd4b13bff06d01278899bdae1fc7a4aaf70bd8e62b6cb551835"
-            }
-          }
-        },
-        {
-          "sequence": 31,
-          "gameMinute": 19,
-          "type": "OBSERVATION",
-          "data": {
-            "observation": {
-              "id": "observation-receipt-order-4",
-              "gameMinute": 19,
-              "source": "SERVICE",
-              "headline": "Pulse Monitor classified the event as accounting-drift.",
-              "facts": [
-                "Service: pulse-monitor",
-                "Confidence: 520000 ppm",
-                "Receipt: 0xb94b1fcc2bbb2bd4b13bff06d01278899bdae1fc7a4aaf70bd8e62b6cb551835"
-              ]
-            }
-          }
-        },
-        {
-          "sequence": 32,
           "gameMinute": 19,
           "type": "STATE_TRANSITION",
           "data": {
@@ -1045,7 +1132,7 @@
           }
         },
         {
-          "sequence": 33,
+          "sequence": 31,
           "gameMinute": 19,
           "type": "ACTION",
           "data": {
@@ -1056,7 +1143,7 @@
           }
         },
         {
-          "sequence": 34,
+          "sequence": 32,
           "gameMinute": 20,
           "type": "STATE_TRANSITION",
           "data": {
@@ -1070,7 +1157,7 @@
           }
         },
         {
-          "sequence": 35,
+          "sequence": 33,
           "gameMinute": 20,
           "type": "ACTION",
           "data": {
@@ -1080,7 +1167,7 @@
           }
         },
         {
-          "sequence": 36,
+          "sequence": 34,
           "gameMinute": 60,
           "type": "STATE_TRANSITION",
           "data": {
@@ -1094,7 +1181,7 @@
           }
         },
         {
-          "sequence": 37,
+          "sequence": 35,
           "gameMinute": 60,
           "type": "EPISODE_END",
           "data": {
@@ -1102,24 +1189,24 @@
             "userLossUsd": 0,
             "servedDemandUnits": 5177,
             "totalDemandUnits": 6120,
-            "netResponseSpendCredits": 51,
+            "netResponseSpendCredits": 46,
             "incidentResolved": true
           }
         }
       ],
-      "transcriptHash": "0x6042b43c5ff08f570385b19090ccb2bcab0147780903a000c5f9499d0a0631b9",
-      "resultHash": "0xc17975809019f2235738fdd2471135d9590cd4ad29f6523498cd9b3a67c9e759"
+      "transcriptHash": "0xaadc620983f3c1f7633c37152ed80367b2f67458b3f9c41e7cf18c01b578c602",
+      "resultHash": "0x83efdf5c97c935cc8dd37a50492622b436ca88c68f92ec71daf5a10b12ee97a7"
     },
     "replay": {
       "deterministic": true,
       "actionCount": 10,
-      "resultHash": "0xc17975809019f2235738fdd2471135d9590cd4ad29f6523498cd9b3a67c9e759",
+      "resultHash": "0x83efdf5c97c935cc8dd37a50492622b436ca88c68f92ec71daf5a10b12ee97a7",
       "matchesRecordedOutcome": true
     },
     "rewardEligibility": {
       "eligible": false,
       "reason": "Controlled Practice only; hidden multi-Episode Final is not implemented."
     },
-    "evaluationHash": "0xc7d8e7197ec9f736299823f62d1968a7027b4142f5574499db7b15ff2906c3a4"
+    "evaluationHash": "0x144c9a882f88b116019f963cf7c3d868527b27ea642ef7784cff4b10fc914df4"
   }
 }

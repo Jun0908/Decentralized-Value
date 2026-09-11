@@ -7,3 +7,4 @@ export * from "./competition";
 export * from "./settlement";
 export * from "./schemas";
 export * from "./cli";
+export * from "./evaluation-envelope";

@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@frontier/shared": "workspace:*",
+    "viem": "2.56.3",
     "zod": "4.5.4"
   },
   "devDependencies": {
