@@ -16,8 +16,18 @@ import {
   type OceanAgent,
   type OceanScenario,
   type PublicOceanCommonsScenario,
+  type OceanEntry,
   type TunableParams,
   type Voyage,
+  type WalletPolicy,
+  checkOceanEntry,
+  defaultOceanEntry,
+  walletPolicyFor,
+  OCEAN_ENTRY_LIMITS,
+  OCEAN_PACT_KINDS,
+  OCEAN_SUBMISSION_SEASONS,
+  OCEAN_WALLET_STEPS,
+  oceanEntrySpaceSize,
 } from "@frontier/ocean-commons";
 import { useEffect, useState } from "react";
 import { OceanVoyageStage } from "@/components/ocean-voyage-stage";
@@ -75,13 +85,6 @@ const APPROACHES: readonly Approach[] = [
   },
 ];
 
-const DEFAULT_MISSION = `Keep the crew paid: finish the season solvent and with a working boat.
-
-You cannot see the sea. Sound a ground before you trust it, and remember that a
-reading ages the moment you look away.
-
-You may pay other boats to hold back, and take their money to hold back
-yourself, when the arithmetic favours it.`;
 
 const SEEDS = Array.from({ length: 8 }, (_, index) => `ocean-practice-v1:${index}`);
 
@@ -104,9 +107,10 @@ type Scores = {
 };
 
 type Entry = Scores & {
-  id: ApproachId;
+  id: string;
   label: string;
   note: string;
+  mine: boolean;
   frontier: boolean;
   /** Seasons this approach took each axis, out of the whole match. */
   won: { livelihood: number; restraint: number; cooperation: number };
@@ -140,6 +144,51 @@ type MissionRun = {
   /** Median of each axis across the match. */
   scores: Scores;
 };
+
+/** One scored submission, as the sandbox route returns it. */
+type Submitted = {
+  submissionId: string;
+  revision: number;
+  correctness: boolean;
+  resultHash: string;
+  scores: Scores | null;
+  failures: string[];
+};
+
+/** Plain names for the contract kinds, and what allowing each one buys. */
+const PACT_LABELS: Record<string, string> = {
+  CATCH_LIMIT: "Catch limit",
+  CONSERVATION_BUYOUT: "Buyout",
+  MUTUAL_AID: "Mutual aid",
+  CONSERVATION_FUND: "Conservation fund",
+  SOUNDING_EXCHANGE: "Readings",
+};
+const PACT_NOTES: Record<string, string> = {
+  CATCH_LIMIT: "Pay a rival to land no more than a cap each round.",
+  CONSERVATION_BUYOUT: "Pay a rival to leave a ground, or the water, alone.",
+  MUTUAL_AID: "Pool contributions against breakdowns.",
+  CONSERVATION_FUND: "Pool money so no single wallet carries the cost of restraint.",
+  SOUNDING_EXCHANGE: "Trade exact readings instead of guessing from a distance.",
+};
+
+const EFFORT_CHOICES = [
+  [0.2, "Sparing", "A fifth of the hull. The tank outlasts the season."],
+  [0.6, "Steady", "Most of the season at working pace."],
+  [1, "Flat out", "Everything the hull has, until the fuel runs out."],
+] as const;
+
+const RESERVE_CHOICES = [
+  ["never", "Never", "Leave the nursery alone, whatever the weather does."],
+  ["storm-only", "Only in a gale", "Work it when the bank is shut and there is nowhere else."],
+  ["always", "Whenever it pays", "Treat it as one more ground, fine and all."],
+] as const;
+
+const CONTRACT_CHOICES = [
+  ["none", "Nothing", "Sign no contracts. Nobody is paid to hold back."],
+  ["cheap", "Under the odds", "Offer less than the catch is worth and expect refusals."],
+  ["fair", "What it is worth", "Offer roughly what the rival gives up."],
+  ["generous", "Over the odds", "Pay above the odds so the offer is hard to refuse."],
+] as const;
 
 const MISSION_SEASONS = 3;
 
@@ -179,16 +228,29 @@ function rivalsFor(scenario: OceanScenario): OceanAgent[] {
   ];
 }
 
-/** One season for one approach, with both counterfactual replays the axes need. */
-async function sail(scenario: OceanScenario, params: TunableParams): Promise<Scores> {
+/**
+ * One season for one entry, with both counterfactual replays the axes need.
+ *
+ * The wallet is passed to the match rather than left at its default, because
+ * it is the half of the entry that decides what the boat may do at all: a seat
+ * that is not permitted to buy a stand-down cannot buy one however it reasons.
+ */
+async function sail(
+  scenario: OceanScenario,
+  params: TunableParams,
+  wallet: WalletPolicy,
+): Promise<Scores> {
   const seat = scenario.boats[0]!;
+  const wallets = { [seat.id]: wallet };
   const fleet = (): OceanAgent[] => [
     tunableAgent(seat.id, seat.name, scenario, params),
     ...rivalsFor(scenario),
   ];
 
-  const full = evaluateMatch(await runMatch(scenario, fleet()));
-  const solo = evaluateMatch(await runMatch(scenario, fleet(), { excludeContractsFor: seat.id }));
+  const full = evaluateMatch(await runMatch(scenario, fleet(), { wallets }));
+  const solo = evaluateMatch(
+    await runMatch(scenario, fleet(), { wallets, excludeContractsFor: seat.id }),
+  );
   const ifTaken = evaluateMatch(
     await runMatch(scenario, [takerAgent(seat.id, seat.name, scenario), ...rivalsFor(scenario)]),
   );
@@ -223,9 +285,14 @@ export function OceanCommonsWorkbench({
 }: {
   scenario: PublicOceanCommonsScenario;
 }) {
-  const [approach, setApproach] = useState<ApproachId>("steady");
-  const [mission, setMission] = useState(DEFAULT_MISSION);
+  // The whole submission: a name, a standing instruction, the wallet the match
+  // loop enforces, and how the boat works the grounds without a model.
+  const [entry, setEntry] = useState<OceanEntry>(defaultOceanEntry);
+  const [mode, setMode] = useState<"BUILDER" | "JSON" | "UPLOAD">("BUILDER");
+  const [draft, setDraft] = useState(() => JSON.stringify(defaultOceanEntry, null, 2));
+  const [entryErrors, setEntryErrors] = useState<string[]>([]);
   const [seed, setSeed] = useState(SEEDS[0]!);
+  const mission = entry.mission;
   const [result, setResult] = useState<Result | null>(null);
   // Every season already sailed this visit. Seeing your own runs side by side
   // is what turns three buttons into an experiment.
@@ -242,7 +309,16 @@ export function OceanCommonsWorkbench({
   const [missionRun, setMissionRun] = useState<MissionRun | null>(null);
   const [missionError, setMissionError] = useState<string | null>(null);
 
-  const runKey = `${approach}@${seed}`;
+  // Submission. Practice is local and free; a submission is scored on the
+  // server over twelve seeds the entrant never chose, which is the only way a
+  // number here means anything at all.
+  const [wallet, setWallet] = useState("");
+  const [participantId, setParticipantId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submissions, setSubmissions] = useState<Submitted[]>([]);
+
+  const runKey = `${JSON.stringify(entry.sailing)}|${JSON.stringify(entry.wallet)}@${seed}`;
   // Derived rather than stored: a `busy` flag set from inside the effect would
   // be a synchronous setState on every render pass, which cascades.
   const busy = result?.key !== runKey;
@@ -255,17 +331,28 @@ export function OceanCommonsWorkbench({
     void (async () => {
       const scenario = generateScenario(seed, { vary: true });
       const seat = scenario.boats[0]!;
-      const chosen = APPROACHES.find((one) => one.id === approach)!;
+      const wallet = walletPolicyFor(entry);
 
-      // Every approach sails the same seasons, so the table is a real answer
-      // rather than a decoration — and it is a match rather than one season,
-      // because one season is mostly the draw.
+      // Your entry against the three published references, over the same seven
+      // seasons each. A match rather than one season, because one season is
+      // mostly the draw. References sail on the default wallet — they are the
+      // Arena's own yardstick, not somebody else's submission.
       const matchSeeds = SEEDS.slice(0, MATCH_SEASONS);
+      const runners = [
+        { id: "mine", label: entry.name || "Your entry", note: "Your entry", mine: true,
+          params: entry.sailing, wallet },
+        ...APPROACHES.map((one) => ({
+          id: one.id, label: one.label, note: one.note, mine: false,
+          params: one.params, wallet: walletPolicyFor(defaultOceanEntry),
+        })),
+      ];
       const perSeason = await Promise.all(
-        APPROACHES.map(async (one) => ({
+        runners.map(async (one) => ({
           one,
           seasons: await Promise.all(
-            matchSeeds.map((each) => sail(generateScenario(each, { vary: true }), one.params)),
+            matchSeeds.map((each) =>
+              sail(generateScenario(each, { vary: true }), one.params, one.wallet),
+            ),
           ),
         })),
       );
@@ -304,6 +391,7 @@ export function OceanCommonsWorkbench({
         id: one.id,
         label: one.label,
         note: one.note,
+        mine: one.mine,
         frontier: onFrontier(scores, all),
         won: {
           livelihood: countWins("livelihood", index),
@@ -312,14 +400,15 @@ export function OceanCommonsWorkbench({
         },
       }));
 
-      const log = await runMatch(scenario, [
-        tunableAgent(seat.id, seat.name, scenario, chosen.params),
-        ...rivalsFor(scenario),
-      ]);
+      const log = await runMatch(
+        scenario,
+        [tunableAgent(seat.id, seat.name, scenario, entry.sailing), ...rivalsFor(scenario)],
+        { wallets: { [seat.id]: wallet } },
+      );
       const full = evaluateMatch(log);
       if (cancelled) return;
 
-      const mine = board.find((entry) => entry.id === approach)!;
+      const mine = board.find((row) => row.mine)!;
       setResult({
         // Fog is drawn from this seat, so the replay shows the season the
         // entrant actually experienced rather than the one the engine ran.
@@ -332,16 +421,16 @@ export function OceanCommonsWorkbench({
         fuelLeft: log.finalState.boats[seat.id]?.fuelRemaining ?? 0,
         contracts: full.contracts.accepted,
         scenarioSeed: scenario.seed,
-        key: `${approach}@${seed}`,
+        key: runKey,
       });
       setTried((history) =>
-        history.some((entry) => entry.key === `${approach}@${seed}`)
+        history.some((row) => row.key === runKey)
           ? history
           : [
               ...history,
               {
-                key: `${approach}@${seed}`,
-                approach: chosen.label,
+                key: runKey,
+                approach: entry.name || "Your entry",
                 seed: seed.replace("ocean-practice-v1:", "season "),
                 rounds: log.rounds.length,
                 scores: mine,
@@ -353,7 +442,7 @@ export function OceanCommonsWorkbench({
     return () => {
       cancelled = true;
     };
-  }, [approach, seed]);
+  }, [entry, seed, runKey]);
 
   // A season takes minutes and the wait varies, so a disabled button on its own
   // is indistinguishable from a page that has stopped responding.
@@ -366,7 +455,106 @@ export function OceanCommonsWorkbench({
     return () => window.clearInterval(timer);
   }, [sailing]);
 
-  const chosen = APPROACHES.find((one) => one.id === approach)!;
+  function patchEntry(patch: Partial<OceanEntry>) {
+    setEntry((current) => {
+      const next = { ...current, ...patch };
+      setDraft(JSON.stringify(next, null, 2));
+      setEntryErrors([]);
+      return next;
+    });
+  }
+  const patchWallet = (patch: Partial<OceanEntry["wallet"]>) =>
+    patchEntry({ wallet: { ...entry.wallet, ...patch } });
+  const patchSailing = (patch: Partial<TunableParams>) =>
+    patchEntry({ sailing: { ...entry.sailing, ...patch } });
+
+  /** Accept an entry typed into the JSON tab or dropped in as a file. */
+  function adoptJson(text: string) {
+    setDraft(text);
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      setEntryErrors(["That is not valid JSON"]);
+      return;
+    }
+    const { entry: checked, failures } = checkOceanEntry(parsed);
+    setEntryErrors(failures);
+    if (checked) setEntry(checked);
+  }
+
+  /**
+   * Register the wallet if it is new, then send the entry to be scored.
+   *
+   * The entry is checked here first so an obvious mistake is shown without a
+   * round trip, but the server checks it again regardless — a browser is the
+   * submitter's, not ours.
+   */
+  async function submitEntry() {
+    const { failures } = checkOceanEntry(entry);
+    if (failures.length > 0) {
+      setEntryErrors(failures);
+      setSubmitError("Fix the entry above before submitting.");
+      return;
+    }
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      let id = participantId;
+      if (id === null) {
+        const registration = await fetch("/v2/sandbox/participants/register", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ challengeId: published.challengeId, wallet: wallet.trim() }),
+        });
+        const payload = await registration.json();
+        if (!registration.ok) throw new Error(payload.error?.message ?? "Registration failed");
+        id = payload.participant.participantId as string;
+        setParticipantId(id);
+      }
+
+      const response = await fetch("/v2/sandbox/submissions", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          participantId: id,
+          challengeId: published.challengeId,
+          source: {
+            method: "INLINE",
+            visibility: "PUBLIC",
+            filename: "entry.json",
+            content: JSON.stringify(entry, null, 2),
+          },
+          artifactInput: entry,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error?.message ?? "Submission failed");
+      const scored = payload.submission.evaluation;
+      setSubmissions((current) => [
+        {
+          submissionId: payload.submission.submissionId,
+          revision: payload.submission.revision,
+          correctness: payload.submission.correctness,
+          resultHash: payload.submission.evaluationResultHash,
+          scores: scored.correctness
+            ? {
+                livelihood: scored.livelihood,
+                restraint: scored.restraint,
+                forgone: scored.forgone,
+                cooperation: scored.cooperation,
+              }
+            : null,
+          failures: scored.constraintFailures ?? [],
+        },
+        ...current,
+      ]);
+    } catch (cause) {
+      setSubmitError(cause instanceof Error ? cause.message : "Submission failed");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   async function sailWithMission() {
     setSailing(true);
@@ -459,6 +647,7 @@ export function OceanCommonsWorkbench({
         <a href="#replay">Voyage replay</a>
         <a href="#landscape">Landscape</a>
         <a href="#allocations">Allocations</a>
+        <a href="#submit">Submit</a>
       </nav>
 
       <section className="ocean-story" id="mission">
@@ -554,12 +743,77 @@ export function OceanCommonsWorkbench({
           <span>{busy ? "Sailing…" : "Season closed"}</span>
         </div>
 
+        <div className="submission-mode-tabs" role="tablist" aria-label="Entry editor">
+          {(["BUILDER", "JSON", "UPLOAD"] as const).map((one) => (
+            <button
+              aria-selected={mode === one}
+              className={mode === one ? "active" : "secondary-action"}
+              key={one}
+              onClick={() => setMode(one)}
+              role="tab"
+              type="button"
+            >
+              {one === "BUILDER" ? "Entry builder" : one === "JSON" ? "JSON editor" : "Upload file"}
+            </button>
+          ))}
+        </div>
+
+        <p className="lever-explanation">
+          An entry is a name, a standing instruction, the wallet the match loop enforces, and how
+          the boat works a ground without a model. The three tabs edit one and the same thing, so a
+          dial moved here shows up in the JSON and a file dropped in moves the dials. The form alone
+          reaches {oceanEntrySpaceSize().toLocaleString("en-US")} distinct entries; the JSON editor
+          is not bound by the sliders&apos; steps, so it reaches more.
+        </p>
+
+        {entryErrors.length > 0 ? (
+          <ul className="ocean-entry-errors" role="alert">
+            {entryErrors.map((failure) => (
+              <li key={failure}>{failure}</li>
+            ))}
+          </ul>
+        ) : null}
+
+        {mode === "JSON" ? (
+          <label className="json-submission-editor">
+            <span>The whole entry, as the evaluator receives it</span>
+            <textarea
+              onChange={(event) => adoptJson(event.target.value)}
+              rows={22}
+              spellCheck={false}
+              value={draft}
+            />
+          </label>
+        ) : mode === "UPLOAD" ? (
+          <label className="file-drop">
+            <span>Choose a .json entry</span>
+            <input
+              accept="application/json,.json"
+              onChange={async (event) => {
+                const file = event.target.files?.[0];
+                if (file) adoptJson(await file.text());
+              }}
+              type="file"
+            />
+          </label>
+        ) : null}
+
+        <label className="ocean-field">
+          <span>Entry name</span>
+          <input
+            maxLength={OCEAN_ENTRY_LIMITS.nameMaxLength}
+            onChange={(event) => patchEntry({ name: event.target.value })}
+            type="text"
+            value={entry.name}
+          />
+        </label>
+
         <label className="ocean-field">
           <span>Standing instruction — what your skipper is for</span>
           <textarea
             value={mission}
             rows={7}
-            onChange={(event) => setMission(event.target.value)}
+            onChange={(event) => patchEntry({ mission: event.target.value })}
             spellCheck={false}
           />
         </label>
@@ -645,21 +899,137 @@ export function OceanCommonsWorkbench({
           </p>
         )}
 
-        <div className="ocean-approaches">
-          {APPROACHES.map((one) => (
-            <button
-              type="button"
-              key={one.id}
-              className={one.id === approach ? "selected" : ""}
-              aria-pressed={one.id === approach}
-              onClick={() => setApproach(one.id)}
-            >
-              <span>{one.label}</span>
-              <small>{one.note}</small>
-            </button>
+        <fieldset className="policy-picker">
+          <legend>What is this boat allowed to sign?</legend>
+          <p className="lever-explanation">
+            Enforced by the match loop, not by the skipper. A boat that may not sign a buyout cannot
+            buy restraint however it reasons — strike one off and an outcome changes shape rather
+            than degree.
+          </p>
+          {OCEAN_PACT_KINDS.map((kind) => {
+            const allowed = entry.wallet.allowedPurposes.includes(kind);
+            return (
+              <button
+                aria-pressed={allowed}
+                className={allowed ? "active" : "secondary-action"}
+                key={kind}
+                onClick={() =>
+                  patchWallet({
+                    allowedPurposes: allowed
+                      ? entry.wallet.allowedPurposes.filter((one) => one !== kind)
+                      : [...entry.wallet.allowedPurposes, kind],
+                  })
+                }
+                type="button"
+              >
+                <span className="policy-state">{allowed ? "ALLOWED" : "FORBIDDEN"}</span>
+                <strong>{PACT_LABELS[kind]}</strong>
+                <small>{PACT_NOTES[kind]}</small>
+              </button>
+            );
+          })}
+        </fieldset>
+
+        <div className="strategy-sliders">
+          {(
+            [
+              ["maxPaymentPerTransaction", "Ceiling on one contract", OCEAN_ENTRY_LIMITS.maxPaymentPerTransaction,
+                OCEAN_WALLET_STEPS.maxPaymentPerTransaction,
+                "The heaviest boat is also the dearest to stop. Set this low and only the small ones are affordable."],
+              ["maxAutonomousSpendPerMatch", "Ceiling for the season", OCEAN_ENTRY_LIMITS.maxAutonomousSpendPerMatch,
+                OCEAN_WALLET_STEPS.maxAutonomousSpendPerMatch,
+                "How many times the skipper can intervene before the wallet is closed for the rest of the season."],
+              ["startingBudget", "Starting budget", OCEAN_ENTRY_LIMITS.startingBudget,
+                OCEAN_WALLET_STEPS.startingBudget,
+                "Cash in hand at the first round, before anything is landed or paid."],
+            ] as const
+          ).map(([key, title, bounds, step, note]) => (
+            <label key={key}>
+              <span>
+                <strong>{title}</strong>
+                <span className="mono">{entry.wallet[key]} DemoUSD</span>
+              </span>
+              <input
+                max={bounds.max}
+                min={bounds.min}
+                onChange={(event) => patchWallet({ [key]: Number(event.target.value) })}
+                step={step}
+                type="range"
+                value={entry.wallet[key]}
+              />
+              <small>{note}</small>
+            </label>
           ))}
         </div>
-        <p className="lever-explanation">{chosen.affects}</p>
+
+        <fieldset className="policy-picker">
+          <legend>How hard does the boat work a ground?</legend>
+          <p className="lever-explanation">
+            Affects SAIL. Fuel is a season budget, so working harder empties the tank sooner rather
+            than landing more overall.
+          </p>
+          {EFFORT_CHOICES.map(([value, title, note]) => (
+            <button
+              aria-pressed={entry.sailing.effortFraction === value}
+              className={entry.sailing.effortFraction === value ? "active" : "secondary-action"}
+              key={title}
+              onClick={() => patchSailing({ effortFraction: value })}
+              type="button"
+            >
+              <span className="policy-state">
+                {entry.sailing.effortFraction === value ? "SELECTED" : "CHOOSE"}
+              </span>
+              <strong>{title}</strong>
+              <small>{note}</small>
+            </button>
+          ))}
+        </fieldset>
+
+        <fieldset className="policy-picker">
+          <legend>When may the boat work the nursery reserve?</legend>
+          <p className="lever-explanation">
+            Affects RESTRAINT. The reserve feeds the other grounds, and it is most tempting in the
+            gale, when the bank is shut and everyone is inshore.
+          </p>
+          {RESERVE_CHOICES.map(([value, title, note]) => (
+            <button
+              aria-pressed={entry.sailing.reserve === value}
+              className={entry.sailing.reserve === value ? "active" : "secondary-action"}
+              key={value}
+              onClick={() => patchSailing({ reserve: value })}
+              type="button"
+            >
+              <span className="policy-state">
+                {entry.sailing.reserve === value ? "SELECTED" : "CHOOSE"}
+              </span>
+              <strong>{title}</strong>
+              <small>{note}</small>
+            </button>
+          ))}
+        </fieldset>
+
+        <fieldset className="policy-picker">
+          <legend>What does the boat pay for somebody else&apos;s restraint?</legend>
+          <p className="lever-explanation">
+            Affects COOPERATION. Offer too little and the offer is refused; offer generously and the
+            money is gone whether or not it bought anything.
+          </p>
+          {CONTRACT_CHOICES.map(([value, title, note]) => (
+            <button
+              aria-pressed={entry.sailing.contracts === value}
+              className={entry.sailing.contracts === value ? "active" : "secondary-action"}
+              key={value}
+              onClick={() => patchSailing({ contracts: value })}
+              type="button"
+            >
+              <span className="policy-state">
+                {entry.sailing.contracts === value ? "SELECTED" : "CHOOSE"}
+              </span>
+              <strong>{title}</strong>
+              <small>{note}</small>
+            </button>
+          ))}
+        </fieldset>
 
         <label className="ocean-field inline">
           <span>Season</span>
@@ -766,12 +1136,12 @@ export function OceanCommonsWorkbench({
               <div
                 key={entry.id}
                 className={`leaderboard-row ${entry.frontier ? "on-frontier" : "dominated"}${
-                  entry.id === approach ? " mine" : ""
+                  entry.mine ? " mine" : ""
                 }`}
               >
                 <span>
                   <strong>{entry.label}</strong>
-                  <small>{entry.id === approach ? "Your approach" : entry.note}</small>
+                  <small>{entry.mine ? "Your entry" : entry.note}</small>
                 </span>
                 <span>
                   {cash(entry.livelihood)}
@@ -795,7 +1165,7 @@ export function OceanCommonsWorkbench({
               </div>
             ))
           ) : (
-            <p className="empty-state">Sailing all three approaches on this seed…</p>
+            <p className="empty-state">Sailing your entry and the three references…</p>
           )}
         </div>
         <p className="lever-explanation">
@@ -834,7 +1204,7 @@ export function OceanCommonsWorkbench({
           ).map(([name, key, statement]) => {
             const best = result?.board.reduce((top, entry) => (entry[key] > top[key] ? entry : top));
             return (
-              <article key={key} className={best?.id === approach ? "my-award" : ""}>
+              <article key={key} className={best?.mine ? "my-award" : ""}>
                 <header>
                   <span>Value pool</span>
                   <b>10,000 FDT</b>
@@ -871,10 +1241,87 @@ export function OceanCommonsWorkbench({
         </p>
       </section>
 
+      <section className="competition-build ocean-submit" id="submit">
+        <div className="section-title">
+          <div>
+            <p className="eyebrow">07 · SUBMIT</p>
+            <h2>Sail it against seeds you did not choose.</h2>
+          </div>
+          <span>{submissions.length} submitted</span>
+        </div>
+
+        <p className="lever-explanation">
+          Everything above this line runs in your browser on a season you picked, which is practice
+          and worth exactly what practice is worth. A submission is scored on the server over{" "}
+          {OCEAN_SUBMISSION_SEASONS} published seeds, all of them, with the wallet policy enforced
+          by the match loop rather than by the boat. The three outcomes come back separately and are
+          hashed together; nothing adds them up.
+        </p>
+
+        <div className="ocean-submit-row">
+          <label className="ocean-field">
+            <span>Wallet address</span>
+            <input
+              onChange={(event) => setWallet(event.target.value)}
+              placeholder="0x…"
+              spellCheck={false}
+              type="text"
+              value={wallet}
+            />
+          </label>
+          <button
+            className="primary-action"
+            disabled={submitting || wallet.trim().length === 0}
+            onClick={() => void submitEntry()}
+            type="button"
+          >
+            {submitting ? "Scoring…" : "Submit this entry"}
+          </button>
+        </div>
+
+        {submitError ? (
+          <p className="ocean-entry-errors" role="alert">
+            {submitError}
+          </p>
+        ) : null}
+
+        {submissions.length > 0 ? (
+          <ol className="ocean-tried">
+            {submissions.map((one) => (
+              <li key={one.submissionId}>
+                <div>
+                  <strong>
+                    {entry.name || "Your entry"} · revision {one.revision}
+                  </strong>
+                  <small className="mono">{one.resultHash.slice(0, 18)}…</small>
+                </div>
+                {one.scores ? (
+                  <>
+                    <span>{cash(one.scores.livelihood)}</span>
+                    <span>{pct(one.scores.restraint)}</span>
+                    <span>{one.scores.cooperation.toFixed(3)}</span>
+                  </>
+                ) : (
+                  <span>{one.failures[0] ?? "rejected"}</span>
+                )}
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p className="empty-state">Nothing submitted yet.</p>
+        )}
+
+        <p className="competition-trust-note">
+          The sandbox identifies an entrant by wallet only, which is not proof of personhood, and
+          keeps nothing past a restart. A revision never overwrites the one before it: every
+          submission keeps its own result hash, so a worse one cannot be quietly buried.
+        </p>
+      </section>
+
       <section className="competition-revisions ocean-revisions">
         <div className="section-title">
           <div>
-            <p className="eyebrow">07 · WHAT YOU HAVE TRIED</p>
+            <p className="eyebrow">08 · WHAT YOU HAVE TRIED</p>
             <h2>Your seasons so far.</h2>
           </div>
           <span>{tried.length} sailed</span>
@@ -908,7 +1355,7 @@ export function OceanCommonsWorkbench({
       <section className="competition-settlement ocean-settlement">
         <div className="section-title">
           <div>
-            <p className="eyebrow">08 · EVIDENCE</p>
+            <p className="eyebrow">09 · EVIDENCE</p>
             <h2>Every season here replays to the same result.</h2>
           </div>
           <span>Evidence L0</span>

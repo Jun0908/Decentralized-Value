@@ -1,5 +1,6 @@
 import benchmark from "../../../benchmarks/evm-orderbook/results/latest.json";
 import { strFromU8, unzipSync } from "fflate";
+import { defaultOceanEntry, OCEAN_SUBMISSION_SEASONS } from "@frontier/ocean-commons";
 import { describe, expect, it, vi } from "vitest";
 import {
   createRescuePracticeSession,
@@ -419,6 +420,52 @@ describe("Frontier API contracts", () => {
     ).json();
     expect(history.storage).toBe("ephemeral-memory");
     expect(history.submissions).toHaveLength(1);
+  });
+
+  it("scores an Ocean Commons entry through the same sandbox route", async () => {
+    const api = createApi(benchmark);
+    const registration = await (
+      await api.fetch(
+        request("/v2/sandbox/participants/register", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            challengeId: "ocean-commons-v1",
+            wallet: "0x2222222222222222222222222222222222222222",
+          }),
+        }),
+      )
+    ).json();
+
+    const submit = (entry: unknown) =>
+      api.fetch(
+        request("/v2/sandbox/submissions", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            participantId: registration.participant.participantId,
+            challengeId: "ocean-commons-v1",
+            source: {
+              method: "INLINE",
+              visibility: "PUBLIC",
+              filename: "entry.json",
+              content: JSON.stringify(entry),
+            },
+            artifactInput: entry,
+          }),
+        }),
+      );
+
+    const accepted = (await (await submit(defaultOceanEntry)).json()).submission;
+    expect(accepted.correctness).toBe(true);
+    expect(accepted.evaluation.livelihood).toBeGreaterThan(0);
+    expect(accepted.evaluation.seeds).toHaveLength(OCEAN_SUBMISSION_SEASONS);
+
+    // A malformed entry is scored as a failure rather than a 500: the route
+    // answers with what was wrong, and the three axes stay at zero.
+    const rejected = (await (await submit({ name: "" })).json()).submission;
+    expect(rejected.correctness).toBe(false);
+    expect(rejected.evaluation.constraintFailures.length).toBeGreaterThan(0);
   });
 
   it("runs the authenticated Emergency Supply competition from join through final entry", async () => {

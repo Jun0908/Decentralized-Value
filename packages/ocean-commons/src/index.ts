@@ -9,5 +9,7 @@ export * from "./evaluator";
 export * from "./manifest";
 export * from "./voyage";
 export * from "./season";
+export * from "./entry";
+export * from "./submission";
 export * from "./llm-agent";
 export * from "./openai-agent";

@@ -99,6 +99,7 @@ const microgridEvaluationSchema = z
   })
   .strict();
 import {
+  evaluateOceanEntry,
   MISSION_MAX_LENGTH,
   oceanPracticeSeeds,
   sailSeasonWithMission,
@@ -136,6 +137,7 @@ const sandboxRegistrationSchema = z
       "emergency-supply-v1",
       "calldata-compression-v1",
       "microgrid-dispatch-v1",
+      "ocean-commons-v1",
     ]),
     wallet: z.string(),
   })
@@ -147,6 +149,7 @@ const sandboxSubmissionSchema = z
       "emergency-supply-v1",
       "calldata-compression-v1",
       "microgrid-dispatch-v1",
+      "ocean-commons-v1",
     ]),
     source: z.unknown(),
     artifactInput: z.unknown(),
@@ -1053,6 +1056,11 @@ export class FrontierApi {
       } else if (parsed.challengeId === "calldata-compression-v1") {
         const input = calldataEvaluationSchema.parse(parsed.artifactInput);
         evaluation = await evaluateCalldataCodec(input.codecId, input.contextId);
+      } else if (parsed.challengeId === "ocean-commons-v1") {
+        // The entry is checked inside the evaluator rather than by a schema
+        // here, so a submitter gets every bound it broke at once instead of
+        // whichever one Zod reached first.
+        evaluation = await evaluateOceanEntry(parsed.artifactInput);
       } else {
         const input = microgridEvaluationSchema.parse(parsed.artifactInput);
         evaluation = evaluateMicrogridDispatch(input.allocations);
