@@ -116,11 +116,14 @@ describe("Frontier API contracts", () => {
 
     expect(scenario.state).toBe("simulated");
     expect(scenario.paymentState).toBe("game-credits");
+    expect(scenario.paymentRuntime.sepoliaShowcase.state).toBe("contract-implemented-not-deployed");
+    expect(scenario.paymentRuntime.sepoliaShowcase.token.symbol).toBe("rUSD-DEMO");
     expect(scenario.episodes).toHaveLength(35);
     expect(publicEpisodes).not.toContain("incidentFamily");
     expect(firstResponse.status).toBe(200);
     expect(first.state).toBe("simulated");
     expect(first.paymentState).toBe("game-credits");
+    expect(first.paymentEvidence.onchainMirror.paymentState).toBe("not-requested");
     expect(first.outcome.transcript.length).toBeGreaterThan(0);
     expect(first.episode.revealedAfterRun.incidentFamily).toBeTruthy();
     expect(first.evaluationHash).toBe(second.evaluationHash);
@@ -146,6 +149,9 @@ describe("Frontier API contracts", () => {
     expect(first.doctrineHash).toMatch(/^0x[0-9a-f]{64}$/);
     expect(first.decisions.every(({ accepted }: { accepted: boolean }) => accepted)).toBe(true);
     expect(first.replay.matchesRecordedOutcome).toBe(true);
+    expect(first.paymentEvidence.evidenceState).toBe("simulated");
+    expect(first.paymentEvidence.onchainMirror.paymentState).toBe("not-requested");
+    expect(first.paymentEvidence.evidenceHash).toMatch(/^0x[0-9a-f]{64}$/);
     expect(first.evaluationHash).toBe(second.evaluationHash);
   });
 
@@ -206,6 +212,8 @@ describe("Frontier API contracts", () => {
     expect(response.status).toBe(200);
     expect(evaluation.inferenceState).toBe("openai-api");
     expect(evaluation.replay.matchesRecordedOutcome).toBe(true);
+    expect(evaluation.paymentEvidence.evidenceState).toBe("simulated");
+    expect(evaluation.paymentEvidence.onchainMirror.paymentState).toBe("not-requested");
     expect(evaluation.rewardEligibility.eligible).toBe(false);
     expect(commander).toHaveBeenCalledOnce();
   });
@@ -224,6 +232,7 @@ describe("Frontier API contracts", () => {
         "rescue-room-starter/doctrine-request.example.json",
         "rescue-room-starter/doctrine.schema.json",
         "rescue-room-starter/playbook.schema.json",
+        "rescue-room-starter/payment-contract.json",
         "rescue-room-starter/public-practice-alerts.json",
         "rescue-room-starter/request.example.json",
         "rescue-room-starter/runtime-contract.json",

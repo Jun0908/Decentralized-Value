@@ -24,6 +24,7 @@
     "demo:seed": "tsx scripts/demo-seed.ts",
     "deploy:reward-demo": "tsx scripts/deploy-reward-demo.ts",
     "deploy:plan5-reward": "tsx scripts/deploy-plan5-reward.ts",
+    "deploy:rescue-payments:sepolia": "pnpm --dir packages/contracts exec forge script script/DeployRescuePayments.s.sol:DeployRescuePayments --rpc-url sepolia --broadcast --verify",
     "env:check": "tsx scripts/validate-env.ts",
     "artifacts:secret-gate": "tsx scripts/fetch-secret-gate-artifacts.ts",
     "format": "prettier --write .",

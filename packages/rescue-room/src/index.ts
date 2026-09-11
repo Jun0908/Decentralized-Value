@@ -25,6 +25,14 @@ export const rescueRoomCommanderMaximumModelTurns = 12;
 export const rescueRoomCommanderMaximumOutputTokens = 400;
 export const rescueRoomCommanderModelTimeoutMs = 20_000;
 export const rescueRoomCommanderEpisodeTimeoutMs = 90_000;
+export const rescueUsdDemoToken = {
+  name: "RescueUSD Demo",
+  symbol: "rUSD-DEMO",
+  decimals: 6,
+  network: "sepolia",
+  chainId: 11_155_111,
+  monetaryValueClaim: false,
+} as const;
 export const rescueRoomCommanderModelSettings = {
   reasoningEffort: "none",
   textVerbosity: "low",
@@ -33,6 +41,121 @@ export const rescueRoomCommanderModelSettings = {
   maximumOutputTokens: rescueRoomCommanderMaximumOutputTokens,
   modelTimeoutMs: rescueRoomCommanderModelTimeoutMs,
 } as const;
+
+const bytes32Schema = z.string().regex(/^0x[0-9a-fA-F]{64}$/);
+const ethereumAddressSchema = z.string().regex(/^0x[0-9a-fA-F]{40}$/);
+
+export const rescuePaymentStateSchema = z.enum([
+  "not-requested",
+  "submitted",
+  "funded",
+  "delivered",
+  "released",
+  "refunded",
+  "failed",
+]);
+export type RescuePaymentState = z.infer<typeof rescuePaymentStateSchema>;
+
+export const rescueSepoliaPaymentEvidenceSchema = z
+  .object({
+    schemaVersion: z.literal("rescue-sepolia-payment-evidence-v0"),
+    network: z.literal("sepolia"),
+    chainId: z.literal(11_155_111),
+    paymentState: rescuePaymentStateSchema,
+    token: z
+      .object({
+        symbol: z.literal("rUSD-DEMO"),
+        address: ethereumAddressSchema,
+        decimals: z.literal(6),
+        monetaryValueClaim: z.literal(false),
+      })
+      .strict(),
+    orderId: bytes32Schema,
+    episodeContextHash: bytes32Schema,
+    commanderActionHash: bytes32Schema,
+    serviceManifestHash: bytes32Schema,
+    commanderWallet: ethereumAddressSchema,
+    serviceAgentWallet: ethereumAddressSchema,
+    escrowAddress: ethereumAddressSchema,
+    amount: z.string().regex(/^[1-9][0-9]*$/),
+    deliverableHash: bytes32Schema.nullable(),
+    receiptHash: bytes32Schema.nullable(),
+    acceptanceHash: bytes32Schema.nullable(),
+    depositTransactionHash: bytes32Schema.nullable(),
+    releaseTransactionHash: bytes32Schema.nullable(),
+    refundTransactionHash: bytes32Schema.nullable(),
+    blockNumber: z.number().int().nonnegative().nullable(),
+    eventLogIndex: z.number().int().nonnegative().nullable(),
+    providerBalanceBefore: z
+      .string()
+      .regex(/^[0-9]+$/)
+      .nullable(),
+    providerBalanceAfter: z
+      .string()
+      .regex(/^[0-9]+$/)
+      .nullable(),
+    failureReason: z.string().trim().min(1).nullable(),
+  })
+  .strict()
+  .superRefine((evidence, context) => {
+    if (evidence.commanderWallet.toLowerCase() === evidence.serviceAgentWallet.toLowerCase()) {
+      context.addIssue({
+        code: "custom",
+        path: ["serviceAgentWallet"],
+        message: "Commander and Service Agent must use different wallets",
+      });
+    }
+    if (
+      ["submitted", "funded", "delivered", "released"].includes(evidence.paymentState) &&
+      !evidence.depositTransactionHash
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["depositTransactionHash"],
+        message: "A submitted Sepolia payment requires a deposit transaction hash",
+      });
+    }
+    if (
+      ["delivered", "released"].includes(evidence.paymentState) &&
+      (!evidence.deliverableHash || !evidence.receiptHash)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["deliverableHash"],
+        message: "Delivered payment evidence requires deliverable and receipt hashes",
+      });
+    }
+    if (
+      evidence.paymentState === "released" &&
+      (!evidence.releaseTransactionHash ||
+        !evidence.acceptanceHash ||
+        evidence.blockNumber === null ||
+        evidence.eventLogIndex === null ||
+        evidence.providerBalanceBefore === null ||
+        evidence.providerBalanceAfter === null)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["releaseTransactionHash"],
+        message: "Released payment evidence requires a confirmed event and provider balances",
+      });
+    }
+    if (evidence.paymentState === "refunded" && !evidence.refundTransactionHash) {
+      context.addIssue({
+        code: "custom",
+        path: ["refundTransactionHash"],
+        message: "Refunded payment evidence requires a refund transaction hash",
+      });
+    }
+    if (evidence.paymentState === "failed" && !evidence.failureReason) {
+      context.addIssue({
+        code: "custom",
+        path: ["failureReason"],
+        message: "Failed payment evidence requires a public failure reason",
+      });
+    }
+  });
+export type RescueSepoliaPaymentEvidence = z.infer<typeof rescueSepoliaPaymentEvidenceSchema>;
 
 export const rescueModuleSchema = z.enum([
   "withdrawals",
@@ -210,7 +333,7 @@ export type PublicObservation = {
 
 export type ServiceReceipt = {
   receiptId: string;
-  orderId: string;
+  orderId: Hex;
   serviceId: ServiceId;
   task: ServiceTask;
   deliveredAtMinute: number;
@@ -221,11 +344,15 @@ export type ServiceReceipt = {
   patchId: PatchId | null;
   patchValid: boolean | null;
   summary: string;
+  deliverableHash: Hex;
   receiptHash: Hex;
 };
 
 export type ServiceOrder = {
-  orderId: string;
+  orderId: Hex;
+  episodeHash: Hex;
+  commanderActionHash: Hex;
+  serviceManifestHash: Hex;
   serviceId: ServiceId;
   task: ServiceTask;
   orderedAtMinute: number;
@@ -629,6 +756,45 @@ export type TranscriptEvent = {
   data: Record<string, unknown>;
 };
 
+export type RescueGamePaymentOrderEvidence = {
+  orderId: Hex;
+  episodeContextHash: Hex;
+  episodeHash: Hex;
+  commanderActionHash: Hex;
+  serviceManifestHash: Hex;
+  serviceId: ServiceId;
+  amountCredits: number;
+  orderedAtMinute: number;
+  dueAtMinute: number;
+  resolvedAtMinute: number | null;
+  gamePaymentState: "reserved" | "released" | "refunded";
+  deliverableHash: Hex | null;
+  receiptHash: Hex | null;
+  acceptanceHash: Hex | null;
+};
+
+export type RescueRunPaymentEvidence = {
+  schemaVersion: "rescue-run-payment-evidence-v0";
+  evidenceState: "simulated";
+  gameLedger: {
+    unit: "Rescue Credits";
+    initialBalance: number;
+    availableBalance: number;
+    reservedBalance: number;
+    spentBalance: number;
+  };
+  orders: readonly RescueGamePaymentOrderEvidence[];
+  onchainMirror: {
+    network: "sepolia";
+    chainId: 11_155_111;
+    paymentState: "not-requested";
+    token: typeof rescueUsdDemoToken & { address: null };
+    escrowAddress: null;
+    reason: "Sepolia payment mirror is not deployed for Controlled Practice.";
+  };
+  evidenceHash: Hex;
+};
+
 export type RescuePublicView = {
   episodeId: string;
   gameMinute: number;
@@ -710,6 +876,200 @@ const patchIds = patchIdSchema.options.filter((value) => value !== "no-patch");
 
 function hashValue(value: unknown): Hex {
   return keccak256(stringToHex(canonicalProtocolJson(value)));
+}
+
+export function rescueServiceManifestHash(serviceId: ServiceId): Hex {
+  const service = rescueServices.find(({ id }) => id === serviceId);
+  if (!service) throw new Error("Unknown Rescue Room Service Agent");
+  return hashValue({ schemaVersion: "rescue-service-manifest-v0", service });
+}
+
+export function rescueCommanderPaymentActionHash(input: {
+  episodeHash: Hex;
+  decision: number;
+  gameMinute: number;
+  publicViewHash: Hex;
+  action: RescueAction;
+}): Hex {
+  return hashValue({
+    schemaVersion: "rescue-payment-action-v0",
+    evaluatorVersion: rescueRoomEvaluatorVersion,
+    ...input,
+  });
+}
+
+export function rescueServiceOrderId(input: {
+  episodeHash: Hex;
+  commanderActionHash: Hex;
+  serviceManifestHash: Hex;
+}): Hex {
+  return hashValue({
+    schemaVersion: "rescue-service-order-v0",
+    evaluatorVersion: rescueRoomEvaluatorVersion,
+    ...input,
+  });
+}
+
+export function rescuePaymentEpisodeContextHash(evaluationContextHash: Hex, episodeHash: Hex): Hex {
+  return hashValue({
+    schemaVersion: "rescue-payment-episode-context-v0",
+    evaluatorVersion: rescueRoomEvaluatorVersion,
+    evaluationContextHash,
+    episodeHash,
+  });
+}
+
+export function rescueServiceDeliverableHash(input: { orderId: Hex; receiptHash: Hex }): Hex {
+  return hashValue({ schemaVersion: "rescue-service-deliverable-v0", ...input });
+}
+
+export function rescueServiceAcceptanceHash(input: {
+  orderId: Hex;
+  episodeContextHash: Hex;
+  deliverableHash: Hex;
+  receiptHash: Hex;
+}): Hex {
+  return hashValue({ schemaVersion: "rescue-service-acceptance-v0", ...input });
+}
+
+export function buildRescueRunPaymentEvidence(
+  outcome: Pick<RescueEpisodeOutcome, "episodeHash" | "transcript">,
+  evaluationContextHash: Hex,
+): RescueRunPaymentEvidence {
+  const episodeContextHash = rescuePaymentEpisodeContextHash(
+    evaluationContextHash,
+    outcome.episodeHash,
+  );
+  const orders = new Map<Hex, RescueGamePaymentOrderEvidence>();
+  let availableBalance = rescueRoomInitialBudgetCredits;
+  let reservedBalance = 0;
+  let spentBalance = 0;
+
+  for (const event of outcome.transcript) {
+    if (event.type === "PAYMENT_RESERVED") {
+      const orderId = event.data.orderId as Hex;
+      const episodeHash = event.data.episodeHash as Hex;
+      const serviceId = event.data.serviceId as ServiceId;
+      const amountCredits = Number(event.data.credits);
+      if (episodeHash !== outcome.episodeHash) {
+        throw new Error("Payment Order Episode hash does not match the evaluated Episode");
+      }
+      if (event.data.serviceManifestHash !== rescueServiceManifestHash(serviceId)) {
+        throw new Error("Payment Order Service Manifest does not match the published catalog");
+      }
+      availableBalance -= amountCredits;
+      reservedBalance += amountCredits;
+      orders.set(orderId, {
+        orderId,
+        episodeContextHash,
+        episodeHash,
+        commanderActionHash: event.data.commanderActionHash as Hex,
+        serviceManifestHash: event.data.serviceManifestHash as Hex,
+        serviceId,
+        amountCredits,
+        orderedAtMinute: event.gameMinute,
+        dueAtMinute: Number(event.data.dueAtMinute),
+        resolvedAtMinute: null,
+        gamePaymentState: "reserved",
+        deliverableHash: null,
+        receiptHash: null,
+        acceptanceHash: null,
+      });
+      continue;
+    }
+    if (event.type === "PAYMENT_RELEASED" || event.type === "PAYMENT_REFUNDED") {
+      const orderId = event.data.orderId as Hex;
+      const order = orders.get(orderId);
+      if (!order) throw new Error("Payment resolution is missing its reserved Service Order");
+      reservedBalance -= order.amountCredits;
+      if (event.type === "PAYMENT_RELEASED") spentBalance += order.amountCredits;
+      else availableBalance += order.amountCredits;
+      orders.set(orderId, {
+        ...order,
+        resolvedAtMinute: event.gameMinute,
+        gamePaymentState: event.type === "PAYMENT_RELEASED" ? "released" : "refunded",
+      });
+      continue;
+    }
+    if (event.type === "SERVICE_RECEIPT") {
+      const receipt = event.data.receipt as ServiceReceipt;
+      const order = orders.get(receipt.orderId);
+      if (!order) throw new Error("Service Receipt is missing its Payment Order");
+      orders.set(receipt.orderId, {
+        ...order,
+        deliverableHash: receipt.deliverableHash,
+        receiptHash: receipt.receiptHash,
+        acceptanceHash: rescueServiceAcceptanceHash({
+          orderId: receipt.orderId,
+          episodeContextHash,
+          deliverableHash: receipt.deliverableHash,
+          receiptHash: receipt.receiptHash,
+        }),
+      });
+    }
+  }
+
+  const evidenceWithoutHash = {
+    schemaVersion: "rescue-run-payment-evidence-v0" as const,
+    evidenceState: "simulated" as const,
+    gameLedger: {
+      unit: "Rescue Credits" as const,
+      initialBalance: rescueRoomInitialBudgetCredits,
+      availableBalance,
+      reservedBalance,
+      spentBalance,
+    },
+    orders: [...orders.values()],
+    onchainMirror: {
+      network: "sepolia" as const,
+      chainId: rescueUsdDemoToken.chainId,
+      paymentState: "not-requested" as const,
+      token: { ...rescueUsdDemoToken, address: null },
+      escrowAddress: null,
+      reason: "Sepolia payment mirror is not deployed for Controlled Practice." as const,
+    },
+  };
+  return { ...evidenceWithoutHash, evidenceHash: hashValue(evidenceWithoutHash) };
+}
+
+export function reconcileRescueSepoliaPaymentEvidence(
+  gameEvidence: RescueRunPaymentEvidence,
+  input: unknown,
+): RescueSepoliaPaymentEvidence {
+  const evidence = rescueSepoliaPaymentEvidenceSchema.parse(input);
+  const order = gameEvidence.orders.find(({ orderId }) => orderId === evidence.orderId);
+  if (!order) throw new Error("Sepolia payment does not match a Game Ledger Order");
+  if (order.episodeContextHash !== evidence.episodeContextHash) {
+    throw new Error("Sepolia payment Episode context does not match the Game Ledger");
+  }
+  if (order.commanderActionHash !== evidence.commanderActionHash) {
+    throw new Error("Sepolia payment Commander Action does not match the Game Ledger");
+  }
+  if (order.serviceManifestHash !== evidence.serviceManifestHash) {
+    throw new Error("Sepolia payment Service Manifest does not match the Game Ledger");
+  }
+  const expectedAmount = BigInt(order.amountCredits) * 10n ** BigInt(rescueUsdDemoToken.decimals);
+  if (BigInt(evidence.amount) !== expectedAmount) {
+    throw new Error("Sepolia token amount does not match the Game Ledger price");
+  }
+  if (
+    ["delivered", "released"].includes(evidence.paymentState) &&
+    (order.deliverableHash !== evidence.deliverableHash ||
+      order.receiptHash !== evidence.receiptHash)
+  ) {
+    throw new Error("Sepolia deliverable does not match the deterministic Service Receipt");
+  }
+  if (evidence.paymentState === "released" && order.acceptanceHash !== evidence.acceptanceHash) {
+    throw new Error("Sepolia acceptance does not match the deterministic Service Receipt");
+  }
+  if (evidence.paymentState === "released") {
+    const before = BigInt(evidence.providerBalanceBefore!);
+    const after = BigInt(evidence.providerBalanceAfter!);
+    if (after - before !== expectedAmount) {
+      throw new Error("Service Agent balance increase does not match the released amount");
+    }
+  }
+  return evidence;
 }
 
 function lexicalSort<T extends string>(values: readonly T[]): T[] {
@@ -1011,7 +1371,12 @@ function buildServiceReceipt(state: MutableEpisodeState, order: ServiceOrder): S
     patchValid,
     summary,
   };
-  return { ...receiptWithoutHash, receiptHash: hashValue(receiptWithoutHash) };
+  const receiptHash = hashValue(receiptWithoutHash);
+  return {
+    ...receiptWithoutHash,
+    deliverableHash: rescueServiceDeliverableHash({ orderId: order.orderId, receiptHash }),
+    receiptHash,
+  };
 }
 
 function currentLossRate(state: MutableEpisodeState): number {
@@ -1060,19 +1425,27 @@ function deliverDueOrders(state: MutableEpisodeState): void {
         orderId: order.orderId,
         serviceId: order.serviceId,
         credits: order.priceCredits,
+        episodeHash: order.episodeHash,
+        commanderActionHash: order.commanderActionHash,
+        serviceManifestHash: order.serviceManifestHash,
       });
       continue;
     }
     order.status = "DELIVERED";
     state.netResponseSpendCredits += order.priceCredits;
+    const receipt = buildServiceReceipt(state, order);
+    state.receipts.push(receipt);
+    pushEvent(state, "SERVICE_RECEIPT", { receipt });
     pushEvent(state, "PAYMENT_RELEASED", {
       orderId: order.orderId,
       serviceId: order.serviceId,
       credits: order.priceCredits,
+      episodeHash: order.episodeHash,
+      commanderActionHash: order.commanderActionHash,
+      serviceManifestHash: order.serviceManifestHash,
+      deliverableHash: receipt.deliverableHash,
+      receiptHash: receipt.receiptHash,
     });
-    const receipt = buildServiceReceipt(state, order);
-    state.receipts.push(receipt);
-    pushEvent(state, "SERVICE_RECEIPT", { receipt });
     const observation: PublicObservation = {
       id: `observation-${receipt.receiptId}`,
       gameMinute: state.minute,
@@ -1130,6 +1503,9 @@ function applyAction(state: MutableEpisodeState, input: unknown): void {
     return;
   }
   const action = parsed.data;
+  const decision = state.actions.length + 1;
+  const episodeHash = rescueEpisodeHash(state.episode);
+  const publicViewHashBeforeAction = rescuePublicViewHash(publicView(state));
   state.actions.push(action);
   pushEvent(state, "ACTION", { action });
 
@@ -1150,8 +1526,19 @@ function applyAction(state: MutableEpisodeState, input: unknown): void {
       invalidate(state, "Service purchase exceeds the available Rescue Credits");
       return;
     }
+    const commanderActionHash = rescueCommanderPaymentActionHash({
+      episodeHash,
+      decision,
+      gameMinute: state.minute,
+      publicViewHash: publicViewHashBeforeAction,
+      action,
+    });
+    const serviceManifestHash = rescueServiceManifestHash(service.id);
     const order: ServiceOrder = {
-      orderId: `order-${state.orders.length + 1}`,
+      orderId: rescueServiceOrderId({ episodeHash, commanderActionHash, serviceManifestHash }),
+      episodeHash,
+      commanderActionHash,
+      serviceManifestHash,
       serviceId: service.id,
       task: service.task,
       orderedAtMinute: state.minute,
@@ -1169,6 +1556,9 @@ function applyAction(state: MutableEpisodeState, input: unknown): void {
       serviceId: order.serviceId,
       credits: order.priceCredits,
       dueAtMinute: order.dueAtMinute,
+      episodeHash: order.episodeHash,
+      commanderActionHash: order.commanderActionHash,
+      serviceManifestHash: order.serviceManifestHash,
     });
     advanceTo(state, state.minute + 1);
     return;
@@ -2451,6 +2841,24 @@ export function publicRescueRoomScenario() {
     evidenceLevel: 0 as const,
     state: "simulated" as const,
     paymentState: "game-credits" as const,
+    paymentRuntime: {
+      gameLedger: {
+        state: "simulated" as const,
+        unit: "Rescue Credits" as const,
+        initialEpisodeBudget: rescueRoomInitialBudgetCredits,
+      },
+      sepoliaShowcase: {
+        state: "contract-implemented-not-deployed" as const,
+        token: { ...rescueUsdDemoToken, address: null },
+        escrowAddress: null,
+        maximumOrderAmount: 50,
+        maximumEpisodeAmount: rescueRoomInitialBudgetCredits,
+        orderStates: ["NONE", "FUNDED", "DELIVERED", "RELEASED", "REFUNDED"] as const,
+        evidenceSchemaVersion: "rescue-sepolia-payment-evidence-v0" as const,
+        claimBoundary:
+          "Paid requires a confirmed release event and verified Service Agent balance increase.",
+      },
+    },
     initialBudgetCredits: rescueRoomInitialBudgetCredits,
     horizonMinutes: rescueRoomHorizonMinutes,
     maximumDecisions: rescueRoomMaximumDecisions,
@@ -2528,6 +2936,7 @@ export function evaluateRescuePracticeEpisode(policyId: RescuePracticePolicyId, 
         validPatchId: episode.validPatchId,
       },
     },
+    paymentEvidence: buildRescueRunPaymentEvidence(outcome, rescuePracticeContextHash),
     outcome,
     aggregate,
     valuePoolAllocations: rescuePracticeValuePools.map((pool) => ({
@@ -2611,6 +3020,7 @@ export function evaluateRescueDoctrinePracticeEpisode(doctrineInput: unknown, ep
         validPatchId: episode.validPatchId,
       },
     },
+    paymentEvidence: buildRescueRunPaymentEvidence(outcome, rescuePracticeContextHash),
     outcome,
     replay: {
       deterministic: true as const,
@@ -2713,6 +3123,7 @@ export function finalizeRescueCommanderPracticeEvaluation(input: {
         validPatchId: episode.validPatchId,
       },
     },
+    paymentEvidence: buildRescueRunPaymentEvidence(input.outcome, rescuePracticeContextHash),
     outcome: input.outcome,
     replay: {
       deterministic: true as const,

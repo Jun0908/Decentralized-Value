@@ -88,6 +88,13 @@ try {
     await page.screenshot({ path: resultPath, fullPage: false });
     const revealPath = join(tmpdir(), `rescue-room-${config.name}-reveal.png`);
     await reveal.screenshot({ path: revealPath });
+    const paymentJourney = page.locator(".rescue-payment-journey");
+    await paymentJourney.evaluate((element) => element.scrollIntoView({ block: "start" }));
+    const paymentPath = join(tmpdir(), `rescue-room-${config.name}-payments.png`);
+    await page.screenshot({ path: paymentPath, fullPage: false });
+    const paymentText = await paymentJourney.innerText();
+    const paymentLayers = await paymentJourney.locator(".rescue-payment-layers > article").count();
+    const paymentOrders = await paymentJourney.locator(".rescue-payment-orders > article").count();
     const incidentActors = await page.locator(".rescue-theatre-actors > article").count();
     const incidentChapters = await page.locator(".rescue-theatre-chapters > li").count();
     const incidentTheatre = page.locator(".rescue-incident-theatre");
@@ -233,6 +240,14 @@ try {
       pools: await page.locator(".rescue-pool-grid > article").count(),
       timelineEvents: referenceTimelineEvents,
       outcomeVisible: resultText.includes("Same incident. Different judgment."),
+      paymentLayers,
+      paymentOrders,
+      paymentBoundaryVisible:
+        paymentText.includes("Rescue Credits are not tokens") &&
+        paymentText.includes("Sepolia demo token") &&
+        paymentText.includes("Not deployed / not connected") &&
+        !paymentText.includes("undefined") &&
+        !paymentText.includes("awaiting delivery"),
       hiddenStateRevealed: referenceHiddenStateRevealed,
       downloadName,
       replayResetObserved,
@@ -254,6 +269,7 @@ try {
       ablationPath,
       resultPath,
       revealPath,
+      paymentPath,
       poolsPath,
       aiPath,
     };
@@ -290,6 +306,9 @@ if (
       result.pools !== 4 ||
       Number(result.timelineEvents) < 1 ||
       !result.outcomeVisible ||
+      result.paymentLayers !== 3 ||
+      Number(result.paymentOrders) < 1 ||
+      !result.paymentBoundaryVisible ||
       !result.hiddenStateRevealed ||
       !String(result.downloadName).endsWith(".json") ||
       !result.replayResetObserved ||

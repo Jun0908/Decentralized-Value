@@ -2,13 +2,13 @@
 
 **作成日:** 2026-09-10
 
-**状態:** Phase 0は`GO`。Phase 1完了、Phase 2のControlled AI Practice、Strategy Game UX Pass A、Pass B0/B1のDoctrine ContractとStrategy Studio、Pass CのIncident Theatreをローカル実装済み。「作戦を編集する → 固定する → 視覚的に追う → 比較して改善する」Loopを検証中
+**状態:** Phase 0は`GO`。Phase 1、Phase 2のControlled AI Practice、Strategy Game UX Pass A/B/Cを実装済み。Phase 3はToken、Escrow、Evidence Schema、Reconciliation、Payment Journeyまでローカル実装済みで、Sepolia Deployと実Transactionは未実施
 
 **前計画:** Secret Gateの参照実装は維持し、競技化は`PIVOT`として終了
 
 **目的:** AI Agentが不完全な情報の中で調査、委託、支払い、Protocol操作を自律判断する、再現可能なIncident Response Arenaを成立させる
 
-この文書はRescue Roomの設計仮説、検証順序、実行記録を定める。Phase 0で成立性を確認し、Phase 1のローカルPractice Arenaを完成した。Phase 2では参加者Playbook、固定OpenAI Agents SDK Runtime、AI Action Evidence、Starter KitまでをControlled Practiceとして実装した。次はCompetition基盤を増やす前に、初見理解、Live Simulation、結果理解を成立させるUX Gateを実行する。Hidden Final、Revision / Final Entry、参加者一意性、オンチェーンService Paymentは未実装である。
+この文書はRescue Roomの設計仮説、検証順序、実行記録を定める。Phase 0で成立性を確認し、Phase 1のローカルPractice Arenaを完成した。Phase 2では参加者Playbook、固定OpenAI Agents SDK Runtime、AI Action Evidence、Starter KitまでをControlled Practiceとして実装した。Phase 3ではGame Paymentと将来のSepolia Paymentを同じEvidence Chainで結ぶ基盤まで実装した。次はCompetition基盤を増やす前に、初見理解、Live Simulation、結果理解を成立させるUX Gateを実行する。Hidden Final、Revision / Final Entry、参加者一意性、Sepolia上の実Service Paymentは未実装である。
 
 ## 1. 中心となる考え方
 
@@ -1098,16 +1098,228 @@ Pass Aの初見テストはPass B1の編集可能なStrategy Studioを含めて�
 
 Game内Service購入に意味があると確認できた後だけ開始する。
 
-- [ ] Rescue Creditsと実際のTokenを明確に分離する
-- [ ] Service Order、reserve、deliverable、release、refundのContractを設計する
+§17はWeb3を使う境界を定める。本節は、そのうちToken、Wallet、Escrow、Payment Evidenceを実装できる粒度まで具体化する。目的はReward Tokenを先に発行することではなく、Commanderが自律判断で別のService Agentへ実際に支払い、第三者がその一連のEvidenceを検証できるShowcaseを成立させることである。
+
+2026-09-11時点で、`RescueUSDDemo`、`IRescueServiceEscrow`、`RescueServiceEscrow`、Deploy Script、Contract Test、決定論的Payment Evidence、UIのPayment Journeyまで実装した。Sepolia Deploy、Wallet割当、Policy Executor、Transaction送信、実Receipt検証は未実施である。したがって現在の公開状態は引き続き`simulated`であり、`committed`または`paid`とは表示しない。
+
+### 24.1 3つの残高とPayment状態を混同しない
+
+| 層 | 表示名 | 実体 | 用途 | 許可する表現 |
+| --- | --- | --- | --- | --- |
+| Practice | Rescue Credits | Evaluator内の整数残高 | 戦略上の予算、Service価格、Outcome計算 | `simulated payment`、`game credits spent` |
+| Sepolia Showcase | RescueUSD Demo | Sepolia上のDemo ERC-20 | Agent-to-Agent Escrowと実TransferのEvidence | Transaction確認後だけ`paid on Sepolia` |
+| Final Reward | Frontier reward asset | `FrontierRewardPool`が扱う別資産 | Competition終了後のAllocationとReward | Settlement Evidence確認後だけ`reward paid` |
+
+`RescueUSD Demo`は作業名とし、Contract symbolは`rUSD-DEMO`を候補とする。USD peg、償還、価格、利回り、Mainnet価値を一切主張しない。UIでは必ず`Sepolia demo token · no monetary value`を併記する。Practiceの100 Rescue CreditsをToken Balanceと表示せず、Sepolia BalanceをGame Outcomeへ加算しない。
+
+Tokenは既存`FrontierDemoToken`の最小Patternを再利用し、Phase 3では次に限定する。
+
+- SepoliaだけにDeployする。
+- 1 Tokenを1 Rescue Credit相当の表示単位として扱うが、法定通貨との交換価値は持たせない。
+- CommanderへEpisode開始前に固定額だけFundingする。
+- 無制限Approveを使わず、Episode Budget以上をEscrowへ移せない。
+- Mint権限、Deployer、Commander、Service Agent、EscrowのAddressをEvidenceへ記録する。
+- Mainnet Deploy、Public Sale、Liquidity Pool、Bridge、外部価格OracleはPhase 3の対象外とする。
+
+### 24.2 Paymentの主体と権限
+
+```text
+Sponsor / Faucet
+  -> Commander WalletへEpisode Budgetをfund
+
+Commander AI
+  -> Public ViewからBUY_SERVICEを自律選択
+
+Policy Executor
+  -> AIへ秘密鍵を渡さず、許可済みActionだけを署名・送信
+
+RescueServiceEscrow
+  -> OrderごとにrUSD-DEMOをreserve
+
+Service Agent Wallet
+  -> Deliverable提出後にrUSD-DEMOを受領
+```
+
+MVPでは、AI Model自身へ秘密鍵や任意Transaction権限を与えない。AIが出力した構造化`BUY_SERVICE`を既存Action Gateへ通し、その後にPolicy ExecutorがTransactionを作る。Policy Executorには次の制約を設ける。
+
+- 許可されたEscrow Contract以外を呼べない。
+- Curated Service AgentのAllowlist外へ送金できない。
+- 1 Order上限、Episode総額上限、Nonce、Deadlineを強制する。
+- 任意Calldata、任意Token、Token Approval先をAI出力から受け取らない。
+- Wallet Private Key、Session Key、RPC CredentialをPrompt、Transcript、Download Evidenceへ含めない。
+
+最初のShowcaseはPolicy Executorが管理する専用Commander Walletでよい。ただしUIとEvidenceでは`policy-controlled demo wallet`と明示する。次の段階ではSmart Account Session Keyを使い、Service Allowlist、1回の上限、総予算、期限をOnchainまたはAccount Policyで制限する。
+
+### 24.3 Escrow Contractと状態遷移
+
+仮称`RescueServiceEscrow`は次の状態遷移だけを持つ。
+
+```text
+NONE
+  -> FUNDED
+       -> DELIVERED
+            -> RELEASED
+            -> REFUNDED
+       -> REFUNDED
+```
+
+| 状態 | 必須Evidence | 実行主体 |
+| --- | --- | --- |
+| `FUNDED` | Order ID、Commander、Provider、Token、Amount、Deadline、Context Hash | Commander Wallet |
+| `DELIVERED` | Deliverable Hash、Receipt Hash、Service Manifest Hash | Service AgentまたはRunner |
+| `RELEASED` | Acceptance Hash、Transfer Event、Provider残高差分 | 制限付きPolicy Executor |
+| `REFUNDED` | Deadline経過または明示された失敗理由、Refund Event、Commander残高差分 | Commanderまたは公開Timeout処理。納品記録後もRelease前にDeadlineを超えた場合は返金可能 |
+
+Phase 3 MVPでは自由文の品質をOnchain判定しない。既存EvaluatorがService ID、Order ID、対象Episode、Receipt Schema、Context Hashの一致を決定論的に確認し、そのAcceptance HashをEscrowへ渡す。LLMの自己申告だけでreleaseしてはならない。
+
+Contractは最低限、次を拒否する。
+
+- 同じOrder IDの再利用
+- Episode BudgetまたはOrder上限を超えるreserve
+- Allowlist外ProviderまたはToken
+- Deliverableなしのrelease
+- 異なるOrder、Context、ProviderのDeliverable Hash
+- 二重release、release後のrefund、refund後のrelease
+- Deadline前の無条件refund
+- Reentrancyと任意外部Call
+
+Dispute、Challenge Period、Slashing、可変価格、Provider登録はOpen Service Marketまで導入しない。
+
+### 24.4 Off-chain GameとOnchain Paymentの接続
+
+Game SimulationはChain confirmationを待たず、現在の決定論的Game Clockと固定Service価格で進める。Accepted `BUY_SERVICE`ごとに、Payment Adapterが同じOrderをSepoliaへMirrorする。
+
+```text
+1. CommanderがBUY_SERVICEを選ぶ
+2. Evaluatorが権限、価格、残予算を検証する
+3. Game LedgerがRescue Creditsをreserveする
+4. Payment Adapterが同じOrder IDでrUSD-DEMOをEscrowへdepositする
+5. Service AgentがEvidenceを返す
+6. EvaluatorがReceiptとContextを検証する
+7. Deliverable HashをEscrowへ記録する
+8. rUSD-DEMOをService Agent Walletへreleaseする
+9. Transaction、Event、Balance EvidenceをRunへ関連付ける
+```
+
+Game OutcomeのUser Loss、Availability、Response Spendは、Committed ContextにあるGame価格とGame Timeから計算する。Gas、Block Time、RPC障害、Sepolia混雑は競技Outcomeへ含めない。Chain側が失敗してもGame EvaluationとResult Hashを変更せず、Paymentだけを`failed`または`unpaid`にする。
+
+同じService購入をGame LedgerとChainの両方へ記録するため、各Orderは少なくとも次を共有する。
+
+- `orderId`
+- `episodeContextHash`
+- `commanderActionHash`
+- `serviceManifestHash`
+- `providerAddress`
+- `amount`
+- `deliverableHash`
+- `receiptHash`
+
+### 24.5 Payment Evidence Schema
+
+Run Evidenceに`paymentEvidence`を追加し、最低限次を保存する。
+
+```json
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "paymentState": "released",
+  "token": {
+    "symbol": "rUSD-DEMO",
+    "address": "0x...",
+    "decimals": 6,
+    "monetaryValueClaim": false
+  },
+  "orderId": "0x...",
+  "commanderWallet": "0x...",
+  "serviceAgentWallet": "0x...",
+  "escrowAddress": "0x...",
+  "amount": "5000000",
+  "deliverableHash": "0x...",
+  "receiptHash": "0x...",
+  "acceptanceHash": "0x...",
+  "depositTransactionHash": "0x...",
+  "releaseTransactionHash": "0x...",
+  "blockNumber": 0,
+  "eventLogIndex": 0,
+  "providerBalanceBefore": "0",
+  "providerBalanceAfter": "5000000"
+}
+```
+
+`paymentState`は`not-requested / submitted / funded / delivered / released / refunded / failed`のいずれかとする。UIの上位Stateは次のように扱う。
+
+- Game Ledgerだけなら`simulated`。
+- Transactionが確認され、OrderとDeliverableがHashで結ばれたら`committed`。
+- Release EventとService Agentの受領残高が確認できたら`paid`。
+- Transaction Hashだけ存在しReceipt確認前なら`paid`と表示しない。
+
+### 24.6 UIで見せるPayment Journey
+
+Incident Theatreの現在のPayment Routeをそのまま拡張する。
+
+- Practiceでは`12 Rescue Credits reserved · simulated`と表示する。
+- Sepolia Showcaseでは`5 rUSD-DEMO funded`、`deliverable submitted`、`released to Audit Agent`を状態別に表示する。
+- Commander、Service Agent、Escrowの短縮Addressを表示する。
+- Deposit、Deliver、Release、RefundごとにEtherscan Linkを表示する。
+- Game Credit残高とWallet Token残高を別の行にする。
+- Pending、Reverted、Refundedを成功色で表示しない。
+- `AI chose the purchase`と`Policy Executor submitted the transaction`を分けて表示する。
+- Release後だけ`AI hired another AI and paid it`のShowcase文言を許可する。
+
+### 24.7 FailureとRecovery
+
+- Deposit失敗: Gameは継続し、Onchain Paymentを`failed`とする。自動でpaid扱いにしない。
+- Service timeout: Game Ledgerはrefundし、Onchain EscrowもDeadline後にrefundする。
+- Deliverable不一致: releaseせず、Order、Receipt、Contextの不一致理由をEvidenceへ残す。
+- Release Transaction失敗: 冪等な同一Order操作として再送できるが、二重払いはContractで拒否する。
+- RPCまたはExplorer停止: Local Receiptを保持し、復旧後に再照合する。確認前は`submitted`のままにする。
+- Chain reorg: Confirmation数を満たすまで`paid`へ昇格しない。
+- Commander Run失敗: 未納品Orderをrefundし、残ったTokenと未完Orderを回収Evidenceへ含める。
+
+### 24.8 実装順序
+
+1. [x] `RescueUSD Demo`の名称、Symbol、Decimals、no-value表示を固定する。
+2. [x] `RescueServiceEscrow` InterfaceとEvent Schemaを固定する。
+3. [x] Token、Escrow、Duplicate、Overspend、Timeout、RefundのContract Testを書く。
+4. [ ] SepoliaへTokenとEscrowをDeployし、Deployment Evidenceを保存する。
+5. [ ] Commander、Monitoring Agent、Audit Agent、Patch Agentへ別Walletを割り当てる。
+6. [ ] Policy ExecutorへService Allowlist、Order上限、Episode総予算、期限を設定する。
+7. [ ] 既存Game OrderとOnchain Orderを同じIDとHashで結ぶPayment Adapterを実装する。Order、Action、Manifest、Deliverable、Receipt、Amountを照合する純粋なReconciliation層までは実装済み。署名・送信Adapterは未実装。
+8. [ ] 1つのShowcase EpisodeでDeposit、Deliver、Releaseを完了する。
+9. [ ] 別EpisodeでTimeout Refundを完了する。
+10. [ ] Incident TheatreへWallet、Escrow State、Transaction Evidenceを追加する。Game Ledgerと未接続Sepoliaを分離するPayment Journeyまでは実装済み。
+11. [ ] Transaction、Receipt、Event、Balanceを別RPCでも再検証する。
+12. [ ] Evidenceが揃った後だけ`paid`表示とShowcase文言を有効にする。
+
+### 24.9 Phase 3 GO条件
+
+次をすべて満たした場合だけ、Sepolia Agent-to-Agent Paymentを`GO`とする。
+
+1. AI Commanderが人間の途中操作なしにService購入を選んだ。
+2. CommanderとService Agentが別Walletである。
+3. Episode Budgetを超える支払いがContractとPolicy Executorの両方で拒否される。
+4. Order、Action、Context、Deliverable、Receipt、PaymentがHashで一意に結ばれている。
+5. Deposit、Release、Provider残高増加をSepolia Evidenceから確認できる。
+6. Timeout時にCommanderへRefundされる。
+7. Duplicate releaseと異なるDeliverableの差し替えがContract Testで失敗する。
+8. Chain障害がGame Outcome、Transcript Hash、Result Hashを変更しない。
+9. Secret、Private Key、Session Key、RPC CredentialがPromptと公開Evidenceへ含まれない。
+10. UIが`simulated / committed / paid / refunded / failed`を正しく区別する。
+
+このGO条件を満たすまでは、Payment機能をPublic CompetitionやReward Settlementへ接続しない。
+
+### 24.10 実装Checklist
+
+- [x] Rescue Creditsと実際のTokenを明確に分離する
+- [x] Service Order、reserve、deliverable、release、refundのContractを設計する
 - [ ] Commander用の制限付き支出権限を実装する
 - [ ] Service Agentごとに別walletを使う
-- [ ] Deliverable HashとPaymentを結び付ける
+- [x] Deliverable HashとPaymentを結び付ける
 - [ ] 1つのShowcase Episodeで自律購入を完了する
 - [ ] Transaction、Receipt、Event、Balance Evidenceを保存する
 - [ ] Transcript RootとAllocation RootをCommitする
 - [ ] Final Rewardは既存`FrontierRewardPool`を再利用する
-- [ ] Duplicate releaseとbudget overspendをContract Testで拒否する
+- [x] Duplicate releaseとbudget overspendをContract Testで拒否する
 - [ ] Chain failure時にGame結果とPayment状態を混同しない
 
 ## 25. Phase 4 — Optional Open Service Market

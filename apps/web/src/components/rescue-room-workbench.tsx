@@ -18,6 +18,7 @@ import {
   RescueIncidentTheatre,
   type RescueIncidentChapter,
 } from "@/components/rescue-incident-theatre";
+import { RescuePaymentJourney } from "@/components/rescue-payment-journey";
 
 type RescueScenario = ReturnType<typeof publicRescueRoomScenario>;
 type RescueEvaluation = ReturnType<typeof evaluateRescuePracticeEpisode> & {
@@ -1898,6 +1899,11 @@ export function RescueRoomWorkbench({ scenario }: { scenario: RescueScenario }) 
         </div>
       </section>
 
+      <RescuePaymentJourney
+        evidence={evaluation?.paymentEvidence ?? null}
+        services={scenario.services}
+      />
+
       <section className="rescue-market" aria-labelledby="service-market-title">
         <div className="builder-heading">
           <div>
@@ -2241,8 +2247,9 @@ export function RescueRoomWorkbench({ scenario }: { scenario: RescueScenario }) 
           The protocol world, Service Agent evidence, and payments on this page are deterministic
           off-chain simulations. The optional AI Commander uses a fixed server-side OpenAI runtime;
           its recorded Actions, not hidden reasoning, are replayable. Rescue Credits are game
-          accounting units—not ERC-20 tokens. No wallet delegation, escrow contract, hidden Final,
-          or reward settlement is claimed in this Controlled Practice Arena.
+          accounting units—not ERC-20 tokens. No wallet delegation, deployed escrow, live Sepolia
+          Service transaction, hidden Final, or reward settlement is claimed in this Controlled
+          Practice Arena.
         </p>
         <code>
           Context {shortHash(scenario.contextHash)} · Manifest {shortHash(scenario.manifestHash)}

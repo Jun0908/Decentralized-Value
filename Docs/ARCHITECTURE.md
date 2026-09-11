@@ -120,6 +120,6 @@ openapi/frontier-v1.yaml      public API source of truth
 - Sepolia reward funding, allocation commitment, payout, and balance evidence are complete for the demonstration path.
 - ENS and Bazantic are optional integration boundaries, not prerequisites for the public demo.
 - Ledger is not used by the public demo or reward path.
-- Rescue Room Reference Mode is deterministic. AI Playbook Mode uses the server-side OpenAI Agents SDK with fixed model/settings and no browser-visible credential. The LLM sees only public state; model calls are non-deterministic observations, while recorded Action replay and outcome hashes are deterministic. Rescue Credits remain simulated; no delegated wallet, Service escrow, hidden Final, or onchain Rescue Room commitment is active.
+- Rescue Room Reference Mode is deterministic. AI Playbook Mode uses the server-side OpenAI Agents SDK with fixed model/settings and no browser-visible credential. The LLM sees only public state; model calls are non-deterministic observations, while recorded Action replay and outcome hashes are deterministic. Service Orders bind the Episode, Commander Action, Service Manifest, Deliverable, Receipt, and Acceptance with deterministic hashes. `RescueUSDDemo` and `RescueServiceEscrow` are implemented and tested locally, but Rescue Credits remain simulated and no delegated wallet, Sepolia deployment, live Service transaction, hidden Final, or onchain Rescue Room commitment is active.
 
 The same high-level flow is available as an accessible page at `/architecture` in the web application.

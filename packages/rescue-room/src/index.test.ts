@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildRescueRunPaymentEvidence,
   createRescueBaselinePolicy,
   createRescuePracticeSession,
   evaluateRescueDoctrinePracticeEpisode,
@@ -8,6 +9,7 @@ import {
   getInitialRescuePublicView,
   evaluateRescuePracticeEpisode,
   publicRescueRoomScenario,
+  reconcileRescueSepoliaPaymentEvidence,
   replayRescuePracticeCommander,
   replayRescueEpisode,
   rescueDoctrineHash,
@@ -16,6 +18,10 @@ import {
   rescueCommanderPlaybookHash,
   rescueCommanderStarterPlaybook,
   rescuePublicViewHash,
+  rescuePaymentEpisodeContextHash,
+  rescueSepoliaPaymentEvidenceSchema,
+  rescueServiceManifestHash,
+  rescueUsdDemoToken,
   runRescuePolicy,
   type IncidentFamily,
 } from "./index";
@@ -114,6 +120,111 @@ describe("Rescue Room Phase 0", () => {
       confidencePpm: firstPulse.confidencePpm,
       summary: firstPulse.summary,
     });
+  });
+
+  it("binds each simulated Service payment to deterministic Order and deliverable hashes", () => {
+    const episode = generateRescueEpisode("service-realization-order");
+    const outcome = replayRescueEpisode(episode, [
+      { type: "BUY_SERVICE", serviceId: "pulse-monitor" },
+      { type: "WAIT", minutes: 1 },
+    ]);
+    const evaluationContextHash = rescueEpisodeHash(episode);
+    const contextHash = rescuePaymentEpisodeContextHash(evaluationContextHash, outcome.episodeHash);
+    const first = buildRescueRunPaymentEvidence(outcome, evaluationContextHash);
+    const second = buildRescueRunPaymentEvidence(outcome, evaluationContextHash);
+
+    expect(second).toEqual(first);
+    expect(first.evidenceHash).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(first.evidenceState).toBe("simulated");
+    expect(first.onchainMirror.paymentState).toBe("not-requested");
+    expect(first.orders).toHaveLength(1);
+    expect(first.orders[0]).toMatchObject({
+      episodeContextHash: contextHash,
+      serviceId: "pulse-monitor",
+      amountCredits: 5,
+      gamePaymentState: "released",
+      serviceManifestHash: rescueServiceManifestHash("pulse-monitor"),
+    });
+    expect(first.orders[0]!.orderId).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(first.orders[0]!.commanderActionHash).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(first.orders[0]!.deliverableHash).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(first.orders[0]!.receiptHash).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(first.orders[0]!.acceptanceHash).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(first.gameLedger).toEqual({
+      unit: "Rescue Credits",
+      initialBalance: 100,
+      availableBalance: 95,
+      reservedBalance: 0,
+      spentBalance: 5,
+    });
+  });
+
+  it("requires confirmed release and provider balance evidence before a payment is paid", () => {
+    const episode = generateRescueEpisode("service-realization-order");
+    const outcome = replayRescueEpisode(episode, [
+      { type: "BUY_SERVICE", serviceId: "pulse-monitor" },
+      { type: "WAIT", minutes: 1 },
+    ]);
+    const game = buildRescueRunPaymentEvidence(outcome, rescueEpisodeHash(episode));
+    const order = game.orders[0]!;
+    const tokenAddress = `0x${"2".repeat(40)}`;
+    const commanderWallet = `0x${"3".repeat(40)}`;
+    const serviceAgentWallet = `0x${"4".repeat(40)}`;
+    const escrowAddress = `0x${"5".repeat(40)}`;
+    const transactionHash = `0x${"6".repeat(64)}`;
+    const released = {
+      schemaVersion: "rescue-sepolia-payment-evidence-v0",
+      network: "sepolia",
+      chainId: rescueUsdDemoToken.chainId,
+      paymentState: "released",
+      token: {
+        symbol: rescueUsdDemoToken.symbol,
+        address: tokenAddress,
+        decimals: rescueUsdDemoToken.decimals,
+        monetaryValueClaim: false,
+      },
+      orderId: order.orderId,
+      episodeContextHash: order.episodeContextHash,
+      commanderActionHash: order.commanderActionHash,
+      serviceManifestHash: order.serviceManifestHash,
+      commanderWallet,
+      serviceAgentWallet,
+      escrowAddress,
+      amount: "5000000",
+      deliverableHash: order.deliverableHash,
+      receiptHash: order.receiptHash,
+      acceptanceHash: order.acceptanceHash,
+      depositTransactionHash: transactionHash,
+      releaseTransactionHash: transactionHash,
+      refundTransactionHash: null,
+      blockNumber: 1,
+      eventLogIndex: 0,
+      providerBalanceBefore: "0",
+      providerBalanceAfter: "5000000",
+      failureReason: null,
+    };
+
+    expect(rescueSepoliaPaymentEvidenceSchema.safeParse(released).success).toBe(true);
+    expect(reconcileRescueSepoliaPaymentEvidence(game, released)).toEqual(released);
+    expect(
+      rescueSepoliaPaymentEvidenceSchema.safeParse({
+        ...released,
+        releaseTransactionHash: null,
+        providerBalanceAfter: null,
+      }).success,
+    ).toBe(false);
+    expect(() =>
+      reconcileRescueSepoliaPaymentEvidence(game, {
+        ...released,
+        episodeContextHash: `0x${"7".repeat(64)}`,
+      }),
+    ).toThrow("Episode context");
+    expect(() =>
+      reconcileRescueSepoliaPaymentEvidence(game, {
+        ...released,
+        providerBalanceAfter: "5000001",
+      }),
+    ).toThrow("balance increase");
   });
 
   it("makes full Pause costly during a benign event", () => {

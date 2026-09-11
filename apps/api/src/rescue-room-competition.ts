@@ -29,7 +29,7 @@ curl -X POST http://localhost:3000/v1/rescue-room/commander-evaluations \\
   --data-binary @request.example.json
 \`\`\`
 
-This is Controlled Practice. Hidden Final, participant uniqueness, onchain service payments, and reward settlement are not implemented.
+This is Controlled Practice. The rUSD-DEMO and RescueServiceEscrow contracts are implemented but not deployed or connected here. Hidden Final, participant uniqueness, live onchain service payments, and reward settlement are not implemented.
 `;
   const requestExample = {
     episodeId: scenario.episodes[0]!.id,
@@ -47,6 +47,9 @@ This is Controlled Practice. Hidden Final, participant uniqueness, onchain servi
       JSON.stringify(scenario.episodes, null, 2),
     ),
     "rescue-room-starter/service-agents.json": strToU8(JSON.stringify(scenario.services, null, 2)),
+    "rescue-room-starter/payment-contract.json": strToU8(
+      JSON.stringify(scenario.paymentRuntime, null, 2),
+    ),
     "rescue-room-starter/playbook.schema.json": strToU8(
       JSON.stringify(scenario.commanderRuntime.playbookSchema, null, 2),
     ),
@@ -70,6 +73,7 @@ This is Controlled Practice. Hidden Final, participant uniqueness, onchain servi
           manifestHash: scenario.manifestHash,
           doctrineRuntime: scenario.doctrineRuntime,
           runtime: scenario.commanderRuntime,
+          paymentRuntime: scenario.paymentRuntime,
           axes: scenario.axes,
           hardConstraints: scenario.manifest.hardConstraints,
           doctrineEvaluationEndpoint: "/v1/rescue-room/doctrine-evaluations",

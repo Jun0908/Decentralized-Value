@@ -67,7 +67,7 @@ Rescue Room keeps deterministic Reference Commanders and also exposes a local pa
 
 The local credential was used for a successful real-API smoke run on 2026-09-10. This does not imply that the current public Vercel deployment has the credential. Missing credentials fail with `COMMANDER_UNCONFIGURED`; AI runs are limited to three per client per ten minutes. OpenAI execution is an observed inference boundary, while the resulting Action sequence is the input to deterministic replay.
 
-Service Agent outputs still come from the committed simulator, and reserve/release/refund events use Rescue Credits in an offchain game ledger. Rescue Credits are not tokens. No Commander wallet delegation, Service Agent wallet, Escrow contract, Sepolia Service transaction, ENS provider discovery, Hidden Final, or reward settlement is configured. Payment states must remain labeled `simulated` and `game-credits`, never `committed` or `paid`.
+Service Agent outputs still come from the committed simulator, and reserve/release/refund events use Rescue Credits in an offchain game ledger. Rescue Credits are not tokens. The repository now contains the six-decimal `rUSD-DEMO` test token, `RescueServiceEscrow`, its interface and tests, a deployment script, and deterministic reconciliation of Game Orders with future Sepolia evidence. None of those contracts is deployed or connected. No Commander wallet delegation, Service Agent wallet assignment, live Sepolia Service transaction, ENS provider discovery, Hidden Final, or reward settlement is configured. Payment states must remain labeled `simulated` and `game-credits`, never `committed` or `paid`.
 
 ## Ledger — archived and unused
 
