@@ -380,7 +380,12 @@ let diverseSeeds = 0;
 for (const seed of seeds) {
   const points = focalRows
     .filter((row) => row.seed === seed)
-    .map((row) => toOutcomePoint(row.lineup, row.lineup, { ...row.withContracts, stewardship: row.restraint }, row.cooperation));
+    .map((row) =>
+      toOutcomePoint(row.lineup, row.lineup, row.withContracts, {
+        restraint: row.restraint,
+        cooperation: row.cooperation,
+      }),
+    );
   if (oceanFrontier(points).length >= 2) diverseSeeds += 1;
 }
 const diversityShare = diverseSeeds / seeds.length;

@@ -12,13 +12,15 @@
 
 import {
   brokerAgent,
-  cautiousAgent,
+  reciprocatorAgent,
   evaluateMatch,
   generateScenario,
   greedyAgent,
   opportunistAgent,
   runMatch,
   scoreCooperation,
+  scoreRestraint,
+  takerAgent,
   tunableAgent,
   type OceanAgent,
   type OceanScenario,
@@ -43,23 +45,24 @@ for (const effortFraction of EFFORT) {
 const label = (p: TunableParams) => `e${p.effortFraction} ${p.reserve} ${p.contracts}`;
 
 /** Held fixed so the swept policy is the only thing that varies. */
+// The fleet the Arena ships: three maximisers and one boat that answers back.
 function background(scenario: OceanScenario): OceanAgent[] {
   const [, b, c, d, e] = scenario.boats;
   return [
     brokerAgent(b!.id, b!.name, scenario),
     greedyAgent(c!.id, c!.name, scenario),
     opportunistAgent(d!.id, d!.name, scenario),
-    cautiousAgent(e!.id, e!.name, scenario),
+    reciprocatorAgent(e!.id, e!.name, scenario),
   ];
 }
 
-type Axis = "livelihood" | "stewardship" | "cooperation";
-const AXES: Axis[] = ["livelihood", "stewardship", "cooperation"];
+type Axis = "livelihood" | "restraint" | "cooperation";
+const AXES: Axis[] = ["livelihood", "restraint", "cooperation"];
 
 // scores[axis][gridIndex][seedIndex]
 const scores: Record<Axis, number[][]> = {
   livelihood: GRID.map(() => []),
-  stewardship: GRID.map(() => []),
+  restraint: GRID.map(() => []),
   cooperation: GRID.map(() => []),
 };
 
@@ -75,8 +78,11 @@ for (let seedIndex = 0; seedIndex < SEEDS; seedIndex += 1) {
     ];
     const full = evaluateMatch(await runMatch(scenario, build()));
     const solo = evaluateMatch(await runMatch(scenario, build(), { excludeContractsFor: focal.id }));
+    const ifTaken = evaluateMatch(
+      await runMatch(scenario, [takerAgent(focal.id, focal.name, scenario), ...background(scenario)]),
+    );
     scores.livelihood[g]!.push(full.livelihood);
-    scores.stewardship[g]!.push(full.stewardship);
+    scores.restraint[g]!.push(scoreRestraint(full, ifTaken, focal.id).efficacy);
     scores.cooperation[g]!.push(scoreCooperation(full, solo, focal.id).efficacy);
   }
 }

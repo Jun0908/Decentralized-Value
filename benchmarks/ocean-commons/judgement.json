@@ -1,49 +1,49 @@
 {
  "effort": "low",
- "seeds": 12,
+ "seeds": 16,
  "champions": {
   "livelihood": {
-   "effortFraction": 0.8,
-   "reserve": "never",
-   "contracts": "none"
+   "effortFraction": 0.4,
+   "reserve": "always",
+   "contracts": "generous"
   },
-  "stewardship": {
-   "effortFraction": 0.2,
-   "reserve": "never",
-   "contracts": "cheap"
+  "restraint": {
+   "effortFraction": 0.4,
+   "reserve": "always",
+   "contracts": "fair"
   },
   "cooperation": {
-   "effortFraction": 1,
+   "effortFraction": 0.4,
    "reserve": "always",
-   "contracts": "cheap"
+   "contracts": "fair"
   }
  },
  "rows": [
   {
    "seed": "judge-0",
    "model": {
-    "livelihood": 434.830835,
-    "stewardship": 0.632877,
-    "cooperation": -0.002473,
+    "livelihood": 424.076881,
+    "restraint": 1.05379,
+    "cooperation": 0,
     "zoneChoices": {
-     "coastal": 5,
-     "offshore": 3
+     "coastal": 2,
+     "offshore": 2
     }
    },
    "fixed": {
     "livelihood": {
-     "livelihood": 979.933019,
-     "stewardship": 0.628825,
+     "livelihood": 441.103838,
+     "restraint": 1.985565,
      "cooperation": 0
     },
-    "stewardship": {
-     "livelihood": 898.019804,
-     "stewardship": 0.682186,
+    "restraint": {
+     "livelihood": 441.103838,
+     "restraint": 1.985565,
      "cooperation": 0
     },
     "cooperation": {
-     "livelihood": 937.016173,
-     "stewardship": 0.572129,
+     "livelihood": 441.103838,
+     "restraint": 1.985565,
      "cooperation": 0
     }
    }
@@ -51,125 +51,9 @@
   {
    "seed": "judge-1",
    "model": {
-    "livelihood": 532.356143,
-    "stewardship": 0.609953,
-    "cooperation": 0.034435,
-    "zoneChoices": {
-     "coastal": 5,
-     "offshore": 2
-    }
-   },
-   "fixed": {
-    "livelihood": {
-     "livelihood": 762.215142,
-     "stewardship": 0.568037,
-     "cooperation": 0
-    },
-    "stewardship": {
-     "livelihood": 569.753061,
-     "stewardship": 0.682039,
-     "cooperation": 0
-    },
-    "cooperation": {
-     "livelihood": 853.147798,
-     "stewardship": 0.629736,
-     "cooperation": 0.631893
-    }
-   }
-  },
-  {
-   "seed": "judge-2",
-   "model": {
-    "livelihood": 929.844027,
-    "stewardship": 0.720434,
-    "cooperation": 0.039053,
-    "zoneChoices": {
-     "offshore": 2,
-     "coastal": 2
-    }
-   },
-   "fixed": {
-    "livelihood": {
-     "livelihood": 807.935172,
-     "stewardship": 0.700035,
-     "cooperation": 0
-    },
-    "stewardship": {
-     "livelihood": 888.986561,
-     "stewardship": 0.734541,
-     "cooperation": 0
-    },
-    "cooperation": {
-     "livelihood": 807.238561,
-     "stewardship": 0.693151,
-     "cooperation": 0.193007
-    }
-   }
-  },
-  {
-   "seed": "judge-3",
-   "model": {
-    "livelihood": 653.514312,
-    "stewardship": 0.601409,
-    "cooperation": 0.030681,
-    "zoneChoices": {
-     "offshore": 3,
-     "coastal": 4
-    }
-   },
-   "fixed": {
-    "livelihood": {
-     "livelihood": 786.568049,
-     "stewardship": 0.575179,
-     "cooperation": 0
-    },
-    "stewardship": {
-     "livelihood": 552.868297,
-     "stewardship": 0.654774,
-     "cooperation": 0.083835
-    },
-    "cooperation": {
-     "livelihood": 736.682279,
-     "stewardship": 0.593696,
-     "cooperation": 0.182018
-    }
-   }
-  },
-  {
-   "seed": "judge-4",
-   "model": {
-    "livelihood": 536.268533,
-    "stewardship": 0.572009,
-    "cooperation": 0.002587,
-    "zoneChoices": {
-     "offshore": 2,
-     "coastal": 3
-    }
-   },
-   "fixed": {
-    "livelihood": {
-     "livelihood": 700.17429,
-     "stewardship": 0.579018,
-     "cooperation": 0
-    },
-    "stewardship": {
-     "livelihood": 591.008832,
-     "stewardship": 0.733295,
-     "cooperation": 0.587636
-    },
-    "cooperation": {
-     "livelihood": 838.306122,
-     "stewardship": 0.63951,
-     "cooperation": 0.513057
-    }
-   }
-  },
-  {
-   "seed": "judge-5",
-   "model": {
-    "livelihood": 646.998792,
-    "stewardship": 0.729878,
-    "cooperation": 0.020409,
+    "livelihood": 284.854278,
+    "restraint": 0.80723,
+    "cooperation": 0.075532,
     "zoneChoices": {
      "coastal": 3,
      "offshore": 2
@@ -177,18 +61,135 @@
    },
    "fixed": {
     "livelihood": {
-     "livelihood": 777.08509,
-     "stewardship": 0.72181,
+     "livelihood": 415.997559,
+     "restraint": 0.753844,
+     "cooperation": 0.057128
+    },
+    "restraint": {
+     "livelihood": 357.82269,
+     "restraint": 0.753844,
+     "cooperation": 0.057128
+    },
+    "cooperation": {
+     "livelihood": 357.82269,
+     "restraint": 0.753844,
+     "cooperation": 0.057128
+    }
+   }
+  },
+  {
+   "seed": "judge-2",
+   "model": {
+    "livelihood": 374.59428,
+    "restraint": 0,
+    "cooperation": -0.222738,
+    "zoneChoices": {
+     "offshore": 2,
+     "coastal": 2
+    }
+   },
+   "fixed": {
+    "livelihood": {
+     "livelihood": 401.130762,
+     "restraint": 1.06858,
      "cooperation": 0
     },
-    "stewardship": {
-     "livelihood": 665.393508,
-     "stewardship": 0.78114,
+    "restraint": {
+     "livelihood": 360.630762,
+     "restraint": 1.06858,
      "cooperation": 0
     },
     "cooperation": {
-     "livelihood": 693.10993,
-     "stewardship": 0.710266,
+     "livelihood": 360.630762,
+     "restraint": 1.06858,
+     "cooperation": 0
+    }
+   }
+  },
+  {
+   "seed": "judge-3",
+   "model": {
+    "livelihood": 256.495565,
+    "restraint": 0.875683,
+    "cooperation": 0,
+    "zoneChoices": {
+     "coastal": 3,
+     "offshore": 2
+    }
+   },
+   "fixed": {
+    "livelihood": {
+     "livelihood": 496.34875,
+     "restraint": 0.477695,
+     "cooperation": 0
+    },
+    "restraint": {
+     "livelihood": 496.34875,
+     "restraint": 0.477695,
+     "cooperation": 0
+    },
+    "cooperation": {
+     "livelihood": 496.34875,
+     "restraint": 0.477695,
+     "cooperation": 0
+    }
+   }
+  },
+  {
+   "seed": "judge-4",
+   "model": {
+    "livelihood": 337.590248,
+    "restraint": 1.401243,
+    "cooperation": 0,
+    "zoneChoices": {
+     "coastal": 3,
+     "offshore": 2
+    }
+   },
+   "fixed": {
+    "livelihood": {
+     "livelihood": 163.764687,
+     "restraint": 0.919542,
+     "cooperation": 0
+    },
+    "restraint": {
+     "livelihood": 163.764687,
+     "restraint": 0.919542,
+     "cooperation": 0
+    },
+    "cooperation": {
+     "livelihood": 163.764687,
+     "restraint": 0.919542,
+     "cooperation": 0
+    }
+   }
+  },
+  {
+   "seed": "judge-5",
+   "model": {
+    "livelihood": 401.366863,
+    "restraint": 0,
+    "cooperation": -0.101087,
+    "zoneChoices": {
+     "coastal": 1,
+     "nursery": 1,
+     "offshore": 2
+    }
+   },
+   "fixed": {
+    "livelihood": {
+     "livelihood": 230.504476,
+     "restraint": 0,
+     "cooperation": 0
+    },
+    "restraint": {
+     "livelihood": 230.504476,
+     "restraint": 0,
+     "cooperation": 0
+    },
+    "cooperation": {
+     "livelihood": 230.504476,
+     "restraint": 0,
      "cooperation": 0
     }
    }
@@ -196,174 +197,294 @@
   {
    "seed": "judge-6",
    "model": {
-    "livelihood": 576.025331,
-    "stewardship": 0.676553,
-    "cooperation": 0.016112,
+    "livelihood": 343.972097,
+    "restraint": 0.196132,
+    "cooperation": 0,
     "zoneChoices": {
-     "coastal": 5,
-     "offshore": 2
+     "coastal": 4,
+     "offshore": 2,
+     "nursery": 1
     }
    },
    "fixed": {
     "livelihood": {
-     "livelihood": 908.856165,
-     "stewardship": 0.647575,
-     "cooperation": 0
+     "livelihood": 401.518131,
+     "restraint": 1.020086,
+     "cooperation": 0.007065
     },
-    "stewardship": {
-     "livelihood": 593.96416,
-     "stewardship": 0.735362,
-     "cooperation": 0
+    "restraint": {
+     "livelihood": 401.518131,
+     "restraint": 1.020086,
+     "cooperation": 0.007065
     },
     "cooperation": {
-     "livelihood": 919.603097,
-     "stewardship": 0.663484,
-     "cooperation": 0.326899
+     "livelihood": 401.518131,
+     "restraint": 1.020086,
+     "cooperation": 0.007065
     }
    }
   },
   {
    "seed": "judge-7",
    "model": {
-    "livelihood": 1217.971887,
-    "stewardship": 0.654169,
-    "cooperation": 0.1074,
+    "livelihood": 358.787114,
+    "restraint": 2.894786,
+    "cooperation": 0,
     "zoneChoices": {
-     "coastal": 6,
-     "offshore": 2
+     "offshore": 3,
+     "coastal": 2
     }
    },
    "fixed": {
     "livelihood": {
-     "livelihood": 1305.951575,
-     "stewardship": 0.638182,
+     "livelihood": 178.419977,
+     "restraint": 1.050233,
      "cooperation": 0
     },
-    "stewardship": {
-     "livelihood": 1315.214562,
-     "stewardship": 0.725742,
+    "restraint": {
+     "livelihood": 162.419977,
+     "restraint": 1.050233,
      "cooperation": 0
     },
     "cooperation": {
-     "livelihood": 1284.261592,
-     "stewardship": 0.658402,
-     "cooperation": 0.20483
+     "livelihood": 162.419977,
+     "restraint": 1.050233,
+     "cooperation": 0
     }
    }
   },
   {
    "seed": "judge-8",
    "model": {
-    "livelihood": 424.747905,
-    "stewardship": 0.655227,
-    "cooperation": 0.044363,
+    "livelihood": 540.790028,
+    "restraint": 0,
+    "cooperation": 0,
     "zoneChoices": {
-     "offshore": 4,
-     "coastal": 4
+     "coastal": 5,
+     "offshore": 1
     }
    },
    "fixed": {
     "livelihood": {
-     "livelihood": 913.05648,
-     "stewardship": 0.621161,
+     "livelihood": 326.855309,
+     "restraint": 0.504219,
      "cooperation": 0
     },
-    "stewardship": {
-     "livelihood": 558.895825,
-     "stewardship": 0.712423,
+    "restraint": {
+     "livelihood": 320.855309,
+     "restraint": 0.504219,
      "cooperation": 0
     },
     "cooperation": {
-     "livelihood": 882.547931,
-     "stewardship": 0.650712,
-     "cooperation": 0.011485
+     "livelihood": 320.855309,
+     "restraint": 0.504219,
+     "cooperation": 0
     }
    }
   },
   {
    "seed": "judge-9",
    "model": {
-    "livelihood": 609.192411,
-    "stewardship": 0.618602,
-    "cooperation": 0.054629,
+    "livelihood": 380.575636,
+    "restraint": 0.446359,
+    "cooperation": -0.108702,
     "zoneChoices": {
-     "offshore": 4,
-     "coastal": 2
+     "offshore": 2,
+     "coastal": 2,
+     "nursery": 1
     }
    },
    "fixed": {
     "livelihood": {
-     "livelihood": 841.208003,
-     "stewardship": 0.630058,
+     "livelihood": 429.881245,
+     "restraint": 1.028712,
      "cooperation": 0
     },
-    "stewardship": {
-     "livelihood": 417.20971,
-     "stewardship": 0.704788,
+    "restraint": {
+     "livelihood": 429.881245,
+     "restraint": 1.028712,
      "cooperation": 0
     },
     "cooperation": {
-     "livelihood": 833.387276,
-     "stewardship": 0.614678,
-     "cooperation": 0.153464
+     "livelihood": 429.881245,
+     "restraint": 1.028712,
+     "cooperation": 0
     }
    }
   },
   {
    "seed": "judge-10",
    "model": {
-    "livelihood": 675.378536,
-    "stewardship": 0.672054,
-    "cooperation": 0.087704,
+    "livelihood": 361.588182,
+    "restraint": 0,
+    "cooperation": -0.015958,
     "zoneChoices": {
-     "coastal": 5,
-     "offshore": 2
+     "coastal": 4,
+     "offshore": 1,
+     "nursery": 1
     }
    },
    "fixed": {
     "livelihood": {
-     "livelihood": 746.942186,
-     "stewardship": 0.624994,
-     "cooperation": 0
+     "livelihood": 204.541017,
+     "restraint": 0.359936,
+     "cooperation": 0.016179
     },
-    "stewardship": {
-     "livelihood": 664.739829,
-     "stewardship": 0.739457,
-     "cooperation": 0.249714
+    "restraint": {
+     "livelihood": 336.296712,
+     "restraint": 0.346998,
+     "cooperation": 0.0068
     },
     "cooperation": {
-     "livelihood": 702.8749,
-     "stewardship": 0.628252,
-     "cooperation": 0.013693
+     "livelihood": 336.296712,
+     "restraint": 0.346998,
+     "cooperation": 0.0068
     }
    }
   },
   {
    "seed": "judge-11",
    "model": {
-    "livelihood": 487.049797,
-    "stewardship": 0.71136,
-    "cooperation": 0.141175,
+    "livelihood": 655.211351,
+    "restraint": 0.260369,
+    "cooperation": -0.235747,
     "zoneChoices": {
-     "offshore": 1,
-     "coastal": 2
+     "coastal": 4,
+     "offshore": 1
     }
    },
    "fixed": {
     "livelihood": {
-     "livelihood": 680.830554,
-     "stewardship": 0.621836,
-     "cooperation": 0
+     "livelihood": 122.157553,
+     "restraint": 0.589234,
+     "cooperation": -0.122623
     },
-    "stewardship": {
-     "livelihood": 567.096724,
-     "stewardship": 0.746389,
-     "cooperation": 0.361343
+    "restraint": {
+     "livelihood": 122.157553,
+     "restraint": 0.589234,
+     "cooperation": -0.122623
     },
     "cooperation": {
-     "livelihood": 830.669282,
-     "stewardship": 0.681675,
-     "cooperation": 0.390386
+     "livelihood": 122.157553,
+     "restraint": 0.589234,
+     "cooperation": -0.122623
+    }
+   }
+  },
+  {
+   "seed": "judge-12",
+   "model": {
+    "livelihood": 384.018557,
+    "restraint": 4.088398,
+    "cooperation": 0,
+    "zoneChoices": {
+     "coastal": 2,
+     "offshore": 1,
+     "nursery": 2
+    }
+   },
+   "fixed": {
+    "livelihood": {
+     "livelihood": 394.661983,
+     "restraint": 1.317214,
+     "cooperation": -0.002238
+    },
+    "restraint": {
+     "livelihood": 394.661983,
+     "restraint": 1.317214,
+     "cooperation": -0.002238
+    },
+    "cooperation": {
+     "livelihood": 394.661983,
+     "restraint": 1.317214,
+     "cooperation": -0.002238
+    }
+   }
+  },
+  {
+   "seed": "judge-13",
+   "model": {
+    "livelihood": 120.477462,
+    "restraint": 1.731049,
+    "cooperation": 0.018373,
+    "zoneChoices": {
+     "offshore": 2,
+     "coastal": 2,
+     "nursery": 1
+    }
+   },
+   "fixed": {
+    "livelihood": {
+     "livelihood": 219.182865,
+     "restraint": 0.814268,
+     "cooperation": 0
+    },
+    "restraint": {
+     "livelihood": 219.182865,
+     "restraint": 0.814268,
+     "cooperation": 0
+    },
+    "cooperation": {
+     "livelihood": 219.182865,
+     "restraint": 0.814268,
+     "cooperation": 0
+    }
+   }
+  },
+  {
+   "seed": "judge-14",
+   "model": {
+    "livelihood": 255.983452,
+    "restraint": 0,
+    "cooperation": 0,
+    "zoneChoices": {
+     "coastal": 5
+    }
+   },
+   "fixed": {
+    "livelihood": {
+     "livelihood": 212.402908,
+     "restraint": 0,
+     "cooperation": 0
+    },
+    "restraint": {
+     "livelihood": 212.402908,
+     "restraint": 0,
+     "cooperation": 0
+    },
+    "cooperation": {
+     "livelihood": 212.402908,
+     "restraint": 0,
+     "cooperation": 0
+    }
+   }
+  },
+  {
+   "seed": "judge-15",
+   "model": {
+    "livelihood": 392.458977,
+    "restraint": 0.357361,
+    "cooperation": -0.431653,
+    "zoneChoices": {
+     "coastal": 2,
+     "offshore": 1
+    }
+   },
+   "fixed": {
+    "livelihood": {
+     "livelihood": 80.449451,
+     "restraint": 0.653414,
+     "cooperation": 0
+    },
+    "restraint": {
+     "livelihood": 80.449451,
+     "restraint": 0.653414,
+     "cooperation": 0
+    },
+    "cooperation": {
+     "livelihood": 80.449451,
+     "restraint": 0.653414,
+     "cooperation": 0
     }
    }
   }

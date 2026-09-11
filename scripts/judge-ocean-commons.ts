@@ -13,9 +13,9 @@
  *
  * Opponents. One fixed setting per axis, each chosen on practice seeds 0-39
  * and confirmed on unseen seeds 40-79 (ranks 2nd, 1st and 2nd of 60):
- *   livelihood    e0.8 never  none
- *   stewardship   e0.2 never  cheap
- *   cooperation   e1   always cheap
+ *   livelihood    e0.4 always generous
+ *   restraint     e0.4 always fair
+ *   cooperation   e0.4 always fair
  *
  * Design. Paired: the model and the fixed setting take the same seat, on the
  * same seed, against the same four scripted boats, over the same weather.
@@ -41,7 +41,7 @@
 import { writeFileSync } from "node:fs";
 import {
   brokerAgent,
-  cautiousAgent,
+  reciprocatorAgent,
   evaluateMatch,
   generateScenario,
   greedyAgent,
@@ -53,6 +53,8 @@ import {
   runMatch,
   oceanFrontier,
   scoreCooperation,
+  scoreRestraint,
+  takerAgent,
   toOutcomePoint,
   tunableAgent,
   type LlmTurnRecord,
@@ -61,17 +63,17 @@ import {
   type TunableParams,
 } from "../packages/ocean-commons/src/index";
 
-const SEEDS = Number(process.argv[2] ?? 12);
+const SEEDS = Number(process.argv[2] ?? 16);
 const EFFORT = (process.argv[3] ?? "low") as "minimal" | "low" | "medium" | "high";
 const CONCURRENCY = Number(process.argv[4] ?? 4);
 
-type Axis = "livelihood" | "stewardship" | "cooperation";
-const AXES: Axis[] = ["livelihood", "stewardship", "cooperation"];
+type Axis = "livelihood" | "restraint" | "cooperation";
+const AXES: Axis[] = ["livelihood", "restraint", "cooperation"];
 
 const CHAMPION: Record<Axis, TunableParams> = {
-  livelihood: { effortFraction: 0.8, reserve: "never", contracts: "none" },
-  stewardship: { effortFraction: 0.2, reserve: "never", contracts: "cheap" },
-  cooperation: { effortFraction: 1, reserve: "always", contracts: "cheap" },
+  livelihood: { effortFraction: 0.4, reserve: "always", contracts: "generous" },
+  restraint: { effortFraction: 0.4, reserve: "always", contracts: "fair" },
+  cooperation: { effortFraction: 0.4, reserve: "always", contracts: "fair" },
 };
 
 /**
@@ -99,7 +101,7 @@ function background(scenario: OceanScenario): OceanAgent[] {
     brokerAgent(b!.id, b!.name, scenario),
     greedyAgent(c!.id, c!.name, scenario),
     opportunistAgent(d!.id, d!.name, scenario),
-    cautiousAgent(e!.id, e!.name, scenario),
+    reciprocatorAgent(e!.id, e!.name, scenario),
   ];
 }
 
@@ -132,9 +134,17 @@ async function scoreEntrant(
     }
   }
 
+  // The restraint reference is scripted, so it costs no model calls either.
+  const ifTaken = evaluateMatch(
+    await runMatch(scenario, [
+      takerAgent(focal.id, focal.name, scenario),
+      ...background(scenario),
+    ]),
+  );
+
   return {
     livelihood: full.livelihood,
-    stewardship: full.stewardship,
+    restraint: scoreRestraint(full, ifTaken, focal.id).efficacy,
     cooperation: scoreCooperation(full, solo, focal.id).efficacy,
     zoneChoices: mine,
     calls: calls.n,
@@ -314,7 +324,7 @@ writeFileSync(
         seed: `judge-${index}`,
         model: {
           livelihood: row.model.livelihood,
-          stewardship: row.model.stewardship,
+          restraint: row.model.restraint,
           cooperation: row.model.cooperation,
           zoneChoices: row.model.zoneChoices,
         },
@@ -323,7 +333,7 @@ writeFileSync(
             axis,
             {
               livelihood: row.fixed[axis]!.livelihood,
-              stewardship: row.fixed[axis]!.stewardship,
+              restraint: row.fixed[axis]!.restraint,
               cooperation: row.fixed[axis]!.cooperation,
             },
           ]),
@@ -342,9 +352,15 @@ console.log(`
 let onFrontier = 0;
 for (const [index, row] of rows.entries()) {
   const points = [
-    toOutcomePoint("model", "model", { ...row.model, boats: [] } as never, row.model.cooperation),
+    toOutcomePoint("model", "model", { ...row.model, boats: [] } as never, {
+      restraint: row.model.restraint,
+      cooperation: row.model.cooperation,
+    }),
     ...AXES.map((axis) =>
-      toOutcomePoint(axis, axis, { ...row.fixed[axis]!, boats: [] } as never, row.fixed[axis]!.cooperation),
+      toOutcomePoint(axis, axis, { ...row.fixed[axis]!, boats: [] } as never, {
+        restraint: row.fixed[axis]!.restraint,
+        cooperation: row.fixed[axis]!.cooperation,
+      }),
     ),
   ];
   if (oceanFrontier(points).some((point) => point.id === "model")) onFrontier += 1;

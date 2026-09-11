@@ -547,12 +547,12 @@ describe("outcomes", async () => {
   it("keeps the three outcomes separate and never aggregates them", async () => {
     const scenario = generateScenario("outcomes", { vary: true });
     const outcomes = evaluateMatch(await runMatch(scenario, mixedFleet(scenario)));
-    const point = toOutcomePoint("mixed", "Mixed fleet", outcomes, 0.1);
+    const point = toOutcomePoint("mixed", "Mixed fleet", outcomes, { restraint: 0.4, cooperation: 0.1 });
 
     expect(Object.keys(point.values).sort()).toEqual([
       "cooperation",
       "livelihood",
-      "stewardship",
+      "restraint",
     ]);
     expect(point.values).not.toHaveProperty("total");
     expect(point.values).not.toHaveProperty("score");
@@ -577,7 +577,7 @@ describe("outcomes", async () => {
     for (const [index, tag] of ["a", "b", "c"].entries()) {
       const agents = mixedFleet(scenario);
       const log = await runMatch(scenario, agents, { enableNegotiation: index !== 1 });
-      points.push(toOutcomePoint(tag, tag, evaluateMatch(log), index * 0.05));
+      points.push(toOutcomePoint(tag, tag, evaluateMatch(log), { restraint: index * 0.1, cooperation: index * 0.05 }));
     }
 
     const forward = oceanFrontier(points).map((point) => point.id);

@@ -55,12 +55,15 @@ export const oceanMetrics = [
     upperBound: 900,
   },
   {
-    key: "stewardship",
-    name: "Commons stewardship",
+    // Replaced the stewardship axis, which was monotone in effort and so had
+    // its best play at a dial's end (Plan 10 §50.2). Stock left in the water is
+    // still reported as evidence; it is simply no longer judged.
+    key: "restraint",
+    name: "Restraint efficacy",
     direction: "MAXIMIZE",
-    unit: "share of capacity",
+    unit: "share of forgone catch still in the water",
     lowerBound: 0,
-    upperBound: 1,
+    upperBound: 2,
   },
   {
     key: "cooperation",
@@ -391,7 +394,8 @@ export function toOutcomePoint(
   id: string,
   name: string,
   outcomes: MatchOutcomes,
-  cooperation: number,
+  /** Both judged axes that need a counterfactual, passed in rather than read. */
+  counterfactual: { restraint: number; cooperation: number },
   options: { correctness?: boolean; baseline?: boolean } = {},
 ): OutcomePoint {
   return {
@@ -401,8 +405,8 @@ export function toOutcomePoint(
     baseline: options.baseline ?? false,
     values: {
       livelihood: outcomes.livelihood,
-      stewardship: outcomes.stewardship,
-      cooperation,
+      restraint: counterfactual.restraint,
+      cooperation: counterfactual.cooperation,
     },
   };
 }
