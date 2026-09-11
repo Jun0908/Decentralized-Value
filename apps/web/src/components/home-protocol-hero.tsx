@@ -11,12 +11,20 @@ export function HomeProtocolHero() {
     <div className="hero-intro-grid">
       <div className="finalist-hero-copy">
         <p className="eyebrow">Decentralized markets for plural values</p>
-        <h1>One score should not decide everything.</h1>
+        <h1>Who gets to decide what “better” means?</h1>
         <p className="hero-value-statement">
-          Value Decentralization keeps each goal separate and rewards every solution that expands
-          the frontier.
+          Most systems hide that decision inside a weighted score.
         </p>
-        <p className="hero-ethereum-line">Ethereum makes the rules and rewards verifiable.</p>
+        <p className="hero-value-statement">
+          <strong>Value Decentralization makes it plural.</strong>
+        </p>
+        <p className="hero-value-statement">
+          One shared evaluation can support many independent definitions of progress—without
+          collapsing them into one winner.
+        </p>
+        <p className="hero-ethereum-line">
+          <strong>Measure once. Preserve the tradeoffs. Let values diverge.</strong>
+        </p>
         <div className="actions hero-actions">
           {account.authenticated ? (
             <Link className="primary-action" href="/arenas/emergency-supply">

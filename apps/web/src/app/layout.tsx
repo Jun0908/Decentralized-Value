@@ -39,7 +39,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
               </span>
             </Link>
             <nav aria-label="Primary navigation">
-              <Link href="/#evm-demo">Live proof</Link>
+              <Link href="/#evm-demo">Overview</Link>
               <Link href="/#how-it-works">How it works</Link>
               <Link href="/#arenas">Arenas</Link>
             </nav>
