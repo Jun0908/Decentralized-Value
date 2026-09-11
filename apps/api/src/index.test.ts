@@ -913,7 +913,7 @@ describe("Ocean Commons seasons", () => {
     expect(sail).not.toHaveBeenCalled();
   });
 
-  it("stops a client after three seasons in ten minutes", async () => {
+  it("stops a client after two matches in ten minutes", async () => {
     const sail = vi.fn(async () => season as never);
     const api = createApi(benchmark, undefined, undefined, undefined, undefined, undefined, {
       season: sail,
@@ -927,15 +927,13 @@ describe("Ocean Commons seasons", () => {
         }),
       );
 
-    const statuses = [
-      (await post()).status,
-      (await post()).status,
-      (await post()).status,
-      (await post()).status,
-    ];
+    const statuses: number[] = [];
+    for (let attempt = 0; attempt < 7; attempt += 1) statuses.push((await post()).status);
 
-    // Each season is a paid model run, so the limit is a spending control.
-    expect(statuses).toEqual([200, 200, 200, 429]);
-    expect(sail).toHaveBeenCalledTimes(3);
+    // A match is three seasons and each is its own request, so the ceiling is
+    // two matches. Each season is a paid model run: this is a spending control
+    // before it is a traffic one.
+    expect(statuses).toEqual([200, 200, 200, 200, 200, 200, 429]);
+    expect(sail).toHaveBeenCalledTimes(6);
   });
 });

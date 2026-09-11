@@ -112,8 +112,8 @@ type Entry = Scores & {
   won: { livelihood: number; restraint: number; cooperation: number };
 };
 
-type MissionRun = {
-  mission: string;
+/** One season the model sailed, as the route returns it. */
+type MissionSeason = {
   seed: string;
   scores: Scores;
   voyage: Voyage;
@@ -124,6 +124,30 @@ type MissionRun = {
   contracts: number;
   usage: { calls: number; failures: number; inputTokens: number; outputTokens: number };
 };
+
+/**
+ * A match sailed from the mission text.
+ *
+ * Three seasons rather than one, for the same reason the scripted preview sails
+ * seven: a single season is mostly the draw, and showing one result invites a
+ * visitor to read luck as judgement. Three is the compromise the arithmetic
+ * allows — a season costs three to six minutes of a model's time and cannot be
+ * parallelised, because each round depends on the one before it.
+ */
+type MissionRun = {
+  mission: string;
+  seasons: MissionSeason[];
+  /** Median of each axis across the match. */
+  scores: Scores;
+};
+
+const MISSION_SEASONS = 3;
+
+function medianOf(values: number[]): number {
+  const sorted = [...values].sort((left, right) => left - right);
+  const middle = sorted.length >> 1;
+  return sorted.length % 2 === 0 ? (sorted[middle - 1]! + sorted[middle]!) / 2 : sorted[middle]!;
+}
 
 type Result = {
   voyage: Voyage;
@@ -211,6 +235,7 @@ export function OceanCommonsWorkbench({
   // real money, and conflating them would hide which is which.
   const [sailing, setSailing] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [seasonsDone, setSeasonsDone] = useState(0);
   const [missionRun, setMissionRun] = useState<MissionRun | null>(null);
   const [missionError, setMissionError] = useState<string | null>(null);
 
@@ -344,23 +369,47 @@ export function OceanCommonsWorkbench({
     setSailing(true);
     setElapsed(0);
     setMissionError(null);
+    setMissionRun(null);
+    setSeasonsDone(0);
+
+    // Seasons are requested one at a time rather than as one long call. A match
+    // is nine to eighteen minutes, and no single HTTP request should be held
+    // open that long; this way each season lands as it finishes and a failure
+    // half way through still leaves the seasons already sailed on screen.
+    const sailed: MissionSeason[] = [];
+    const seeds = SEEDS.slice(0, MISSION_SEASONS);
     try {
-      const response = await fetch("/v1/ocean-commons/seasons", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ mission, seed }),
-      });
-      const payload = (await response.json()) as MissionRun & {
-        error?: { code?: string; message?: string };
-      };
-      if (!response.ok) {
-        throw new Error(
-          payload.error?.code === "SEASON_UNCONFIGURED"
-            ? "No model is configured on this server, so a mission cannot be sailed here."
-            : (payload.error?.message ?? "The season could not be sailed."),
-        );
+      for (const each of seeds) {
+        const response = await fetch("/v1/ocean-commons/seasons", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ mission, seed: each }),
+        });
+        const payload = (await response.json()) as MissionSeason & {
+          error?: { code?: string; message?: string };
+        };
+        if (!response.ok) {
+          throw new Error(
+            payload.error?.code === "SEASON_UNCONFIGURED"
+              ? "No model is configured on this server, so a mission cannot be sailed here."
+              : payload.error?.code === "SEASON_RATE_LIMITED"
+                ? "Two matches in ten minutes is the limit; each season is a paid model run."
+                : (payload.error?.message ?? "The season could not be sailed."),
+          );
+        }
+        sailed.push(payload);
+        setSeasonsDone(sailed.length);
+        setMissionRun({
+          mission,
+          seasons: [...sailed],
+          scores: {
+            livelihood: medianOf(sailed.map((one) => one.scores.livelihood)),
+            restraint: medianOf(sailed.map((one) => one.scores.restraint)),
+            forgone: medianOf(sailed.map((one) => one.scores.forgone)),
+            cooperation: medianOf(sailed.map((one) => one.scores.cooperation)),
+          },
+        });
       }
-      setMissionRun({ ...payload, mission, seed });
     } catch (cause) {
       setMissionError(cause instanceof Error ? cause.message : "The season could not be sailed.");
     } finally {
@@ -368,8 +417,9 @@ export function OceanCommonsWorkbench({
     }
   }
 
-  // The replay shows whichever season the visitor last produced.
-  const shown = missionRun ?? result;
+  // The replay shows whichever season the visitor last produced — for a mission
+  // match, the most recent of its seasons.
+  const shown = missionRun?.seasons[missionRun.seasons.length - 1] ?? result;
 
   return (
     <div className="competition-shell ocean-competition">
@@ -513,8 +563,8 @@ export function OceanCommonsWorkbench({
         <div className="ocean-mission-actions">
           <button type="button" onClick={() => void sailWithMission()} disabled={sailing}>
             {sailing
-              ? `Sailing your mission… ${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`
-              : "Sail with your mission"}
+              ? `Season ${Math.min(seasonsDone + 1, MISSION_SEASONS)} of ${MISSION_SEASONS}… ${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`
+              : `Sail ${MISSION_SEASONS} seasons with your mission`}
           </button>
           <p className="lever-explanation">
             A model-backed boat reads this text and nothing else about your intent. One season has
@@ -530,7 +580,9 @@ export function OceanCommonsWorkbench({
         ) : null}
         {missionRun ? (
           <div className="ocean-mission-result">
-            <p className="eyebrow">Your mission sailed season {missionRun.seed.slice(-1)}</p>
+            <p className="eyebrow">
+              Your mission · {missionRun.seasons.length} of {MISSION_SEASONS} seasons sailed
+            </p>
             <div className="live-preview-metrics">
               <article>
                 <span>CREW LIVELIHOOD</span>
@@ -556,15 +608,31 @@ export function OceanCommonsWorkbench({
                 </small>
               </article>
             </div>
+            <ol className="ocean-tried">
+              {missionRun.seasons.map((season) => (
+                <li key={season.seed}>
+                  <div>
+                    <strong>{season.seed.replace("ocean-practice-v1:", "Season ")}</strong>
+                    <small>
+                      {season.rounds} rounds · {season.survived} of {season.fleet} solvent ·{" "}
+                      {season.contracts} contracts
+                    </small>
+                  </div>
+                  <span>{cash(season.scores.livelihood)}</span>
+                  <span>{pct(season.scores.restraint)}</span>
+                  <span>{season.scores.cooperation.toFixed(3)}</span>
+                </li>
+              ))}
+            </ol>
             <p className="lever-explanation">
-              {missionRun.rounds} rounds, {missionRun.survived} of {missionRun.fleet} boats solvent,
-              {" "}
-              {missionRun.contracts} contracts signed, {missionRun.fuelLeft.toFixed(0)} fuel left.
-              The model answered {missionRun.usage.calls} times
-              {missionRun.usage.failures > 0
-                ? `, and ${missionRun.usage.failures} of those could not be used — a boat whose agent fails stays in port that round.`
+              The figures above the list are the median of the match; the rows are the seasons it
+              is made of, and how far they sit apart is how much of this was the draw. The model
+              answered{" "}
+              {missionRun.seasons.reduce((sum, season) => sum + season.usage.calls, 0)} times
+              {missionRun.seasons.reduce((sum, season) => sum + season.usage.failures, 0) > 0
+                ? `, and ${missionRun.seasons.reduce((sum, season) => sum + season.usage.failures, 0)} of those could not be used — a boat whose agent fails stays in port that round.`
                 : "."}{" "}
-              The replay above now shows this season.
+              The replay above shows the last of these seasons.
             </p>
           </div>
         ) : (
@@ -638,7 +706,11 @@ export function OceanCommonsWorkbench({
           </div>
           <span>
             {missionRun ? "Your mission" : "Scripted preview"} · seed{" "}
-            {shown && "scenarioSeed" in shown ? shown.scenarioSeed : (missionRun?.seed ?? seed)}
+            {shown === undefined || shown === null
+              ? seed
+              : "scenarioSeed" in shown
+                ? shown.scenarioSeed
+                : shown.seed}
           </span>
         </div>
         <div className="ocean-reading-key" aria-label="How to read the scene">

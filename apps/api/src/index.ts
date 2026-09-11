@@ -254,7 +254,10 @@ export class FrontierApi {
   private readonly rescueCommanderLimiter = new SlidingWindowLimiter(3, 10 * 60_000);
   // A season costs a model call per boat-turn, so this is a spending limit
   // before it is a traffic one.
-  private readonly oceanSeasonLimiter = new SlidingWindowLimiter(3, 10 * 60_000);
+  // A match is three seasons and each is a separate request, so the old limit of
+  // three let a visitor sail exactly one match and then wait ten minutes. Six
+  // allows two matches, which is still a firm ceiling on what a client can spend.
+  private readonly oceanSeasonLimiter = new SlidingWindowLimiter(6, 10 * 60_000);
   readonly competition = new CompetitionSandboxStore();
   constructor(
     readonly store: FrontierStore,

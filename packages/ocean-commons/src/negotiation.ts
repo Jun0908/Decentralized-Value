@@ -236,7 +236,12 @@ export function settleRound(
 
   for (const pact of state.pacts) {
     if (!isLive(pact, state.round)) continue;
-    if (pact.terms.kind === "MUTUAL_AID" || pact.terms.kind === "CONSERVATION_FUND") continue;
+    // Only the two pacts that constrain fishing can be broken by fishing. The
+    // pooled funds oblige money rather than restraint, and a sounding exchange
+    // trades knowledge — nothing about it says where anyone may work. Falling
+    // through to the stand-down branch made every boat that traded readings for
+    // a ground and then fished it a promise-breaker, which is most of them.
+    if (pact.terms.kind !== "CATCH_LIMIT" && pact.terms.kind !== "CONSERVATION_BUYOUT") continue;
 
     const terms = pact.terms;
     const offenders = pact.counterparties.filter((boatId) => {

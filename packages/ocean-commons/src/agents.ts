@@ -438,18 +438,88 @@ export function greedyAgent(id: BoatId, name: string, scenario: OceanScenario): 
  * Fishes only the surplus its own share of the stock can regrow, and stays out
  * of the reserve. Sustainable alone, but defenceless against a race.
  */
+/**
+ * An offer to buy somebody's exact reading of a ground this boat can only guess at.
+ *
+ * What is worth paying for is not an unseen ground — nobody can sell a reading
+ * of water they never worked either — but a *banded* one. Watching a rival land
+ * fish tells this boat roughly what was under them; the rival knows the number.
+ * Upgrading that estimate is the only thing a counterparty can sell that they
+ * alone possess, and it is worth most on the ground the fleet is competing over.
+ *
+ * Shared rather than living inside the broker, because when only one of five
+ * skippers ever made this offer the exchange fired in about one season in five
+ * and most visitors never saw the rule the dark sea exists for.
+ */
+export function soundingOffer(
+  observation: Observation,
+  id: BoatId,
+  options: { alreadyBound: (boatId: BoatId) => boolean; budget: number; fee: number },
+): Proposal | null {
+  if (!observation.wallet.policy.allowedPurposes.includes("SOUNDING_EXCHANGE")) return null;
+  if (options.budget <= 0 || observation.roundsRemaining < 2) return null;
+
+  const newestSource = (zoneId: string) => {
+    const readings = observation.soundings.filter((entry) => entry.zoneId === zoneId);
+    if (readings.length === 0) return null;
+    return readings.reduce((best, entry) => (entry.round > best.round ? entry : best)).source;
+  };
+  const lastRound = observation.history[observation.history.length - 1];
+  const bandedZone = observation.zones.find(
+    (zone) => !zone.reserve && newestSource(zone.id) === "OBSERVED",
+  );
+  if (!bandedZone) return null;
+
+  const witness = observation.others.find(
+    (other) =>
+      other.active &&
+      !options.alreadyBound(other.id) &&
+      lastRound?.others.some(
+        (entry) => entry.boatId === other.id && entry.zoneId === bandedZone.id,
+      ),
+  );
+  if (!witness) return null;
+
+  // A reading is worth a fraction of what a stand-down costs: it changes where
+  // you fish, not whether anyone fishes.
+  return {
+    id: proposalId(observation, `read-${bandedZone.id}`),
+    round: observation.round,
+    proposer: id,
+    counterparties: [witness.id],
+    terms: { kind: "SOUNDING_EXCHANGE", zoneId: bandedZone.id },
+    payment: Math.max(4, Math.min(options.budget, options.fee)),
+    durationRounds: Math.min(3, observation.roundsRemaining),
+    reasonCode: "BANDED_READING",
+  };
+}
+
 export function cautiousAgent(id: BoatId, name: string, scenario: OceanScenario): OceanAgent {
   return {
     id,
     name,
     negotiate(observation) {
-      const responses: ProposalResponse[] = observation.incomingProposals.map((proposal) => {
-        if (proposal.terms.kind === "CATCH_LIMIT" || proposal.terms.kind === "CONSERVATION_BUYOUT") {
-          return { type: "ACCEPT", proposalId: proposal.id };
-        }
-        return { type: "ACCEPT", proposalId: proposal.id };
+      const responses: ProposalResponse[] = observation.incomingProposals.map((proposal) => ({
+        type: "ACCEPT",
+        proposalId: proposal.id,
+      }));
+
+      // A boat that fishes to a sustainable share needs to know what the share
+      // is, so it is the one with most to gain from an exact reading.
+      const bound = (boatId: BoatId) =>
+        observation.activePacts.some(
+          (pact) => pact.status === "ACTIVE" && pact.counterparties.includes(boatId),
+        );
+      const reading = soundingOffer(observation, id, {
+        alreadyBound: bound,
+        budget: Math.min(
+          observation.wallet.policy.maxPaymentPerTransaction,
+          observation.wallet.remaining,
+          Math.max(0, observation.self.cash - observation.self.upkeepPerRound * 3),
+        ),
+        fee: Math.round(observation.wallet.policy.maxPaymentPerTransaction * 0.1),
       });
-      return { proposals: [], responses };
+      return { proposals: reading ? [reading] : [], responses };
     },
     act(observation) {
       const fleet = observation.others.filter((other) => other.active).length + 1;
@@ -521,53 +591,12 @@ export function brokerAgent(
 
       // Buy eyes before buying restraint.
       //
-      // What is worth paying for is not an unseen ground — nobody can sell you
-      // a reading of water they have not worked either — but a *banded* one.
-      // Watching a rival land fish tells this boat roughly what was under them;
-      // the rival knows exactly. Upgrading that estimate to the real number is
-      // the only thing a counterparty can sell that they alone possess, and it
-      // is worth most on the ground the fleet is actually competing over.
-      const newestSource = (zoneId: string) => {
-        const readings = observation.soundings.filter((entry) => entry.zoneId === zoneId);
-        if (readings.length === 0) return null;
-        return readings.reduce((best, entry) => (entry.round > best.round ? entry : best)).source;
-      };
-      const lastRound = observation.history[observation.history.length - 1];
-      const bandedZone = observation.zones.find(
-        (zone) => !zone.reserve && newestSource(zone.id) === "OBSERVED",
-      );
-      const witness = bandedZone
-        ? observation.others.find(
-            (other) =>
-              other.active &&
-              !bound(other.id) &&
-              lastRound?.others.some(
-                (entry) => entry.boatId === other.id && entry.zoneId === bandedZone.id,
-              ),
-          )
-        : undefined;
-
-      if (
-        bandedZone &&
-        witness &&
-        budget > 0 &&
-        observation.roundsRemaining >= 2 &&
-        observation.wallet.policy.allowedPurposes.includes("SOUNDING_EXCHANGE")
-      ) {
-        // A reading is worth a fraction of what a stand-down costs: it changes
-        // where you fish, not whether anyone fishes.
-        const fee = Math.max(4, Math.min(budget, Math.round(policyCap * 0.15)));
-        proposals.push({
-          id: proposalId(observation, `read-${bandedZone.id}`),
-          round: observation.round,
-          proposer: id,
-          counterparties: [witness.id],
-          terms: { kind: "SOUNDING_EXCHANGE", zoneId: bandedZone.id },
-          payment: fee,
-          durationRounds: Math.min(3, observation.roundsRemaining),
-          reasonCode: "BANDED_READING",
-        });
-      }
+      const reading = soundingOffer(observation, id, {
+        alreadyBound: bound,
+        budget,
+        fee: Math.round(policyCap * 0.15),
+      });
+      if (reading) proposals.push(reading);
 
       // Open the pool early, while every boat still has cash to subscribe and
       // enough rounds remain for the subscriptions to add up to something.
@@ -741,6 +770,23 @@ export function reciprocatorAgent(id: BoatId, name: string, scenario: OceanScena
           reasonCode: "BREAKDOWN_RISK",
         });
       }
+
+      // Buys a reading from anyone who has not broken a promise. A boat that
+      // mirrors the fleet has to know what the fleet is actually doing.
+      const reading = soundingOffer(observation, id, {
+        alreadyBound: (boatId) =>
+          (observation.others.find((other) => other.id === boatId)?.breaches ?? 0) > 0 ||
+          observation.activePacts.some(
+            (pact) => pact.status === "ACTIVE" && pact.counterparties.includes(boatId),
+          ),
+        budget: Math.min(
+          observation.wallet.policy.maxPaymentPerTransaction,
+          observation.wallet.remaining,
+          Math.max(0, observation.self.cash - observation.self.upkeepPerRound * 3),
+        ),
+        fee: Math.round(observation.wallet.policy.maxPaymentPerTransaction * 0.12),
+      });
+      if (reading) proposals.push(reading);
 
       return { proposals, responses };
     },
