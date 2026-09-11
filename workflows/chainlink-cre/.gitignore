@@ -1,0 +1,8 @@
+node_modules/
+generated/
+*.wasm
+*.wasm.br
+*.log
+.env
+.env.*
+!.env.example

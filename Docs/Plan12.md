@@ -278,3 +278,13 @@ API入口やlockfileは別作業と競合しやすい。実装開始時に担当
 接続先のPlan9 Pilotでは、実AI Commander→Pulse Monitorの別モデル呼び出し→5 rUSD-DEMO支払い、別注文5 rUSD-DEMO返金を確認した。[公開Evidence](deployments/sepolia-rescue-service-demo.json)とローカル`/rescue-room/operations`で記録を確認できる。ただし実Serviceは公開観測のinterpretation sidecarで、ゲームOutcome・診断Correctnessは新たに検証していない。Walletは運営管理。
 
 未完了はOceanを含む公開Job契約、Production DB／複数ホスト運用、Cancel／専用cursor Events API、外部参加者Scope、SDK／CLIの公開大会フロー、Hidden Final、Pool報酬である。§4〜§8の広いチェック項目を、このローカルPilotだけで完了扱いにしない。
+
+## 12. 残り2日：既存APIの参加導線と公開Replay
+
+2026-09-12。提出までに公開Job基盤を広げず、既存非課金Practice契約の再現手順を優先した。[API利用手順](sponsors/agent-api.md)を参照。
+
+- [x] SDKから既存API adapterへ接続し、Arena discovery → Starter Kit → Doctrine評価 → ローカルReplay／4 Hash照合を12リクエストで検証。200／409／400、改ざん拒否を含む。実ネットワーク、推論、送金なし。
+- [x] `packages/sdk/examples/rescue-practice.ts`に利用例を追加。API／OpenAPIの既存契約は変更しない。
+- [x] `pnpm verify:rescue:submission-replay`で公開Fixtureだけから購入Prefix・3判断・直前View・全Outcome・Transcript・独立Pool配分を再計算。13の正常／改ざんテストを追加。
+
+公開ReplayはSimulator結果の再現を確認するもので、実モデル由来、実支払いReceipt、元の全Runtime Evidence Hashは検証しない。SDK本体が自動的に全Hashを再計算するというclaimもしない。公開先へのHTTP疎通、実外部参加者、公開大会フロー、npm公開は未完了。§11の成果物はPlan9 §32で短い購入後判断へ接続したが、未知Finalや情報購入の効果は別の未達Gateである。

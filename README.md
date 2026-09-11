@@ -23,8 +23,8 @@ This arena does not animate precomputed numbers. It **executes compiled Solidity
 Current reproducible result for the preloaded Packed codec:
 
 | Calldata gas | Decoder gas | Correctness | Frontier contribution |
-| ---: | ---: | :---: | ---: |
-| `8,200` | `13,061` | `PASS` | `+5.27%` |
+| -----------: | ----------: | :---------: | --------------------: |
+|      `8,200` |    `13,061` |   `PASS`    |              `+5.27%` |
 
 Dictionary encoding uses less calldata. Packed decoding uses less execution gas. Neither dominates the other, so both survive on the Pareto frontier. Standard ABI is worse on both axes and falls off the frontier.
 
@@ -52,7 +52,9 @@ The Sepolia demonstration completes the path from allocation commitment to `Rewa
 
 The new local `/rescue-room/operations` page explains a verified Commander → specialist → Sepolia escrow payment of **5 rUSD-DEMO**, plus a separate **5 rUSD-DEMO timeout refund**. [Public transaction evidence](Docs/deployments/sepolia-rescue-service-demo.json) and the [Japanese operator runbook](Docs/RESCUE_EXECUTION_BATCH.md) describe the exact scope. This page has not been deployed to the public product above.
 
-These are separate real model calls and operator-controlled wallets. The purchased service interprets supplied observations; its diagnosis is not proven correct and does not change the deterministic game outcomes. rUSD-DEMO has no monetary value. An open third-party service market, hidden Final competition, and Rescue reward settlement are **not yet complete**.
+These are separate real model calls and operator-controlled wallets. The purchased service interprets supplied observations; its diagnosis is not proven correct. A separate local `/rescue-room/submission` demo now feeds that analysis back into three real Commander decisions, replays their simulated outcomes, and compares three independent Pool previews. In this recorded episode, doing nothing dominates the AI response; the demo does not hide that result. Run `pnpm verify:rescue:submission-replay` to reproduce the recorded game outcome and Pool allocation from public inputs without API keys. [Submission scope and narration draft](Docs/HACKATHON_SUBMISSION.md).
+
+rUSD-DEMO has no monetary value. An open third-party service market, hidden Final competition, and Rescue reward settlement are **not yet complete**.
 
 ---
 
@@ -168,14 +170,14 @@ The protocol reproduces what the agent actually did, not its hidden chain of tho
 
 ## Six arenas, one protocol
 
-| Arena | Independent outcomes | State |
-| --- | --- | --- |
-| **72-Hour Disaster Response** | cost ↓ · worst-case delivery ↑ · regional coverage ↑ | Demo competition |
-| **Ethereum Calldata Compression** | calldata gas ↓ · decoder gas ↓ | Practice |
-| **Community Microgrid Dispatch** | cost ↓ · worst-case energy ↑ · carbon ↓ | Practice |
-| **Secret Gate** | proof latency ↓ · memory ↓ | Practice / observational |
-| **Rescue Room** | user loss ↓ · demand served ↑ · response spend ↓ | Controlled Practice |
-| **Ocean Commons** | livelihood ↑ · restraint ↑ · cooperation ↑ | Practice |
+| Arena                             | Independent outcomes                                 | State                    |
+| --------------------------------- | ---------------------------------------------------- | ------------------------ |
+| **72-Hour Disaster Response**     | cost ↓ · worst-case delivery ↑ · regional coverage ↑ | Demo competition         |
+| **Ethereum Calldata Compression** | calldata gas ↓ · decoder gas ↓                       | Practice                 |
+| **Community Microgrid Dispatch**  | cost ↓ · worst-case energy ↑ · carbon ↓              | Practice                 |
+| **Secret Gate**                   | proof latency ↓ · memory ↓                           | Practice / observational |
+| **Rescue Room**                   | user loss ↓ · demand served ↑ · response spend ↓     | Controlled Practice      |
+| **Ocean Commons**                 | livelihood ↑ · restraint ↑ · cooperation ↑           | Practice                 |
 
 Each domain needs its own evaluator, but the protocol primitives remain shared: **Context, Hard Constraints, independent Outcomes, Pareto, Evidence, and Value Pools**.
 
@@ -199,13 +201,13 @@ Ethereum does **not** prove that an offchain evaluator is socially correct. It m
 
 This project deliberately separates different evidence states instead of calling everything “verified.”
 
-| State | Meaning |
-| --- | --- |
-| `measured` | a deterministic evaluator produced a result |
-| `simulated` | a modeled boundary is explicitly labeled |
-| `committed` | corresponding onchain evidence exists |
-| `paid` | transfer/event and recipient evidence exist |
-| `Practice` | measurement is real while the production tournament layer remains incomplete |
+| State       | Meaning                                                                      |
+| ----------- | ---------------------------------------------------------------------------- |
+| `measured`  | a deterministic evaluator produced a result                                  |
+| `simulated` | a modeled boundary is explicitly labeled                                     |
+| `committed` | corresponding onchain evidence exists                                        |
+| `paid`      | transfer/event and recipient evidence exist                                  |
+| `Practice`  | measurement is real while the production tournament layer remains incomplete |
 
 The public evaluators and Sepolia reward demonstration are real. That does not mean a production tournament has already been fully deployed.
 

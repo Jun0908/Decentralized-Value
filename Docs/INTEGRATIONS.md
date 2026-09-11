@@ -95,6 +95,12 @@ The local credential was used for a successful real-API smoke run on 2026-09-10.
 - 状態は単一ホストの永続ファイルへ保存し、不明な実行を新しい推論・別の署名済みTxで無条件にやり直さない。同一の保存済みTxを再送する場合もHashと内容を照合する。秘密情報はGit除外の`secrets/`、Journalは`.frontier/`に保存し、公開JSON・SDK／CLI出力へ出さない。残存Lockの自動期限切れ回収は行わない。
 - `/rescue-room/operations`はローカル実装の公開証跡UI。今回の実行は、Vercel公開、Rescue本番DB、外部Provider募集、ENS discovery、Hidden Final、大会報酬の完成を意味しない。
 
+## 提出用継続デモとスポンサー検証（2026-09-12）
+
+上記Pilotの支払い済み実分析を、別Contextの最大3手番Commanderへ渡した。今回の追加実AI呼び出しは3回、追加チェーン取引は0。`/rescue-room/submission`と[公開Evidence](deployments/rescue-submission-demo.json)で判断・Simulation Outcome・独立Pool Previewを表示する。元PilotのOutcomeは変更しない。公開Replayは`pnpm verify:rescue:submission-replay`で実行でき、鍵・推論・RPCは不要だが支払い／モデル由来の証明ではない。
+
+CRE CLI 1.33.0とSDK 1.20.1を導入し通常／Confidential Simulationを試行したが、認証必須で停止した。公式実行・意味のある秘密入力は未確認。[CRE手順](sponsors/chainlink-cre.md)と[人間の確認事項](sponsors/MANUAL_ACTION_REQUIRED.md)を参照。Web公開、スポンサー登録、提出は今回実行していない。
+
 ## Ledger — archived and unused
 
 Ledger hardware is not available and is not required by the public application, evaluator, or Sepolia reward path. The historical adapter remains in the repository only as prior optional work. Do not reintroduce Ledger configuration, signing claims, or recovery steps into the main demo unless the project owner explicitly restores that scope and real device evidence is produced.

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "frontier-cre-compatibility-status-v0",
+  "checkedAt": "2026-09-11T22:14:07.377Z",
+  "cli": {
+    "version": "1.33.0",
+    "platform": "windows-amd64",
+    "releaseUrl": "https://github.com/smartcontractkit/cre-cli/releases/tag/v1.33.0",
+    "archiveSha256": "d0c21f7522317de2ad231cd333d15c7c91d6d7d498e42e67a9d158684e005dea",
+    "archiveChecksumVerified": true,
+    "versionCommandPassed": true,
+    "authentication": "missing"
+  },
+  "sdk": {
+    "version": "1.20.1",
+    "bunVersion": "1.2.21",
+    "dependenciesInstalled": true,
+    "installScriptsRun": false,
+    "workflowTypecheck": "passed"
+  },
+  "nodeFixture": {
+    "state": "passed",
+    "evaluatorBundleHash": "0xa97f7035af953f5f505b99c5df340cdd4ffac17d12dc404221b8e1fb70cc1c71",
+    "evaluatorBundleBytes": 899564,
+    "expectedResultHash": "0x58836161a6999a618f7f8e706cb8bdeb43944a4f2a6a726b9f391e0dda9db82e",
+    "legacyEpisodeResultHash": "0xe6dbaeee3dab3330e29adb2640c12edd9e56e1de87506773c212f68a5205b40e"
+  },
+  "ordinarySimulation": {
+    "state": "blocked",
+    "cliExitCode": 1,
+    "reasonCode": "CRE_AUTHENTICATION_REQUIRED",
+    "triggerIndex": 0
+  },
+  "confidentialSimulation": {
+    "state": "blocked",
+    "cliExitCode": 1,
+    "reasonCode": "CRE_AUTHENTICATION_REQUIRED",
+    "triggerIndex": 1
+  },
+  "wasmCompilation": "not-run",
+  "wasmExecution": "not-run",
+  "quickJsCompatibility": "unverified",
+  "confidentialBetaAccess": "unverified",
+  "liveTeeAttestationVerified": false,
+  "hiddenFinalUsed": false,
+  "deployed": false,
+  "committed": false,
+  "paid": false,
+  "rawCliOutputRetained": false
+}

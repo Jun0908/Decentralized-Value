@@ -1,12 +1,22 @@
 # Current implementation status
 
-- **Last verified:** 2026-09-12（下記Rescue Operator Pilotを追加。過去の検証記録は各日付の範囲）
+- **Last verified:** 2026-09-12（Rescue購入後判断デモ・公開Replay・CRE認証Gateを追加。過去の検証記録は各日付の範囲）
 - **Public application:** <https://web-rho-seven-d6te7t3f0y.vercel.app>
 - **Active plans:** [`Plan9.md`](Plan9.md) (Rescue Room), [`Plan11.md`](Plan11.md) (Sponsor integration), [`Plan12.md`](Plan12.md) (API / SDK / CLI). Parallel ownership and current batch: [`PARALLEL_IMPLEMENTATION.md`](PARALLEL_IMPLEMENTATION.md).
 
 This document records the current capability boundary. Product rules live in [`PRODUCT.md`](PRODUCT.md), the active Rescue Room work is scoped in [`Plan9.md`](Plan9.md), and completed or superseded plans live under [`archive/`](archive/).
 
 ## Working now
+
+### Hackathon submission demo — 2026-09-12
+
+`/rescue-room/submission`に、前回購入した実AI分析→実Commanderの3判断（WAIT / WAIT / PAUSE_MODULE）→Simulation Outcome→独立3 Pool Previewを接続した。ゲーム内の需要提供率71.1274%、損失0、費用5 Credits。今回の公開Episodeでは何もしない戦略が支配しており、AI優位をclaimしない。追加送金0、追加AI呼出し3回。3手番上限後にT+60まで進める限定実証で、追加購入・Patch・完全復旧Workflowではない。
+
+公開Replay Fixtureと検証commandを用意し、秘密ファイル・APIキーなしで記録行動のOutcome／Poolを再計算する。既存API/SDKの非課金Practice入口は新設せず、入力・Context・Hash・Replayを検証した。公式CRE CLI v1.33.0とSDK対応Workflowは準備したが、Simulationは未ログインで停止し成功ではない。提出準備と残る人間作業は[提出用スコープ](HACKATHON_SUBMISSION.md)、[認証・応募条件](sponsors/MANUAL_ACTION_REQUIRED.md)を参照。公開デプロイ・Push・フォーム提出は未実施。
+
+以下のOperator Pilotは先行した単発購入の記録。上記の継続判断は、その購入結果を使う別の実行Contextである。
+
+今回の検証：TypeScript 637件成功／11件skip、全Workspace型検査、Web production build、変更範囲ESLint、公開Replay／内部記録Replay、API注入12リクエスト、Desktop 1440／Mobile 390の画面・2種類のJSON Download・導線・console／overflow／contrast検査が成功。今回Contract変更・追加送金なし。CRE公式Simulationは認証で停止しており、この成功一覧に含めない。
 
 ### Rescue Operator Pilot — 実AI・Sepolia支払い／返金を確認
 

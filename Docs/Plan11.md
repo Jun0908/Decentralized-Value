@@ -393,3 +393,15 @@ WebはDesktop / Mobile、console error、横overflow、keyboard操作、未設�
 共通Schemaは「対応とHashの整合性」を検証するもので、Evaluatorの実行やENS権限を暗号学的に証明するものではない。Execution Evidenceの検証状態は`unverified`のみを許可する。ローカルadapterは任意のFinal / 外部URL / CRE実行要求を受け付けず、Public Practiceだけを扱う。
 
 NodeとBunの一致はCRE Phase 0の合格ではない。CRE CLI / Foundryはこの端末では未検出であり、Sponsor実接続とContract実行テストは未完了のままとする。API・画面・実送金にはまだ接続していない。
+
+## 16. 残り2日：公式CRE検証と提出Gate
+
+2026-09-12。§15時点のCLI未導入状態から、公式CRE CLI 1.33.0をHash確認のうえローカル導入した。詳細は[sponsors/chainlink-cre.md](sponsors/chainlink-cre.md)。
+
+- [x] 独立した`workflows/chainlink-cre/`に公式SDK 1.20.1の通常handler／`handlerInTee`を用意し、既存Rescue Evaluatorの公開Fixtureへ接続。型検査・Node側Envelope照合を実行。
+- [x] 公式CLIの通常／Confidential Simulationを実際に試行し、両方とも`CRE_AUTHENTICATION_REQUIRED`で停止することを確認。結果を公開互換性レポートへ保存。
+- [ ] 人間のCREログイン後、公式RuntimeでSimulationが完走し、Reveal後のResultと一致することを確認。
+- [ ] Confidential賞に対応する意味のある秘密入力と処理。現状の公開Fixtureを秘密計算と呼ばない。
+- [ ] ENSv2実認可／Bazantic実接続と該当賞の証跡。設定値の存在を成功扱いにしない。
+
+認証・参加Track・動画規則・公開操作は[sponsors/MANUAL_ACTION_REQUIRED.md](sponsors/MANUAL_ACTION_REQUIRED.md)へ分離した。スポンサー成功は未達。アカウント登録、ENS変更、Gateway登録、公開／提出は自動実行しない。CREの認証待ちを理由に、Plan9の提出デモとPlan12の公開Replay検証は止めない。

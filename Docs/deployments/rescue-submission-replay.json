@@ -1,0 +1,405 @@
+{
+  "schemaVersion": "rescue-submission-replay-v1",
+  "episodeId": "episode-fabafc1906b4",
+  "playbook": {
+    "schemaVersion": "rescue-commander-playbook-v0",
+    "name": "Evidence-aware Commander",
+    "instructions": "Investigate the ambiguous alert with a low-cost initial monitoring purchase if useful. Prefer pulse-monitor for the first observation. Stay within the authorized budget; close without a purchase if investigation is not justified.",
+    "allowedServiceIds": [
+      "accounting-audit",
+      "patch-builder",
+      "patch-verifier",
+      "pulse-monitor",
+      "second-opinion",
+      "trace-audit"
+    ],
+    "allowedProtocolActions": [
+      "APPLY_PATCH",
+      "CLOSE_INCIDENT",
+      "PAUSE_MODULE",
+      "PAUSE_PROTOCOL",
+      "RESUME_MODULE",
+      "RESUME_PROTOCOL",
+      "WAIT"
+    ],
+    "maxServicePriceCredits": 30,
+    "investigationBudgetCredits": 80
+  },
+  "purchaseAction": {
+    "serviceId": "pulse-monitor",
+    "targetModule": null,
+    "targetReceiptId": null,
+    "type": "BUY_SERVICE"
+  },
+  "decisions": [
+    {
+      "action": {
+        "type": "WAIT",
+        "minutes": 1
+      },
+      "reasonCode": "continue-monitoring",
+      "confidencePpm": 420000,
+      "gameMinute": 1,
+      "publicViewHash": "0x1029b8555cfdc731054aade8741a6240fd269f5ad5d6bb43a9d359525d3837c8"
+    },
+    {
+      "action": {
+        "type": "WAIT",
+        "minutes": 1
+      },
+      "reasonCode": "inconclusive-monitoring",
+      "confidencePpm": 780000,
+      "gameMinute": 2,
+      "publicViewHash": "0x3718629d62406eaf69fd5b25fb62eb1f27a40c639e23fcf90f263392231b94e7"
+    },
+    {
+      "action": {
+        "type": "PAUSE_MODULE",
+        "module": "withdrawals"
+      },
+      "reasonCode": "uncertain-accounting-drift-withdrawal-risk",
+      "confidencePpm": 650000,
+      "gameMinute": 3,
+      "publicViewHash": "0x5f26f1de0d19765b4508e16ebac2c10589b0a09a9c731e9ddba849663f4e55e4"
+    }
+  ],
+  "expectedOutcome": {
+    "episodeId": "episode-fabafc1906b4",
+    "episodeHash": "0x1d3e493a6733935ee56c9ef412cd9e1d316987d3fe7410494cabd78dde3f9093",
+    "correctness": true,
+    "invalidReason": null,
+    "userLossUsd": 0,
+    "servedProtocolDemandPpm": 711274,
+    "netResponseSpendCredits": 5,
+    "incidentResolved": true,
+    "finalMinute": 60,
+    "actionCount": 4,
+    "servicePurchaseCount": 1,
+    "transcript": [
+      {
+        "sequence": 0,
+        "gameMinute": 0,
+        "type": "OBSERVATION",
+        "data": {
+          "observation": {
+            "id": "initial-alert",
+            "gameMinute": 0,
+            "source": "PROTOCOL",
+            "headline": "Unusual withdrawal and address activity detected",
+            "facts": [
+              "Withdrawal volume increased",
+              "Several new addresses appeared",
+              "Cause unknown"
+            ]
+          }
+        }
+      },
+      {
+        "sequence": 1,
+        "gameMinute": 0,
+        "type": "ACTION",
+        "data": {
+          "action": {
+            "type": "BUY_SERVICE",
+            "serviceId": "pulse-monitor",
+            "targetModule": null,
+            "targetReceiptId": null
+          }
+        }
+      },
+      {
+        "sequence": 2,
+        "gameMinute": 0,
+        "type": "PAYMENT_RESERVED",
+        "data": {
+          "orderId": "0xe0817316da212996b57125c053cfd959b537d2176cf9a086824467e659fcea3f",
+          "serviceId": "pulse-monitor",
+          "credits": 5,
+          "dueAtMinute": 2,
+          "episodeHash": "0x1d3e493a6733935ee56c9ef412cd9e1d316987d3fe7410494cabd78dde3f9093",
+          "commanderActionHash": "0xb0f279932a57bbc2ffca9d58f9d86e14f751e1b07bc4be29a35f2f63ce0a04da",
+          "serviceManifestHash": "0x7269047d9ed68d94f2c9c94de95c13cc8ab7247c9f45eaa1393450e82a888099"
+        }
+      },
+      {
+        "sequence": 3,
+        "gameMinute": 1,
+        "type": "STATE_TRANSITION",
+        "data": {
+          "fromMinute": 0,
+          "toMinute": 1,
+          "userLossDeltaUsd": 0,
+          "servedDemandDelta": 102,
+          "totalDemandDelta": 102,
+          "pausedModules": [],
+          "incidentResolved": false
+        }
+      },
+      {
+        "sequence": 4,
+        "gameMinute": 1,
+        "type": "ACTION",
+        "data": {
+          "action": {
+            "type": "WAIT",
+            "minutes": 1
+          }
+        }
+      },
+      {
+        "sequence": 5,
+        "gameMinute": 2,
+        "type": "SERVICE_RECEIPT",
+        "data": {
+          "receipt": {
+            "receiptId": "receipt-0xe0817316da212996b57125c053cfd959b537d2176cf9a086824467e659fcea3f",
+            "orderId": "0xe0817316da212996b57125c053cfd959b537d2176cf9a086824467e659fcea3f",
+            "serviceId": "pulse-monitor",
+            "task": "SCAN_ACTIVITY",
+            "deliveredAtMinute": 2,
+            "classification": "accounting-drift",
+            "likelyAffectedModule": "withdrawals",
+            "severity": 1,
+            "confidencePpm": 520000,
+            "patchId": null,
+            "patchValid": null,
+            "summary": "Pulse Monitor classified the event as accounting-drift.",
+            "deliverableHash": "0x014549d9df6bba80e57e8f49f9350318febfe2c81425939ce0a9a1e9a33d95e8",
+            "receiptHash": "0x11ee961ababf2a7ac08d0d2010efd3aab1c0083bcabfafb7b00b5d5a689df9aa"
+          }
+        }
+      },
+      {
+        "sequence": 6,
+        "gameMinute": 2,
+        "type": "PAYMENT_RELEASED",
+        "data": {
+          "orderId": "0xe0817316da212996b57125c053cfd959b537d2176cf9a086824467e659fcea3f",
+          "serviceId": "pulse-monitor",
+          "credits": 5,
+          "episodeHash": "0x1d3e493a6733935ee56c9ef412cd9e1d316987d3fe7410494cabd78dde3f9093",
+          "commanderActionHash": "0xb0f279932a57bbc2ffca9d58f9d86e14f751e1b07bc4be29a35f2f63ce0a04da",
+          "serviceManifestHash": "0x7269047d9ed68d94f2c9c94de95c13cc8ab7247c9f45eaa1393450e82a888099",
+          "deliverableHash": "0x014549d9df6bba80e57e8f49f9350318febfe2c81425939ce0a9a1e9a33d95e8",
+          "receiptHash": "0x11ee961ababf2a7ac08d0d2010efd3aab1c0083bcabfafb7b00b5d5a689df9aa"
+        }
+      },
+      {
+        "sequence": 7,
+        "gameMinute": 2,
+        "type": "OBSERVATION",
+        "data": {
+          "observation": {
+            "id": "observation-receipt-0xe0817316da212996b57125c053cfd959b537d2176cf9a086824467e659fcea3f",
+            "gameMinute": 2,
+            "source": "SERVICE",
+            "headline": "Pulse Monitor classified the event as accounting-drift.",
+            "facts": [
+              "Service: pulse-monitor",
+              "Confidence: 520000 ppm",
+              "Receipt: 0x11ee961ababf2a7ac08d0d2010efd3aab1c0083bcabfafb7b00b5d5a689df9aa"
+            ]
+          }
+        }
+      },
+      {
+        "sequence": 8,
+        "gameMinute": 2,
+        "type": "STATE_TRANSITION",
+        "data": {
+          "fromMinute": 1,
+          "toMinute": 2,
+          "userLossDeltaUsd": 0,
+          "servedDemandDelta": 102,
+          "totalDemandDelta": 102,
+          "pausedModules": [],
+          "incidentResolved": false
+        }
+      },
+      {
+        "sequence": 9,
+        "gameMinute": 2,
+        "type": "ACTION",
+        "data": {
+          "action": {
+            "type": "WAIT",
+            "minutes": 1
+          }
+        }
+      },
+      {
+        "sequence": 10,
+        "gameMinute": 3,
+        "type": "STATE_TRANSITION",
+        "data": {
+          "fromMinute": 2,
+          "toMinute": 3,
+          "userLossDeltaUsd": 0,
+          "servedDemandDelta": 102,
+          "totalDemandDelta": 102,
+          "pausedModules": [],
+          "incidentResolved": false
+        }
+      },
+      {
+        "sequence": 11,
+        "gameMinute": 3,
+        "type": "ACTION",
+        "data": {
+          "action": {
+            "type": "PAUSE_MODULE",
+            "module": "withdrawals"
+          }
+        }
+      },
+      {
+        "sequence": 12,
+        "gameMinute": 4,
+        "type": "STATE_TRANSITION",
+        "data": {
+          "fromMinute": 3,
+          "toMinute": 4,
+          "userLossDeltaUsd": 0,
+          "servedDemandDelta": 71,
+          "totalDemandDelta": 102,
+          "pausedModules": [
+            "withdrawals"
+          ],
+          "incidentResolved": false
+        }
+      },
+      {
+        "sequence": 13,
+        "gameMinute": 60,
+        "type": "STATE_TRANSITION",
+        "data": {
+          "fromMinute": 4,
+          "toMinute": 60,
+          "userLossDeltaUsd": 0,
+          "servedDemandDelta": 3976,
+          "totalDemandDelta": 5712,
+          "pausedModules": [
+            "withdrawals"
+          ],
+          "incidentResolved": false
+        }
+      },
+      {
+        "sequence": 14,
+        "gameMinute": 60,
+        "type": "EPISODE_END",
+        "data": {
+          "correctness": true,
+          "userLossUsd": 0,
+          "servedDemandUnits": 4353,
+          "totalDemandUnits": 6120,
+          "netResponseSpendCredits": 5,
+          "incidentResolved": true
+        }
+      }
+    ],
+    "transcriptHash": "0xb2102ee56c9d0ba9c8d04cfa5a6b21464671cc047f3ec162559235be535be2fe",
+    "resultHash": "0xe0dd71b1ff411727dc8f7e5a0c2cdd57931aa32064b7b3aa15f5eb1dedb3ba7a"
+  },
+  "expectedComparison": {
+    "points": [
+      {
+        "id": "always-pause",
+        "name": "最初に全体停止",
+        "baseline": true,
+        "correctness": true,
+        "values": {
+          "loss": 0,
+          "availability": 0,
+          "spend": 0
+        }
+      },
+      {
+        "id": "never-pause",
+        "name": "購入せず何もしない",
+        "baseline": true,
+        "correctness": true,
+        "values": {
+          "loss": 0,
+          "availability": 1000000,
+          "spend": 0
+        }
+      },
+      {
+        "id": "paid-analysis-commander",
+        "name": "購入した分析を使うCommander",
+        "baseline": false,
+        "correctness": true,
+        "values": {
+          "loss": 0,
+          "availability": 711274,
+          "spend": 5
+        }
+      }
+    ],
+    "frontier": [
+      "never-pause"
+    ],
+    "pools": [
+      {
+        "key": "loss",
+        "name": "User Protection",
+        "direction": "MINIMIZE",
+        "unit": "simulated USD",
+        "lowerBound": 0,
+        "upperBound": 1000000,
+        "budgetCredits": 100,
+        "allocations": [
+          {
+            "id": "always-pause",
+            "credits": 34
+          },
+          {
+            "id": "never-pause",
+            "credits": 33
+          },
+          {
+            "id": "paid-analysis-commander",
+            "credits": 33
+          }
+        ]
+      },
+      {
+        "key": "availability",
+        "name": "Protocol Availability",
+        "direction": "MAXIMIZE",
+        "unit": "ppm",
+        "lowerBound": 0,
+        "upperBound": 1000000,
+        "budgetCredits": 100,
+        "allocations": [
+          {
+            "id": "never-pause",
+            "credits": 100
+          }
+        ]
+      },
+      {
+        "key": "spend",
+        "name": "Treasury Stewardship",
+        "direction": "MINIMIZE",
+        "unit": "game credits",
+        "lowerBound": 0,
+        "upperBound": 300,
+        "budgetCredits": 100,
+        "allocations": [
+          {
+            "id": "always-pause",
+            "credits": 50
+          },
+          {
+            "id": "never-pause",
+            "credits": 50
+          }
+        ]
+      }
+    ],
+    "allocationState": "preview-not-paid",
+    "comparisonKind": "recorded-action-vs-fixed-baselines-not-ai-performance-proof"
+  }
+}

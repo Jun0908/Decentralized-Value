@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "rescue-submission-demo-v1",
+  "recordedAt": "2026-09-11T22:15:06.192Z",
+  "contextHash": "0xba0f3a1375e2082436c205a59a4f85418343b9a94745ea0ec8bd323fc9d45345",
+  "evidenceHash": "0xea8e631a2be2a264e2020add2250487f5646a37a4f2ba1af005e79714d843188",
+  "sourceWorkflowHash": "0xe5d56150bb3dee02c498bb0738c8b9a1bce2404c9db1b32c4c696126e7569ec0",
+  "episodeId": "episode-fabafc1906b4",
+  "paidDeliveryHash": "0x77b7e313c4032904e1eef27e53b22c17ea0cd6118bf74cfff29167df642156f8",
+  "releaseTx": "0x734280e06da7501b5b55352387a7efd8be9911e5ceab0c671402200e2ce87433",
+  "specialistSummary": "Unusual withdrawal volume and new-address activity were observed, but the cause is unknown and no exploit is confirmed. Continue monitoring and gather targeted evidence.",
+  "turns": [
+    {
+      "turn": 1,
+      "gameMinute": 1,
+      "action": {
+        "type": "WAIT",
+        "minutes": 1
+      },
+      "reasonCode": "continue-monitoring",
+      "inputHash": "0x05f4481e4b00b5510950cf1fe504f3716c2695c2010e55823f409c37d904aca1",
+      "model": "gpt-5.6-luna",
+      "provider": "openai"
+    },
+    {
+      "turn": 2,
+      "gameMinute": 2,
+      "action": {
+        "type": "WAIT",
+        "minutes": 1
+      },
+      "reasonCode": "inconclusive-monitoring",
+      "inputHash": "0xe12cc65b03bab5d604f754005168b415c724a1877f59a40f03397a8b98afa99e",
+      "model": "gpt-5.6-luna",
+      "provider": "openai"
+    },
+    {
+      "turn": 3,
+      "gameMinute": 3,
+      "action": {
+        "type": "PAUSE_MODULE",
+        "module": "withdrawals"
+      },
+      "reasonCode": "uncertain-accounting-drift-withdrawal-risk",
+      "inputHash": "0x690366d1e14baf95f959c0334984d482f6da97183bb0de73c039532059744d0a",
+      "model": "gpt-5.6-luna",
+      "provider": "openai"
+    }
+  ],
+  "outcome": {
+    "correctness": true,
+    "userLossUsd": 0,
+    "servedProtocolDemandPpm": 711274,
+    "netResponseSpendCredits": 5,
+    "incidentResolved": true,
+    "resultHash": "0xe0dd71b1ff411727dc8f7e5a0c2cdd57931aa32064b7b3aa15f5eb1dedb3ba7a"
+  },
+  "comparison": {
+    "points": [
+      {
+        "id": "always-pause",
+        "name": "最初に全体停止",
+        "baseline": true,
+        "correctness": true,
+        "values": {
+          "loss": 0,
+          "availability": 0,
+          "spend": 0
+        }
+      },
+      {
+        "id": "never-pause",
+        "name": "購入せず何もしない",
+        "baseline": true,
+        "correctness": true,
+        "values": {
+          "loss": 0,
+          "availability": 1000000,
+          "spend": 0
+        }
+      },
+      {
+        "id": "paid-analysis-commander",
+        "name": "購入した分析を使うCommander",
+        "baseline": false,
+        "correctness": true,
+        "values": {
+          "loss": 0,
+          "availability": 711274,
+          "spend": 5
+        }
+      }
+    ],
+    "frontier": [
+      "never-pause"
+    ],
+    "pools": [
+      {
+        "key": "loss",
+        "name": "User Protection",
+        "direction": "MINIMIZE",
+        "unit": "simulated USD",
+        "lowerBound": 0,
+        "upperBound": 1000000,
+        "budgetCredits": 100,
+        "allocations": [
+          {
+            "id": "always-pause",
+            "credits": 34
+          },
+          {
+            "id": "never-pause",
+            "credits": 33
+          },
+          {
+            "id": "paid-analysis-commander",
+            "credits": 33
+          }
+        ]
+      },
+      {
+        "key": "availability",
+        "name": "Protocol Availability",
+        "direction": "MAXIMIZE",
+        "unit": "ppm",
+        "lowerBound": 0,
+        "upperBound": 1000000,
+        "budgetCredits": 100,
+        "allocations": [
+          {
+            "id": "never-pause",
+            "credits": 100
+          }
+        ]
+      },
+      {
+        "key": "spend",
+        "name": "Treasury Stewardship",
+        "direction": "MINIMIZE",
+        "unit": "game credits",
+        "lowerBound": 0,
+        "upperBound": 300,
+        "budgetCredits": 100,
+        "allocations": [
+          {
+            "id": "always-pause",
+            "credits": 50
+          },
+          {
+            "id": "never-pause",
+            "credits": 50
+          }
+        ]
+      }
+    ],
+    "allocationState": "preview-not-paid",
+    "comparisonKind": "recorded-action-vs-fixed-baselines-not-ai-performance-proof"
+  },
+  "endedBy": "turn-cap",
+  "replayVerified": true,
+  "newChainTransactions": 0,
+  "protocolExecution": "simulated",
+  "rewardEligible": false,
+  "usage": {
+    "requests": 3,
+    "inputTokens": 4997,
+    "outputTokens": 109
+  }
+}

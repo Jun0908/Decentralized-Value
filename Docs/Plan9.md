@@ -1535,3 +1535,16 @@ Strategy Studioには全10個の決定論的RuleとAI Playbookの主要3設定�
 - [ ] 外部Provider／参加者の認証、独立したService Market、Production DB／複数ホストの実行・費用管理。
 - [ ] Durable Revision／Final Entry、Unknown FinalのCommit・Freeze・複数Episode評価、Full Field計算、独立Value PoolのAllocation／報酬。
 - [ ] 初見5人テストなど既存UX GateとWeb本番Deploy。今回の証跡UI追加だけでは完了扱いにしない。
+
+## 32. 残り2日：提出用の購入後判断デモ
+
+2026-09-12。§31の支払い済み成果物を再利用し、追加送金なしでCommanderへ返す短い実証を追加した。[提出手順と動画台本](HACKATHON_SUBMISSION.md)を正本とする。
+
+- [x] 実AIへ購入済み分析と現在の公開観測を渡し、最大3手番でWAIT → WAIT → 出金Module Pauseを実行。追加購入・Patch・実Protocol操作は許可しない。
+- [x] 記録行動からT+60のOutcomeを再計算し、同じEpisode／Playbook制限の固定戦略2種と比較する。購入済み分析・制限・比較規則・MetricをContextへ束縛する。
+- [x] `/rescue-room/submission`で観測・支払い・分析・判断・Outcome・3独立PoolのPreviewを一続きに表示。PC／Mobileを検証。
+- [x] 公開Replay Fixtureから、秘密ファイル・追加推論・RPCなしで全OutcomeとPool配分を検証する。
+
+今回のAIは損失0 USD、需要提供71.1274%、費用5 Game Credits。何もしない戦略は0 USD／100%／0 CreditsでAIを支配した。AIが勝つようにScenarioを選び直さず、その結果を表示する。資産保護・稼働率・費用のPoolは各100 Preview Creditsを独立配分し、実報酬と呼ばない。
+
+§31の「実成果物から判断・Outcomeへの接続」は短い記録継続デモとして対応したが、情報購入の有効性、未知Finalでの競技性、固定戦略への耐性は未証明。分析なし対照、複数Episode、外部Provider市場、追加購入・Patch・Resumeの完全自律対応、公開大会／報酬は未完了のまま。今回追加3 AI呼び出し、追加チェーン取引0。

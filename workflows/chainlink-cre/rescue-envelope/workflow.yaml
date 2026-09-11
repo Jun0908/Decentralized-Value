@@ -1,0 +1,8 @@
+local-simulation:
+  user-workflow:
+    workflow-name: frontier-rescue-public-compatibility
+    deployment-registry: private
+  workflow-artifacts:
+    workflow-path: ./main.ts
+    config-path: ./generated/config.json
+    secrets-path: ../secrets.yaml
