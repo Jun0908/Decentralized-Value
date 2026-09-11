@@ -288,3 +288,12 @@ API入口やlockfileは別作業と競合しやすい。実装開始時に担当
 - [x] `pnpm verify:rescue:submission-replay`で公開Fixtureだけから購入Prefix・3判断・直前View・全Outcome・Transcript・独立Pool配分を再計算。13の正常／改ざんテストを追加。
 
 公開ReplayはSimulator結果の再現を確認するもので、実モデル由来、実支払いReceipt、元の全Runtime Evidence Hashは検証しない。SDK本体が自動的に全Hashを再計算するというclaimもしない。公開先へのHTTP疎通、実外部参加者、公開大会フロー、npm公開は未完了。§11の成果物はPlan9 §32で短い購入後判断へ接続したが、未知Finalや情報購入の効果は別の未達Gateである。
+
+## 13. 人間不在バッチ — 独立検証とSDK検証境界
+
+2026-09-12。計画後の実行指示により着手。横断優先順は[NEXT_UNATTENDED_BATCH.md](NEXT_UNATTENDED_BATCH.md)、実行結果は[RESCUE_HANDOFF.md](RESCUE_HANDOFF.md)。
+
+- [x] **A12-1:** `83d3225`の隔離コピーで、秘密ファイルなしの公開Replay / tooling build / Web起動を確認。今回追加のHTTP verifierをコピーし、Browser確認とSDKによる6実HTTPすべて200、2回のPracticeとローカルEvaluatorの一致を確認。通常のSDK exampleも元Webの実HTTPで成功。公開Deployment / Linux / 実参加者の検証とは区別する。
+- [x] **A12-2:** SDKへ明示呼出しの`verifyRescueDoctrinePracticeIntegrity`を追加。元の要求に対しArtifact / Context / Episode、5層のHash、提供済みOrder / Receipt等の相互参照、表示値を照合する。11新規テスト、内部105ケース、SDK build、offline tarball consumerの実行・NodeNext strictを確認。既存APIの動作は変更せず、Evaluator Replay / 診断 / 署名 / 実支払い / 未提供のcommitment元データは未検証として返す。
+
+上記は非課金・ローカルで進められる。公開先の実HTTP検証はWeb公開後、実認証は本人準備後の別Gate。Ocean関連は別作業と競合するためこのバッチから外す。全Arena Registry、公開Job / Cancel / Events、本番DB、Final / Pool API、npm公開は後回しとする。

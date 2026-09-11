@@ -1,12 +1,39 @@
 {
-  "schemaVersion": "1",
-  "controls": ["prompt", "model", "temperature", "seed", "apiSnapshot"],
-  "criteria": {
-    "correctToolSequence": 3,
-    "contextAndConstraintsExplained": 3,
-    "paretoReasoningCorrect": 3,
-    "pendingVsAttestedDistinguished": 2,
-    "evidenceIdentifiersIncluded": 2
-  },
-  "status": "pending-live-gateway"
+  "schemaVersion": "bazantic-rescue-review-v1",
+  "controls": [
+    "task",
+    "prompt",
+    "model",
+    "settings",
+    "tools",
+    "apiIdentity",
+    "apiSnapshotHash",
+    "manifest",
+    "episodeId",
+    "seed",
+    "maxToolCalls"
+  ],
+  "onlyTreatment": "recipePresence",
+  "hardGates": [
+    "correctness",
+    "sameContext",
+    "starterHash",
+    "evaluationReplay",
+    "nonBillableToolScope"
+  ],
+  "independentOutcomes": [
+    { "key": "totalUserLossUsd", "direction": "MINIMIZE" },
+    { "key": "servedProtocolDemandPpm", "direction": "MAXIMIZE" },
+    { "key": "netResponseSpendCredits", "direction": "MINIMIZE" }
+  ],
+  "humanReviewChecks": [
+    "constraintsExplained",
+    "paretoReasoningCorrect",
+    "simulatedAndPaidDistinguished",
+    "evidenceIdentifiersIncluded",
+    "unsupportedClaimsAbsent"
+  ],
+  "aggregateScore": null,
+  "keepFailuresEqualAndWorse": true,
+  "status": "local-fixture-only-real-gateway-and-model-ab-not-run"
 }

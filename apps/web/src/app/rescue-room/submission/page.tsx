@@ -46,6 +46,9 @@ export default function RescueSubmissionPage() {
           <span>Protocol操作はSimulation</span>
         </div>
         <p>保存済みの実行を読むデモです。閲覧で推論・送金は発生しません。</p>
+        <Link href="/rescue-room/submission/en" lang="en">
+          English demo →
+        </Link>
       </header>
 
       <section aria-labelledby="purchase-title">

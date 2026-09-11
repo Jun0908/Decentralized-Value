@@ -405,3 +405,12 @@ NodeとBunの一致はCRE Phase 0の合格ではない。CRE CLI / Foundryはこ
 - [ ] ENSv2実認可／Bazantic実接続と該当賞の証跡。設定値の存在を成功扱いにしない。
 
 認証・参加Track・動画規則・公開操作は[sponsors/MANUAL_ACTION_REQUIRED.md](sponsors/MANUAL_ACTION_REQUIRED.md)へ分離した。スポンサー成功は未達。アカウント登録、ENS変更、Gateway登録、公開／提出は自動実行しない。CREの認証待ちを理由に、Plan9の提出デモとPlan12の公開Replay検証は止めない。
+
+## 17. 人間不在バッチ — 認証不要のローカル準備
+
+2026-09-12。計画後の実行指示により着手。横断優先順と停止条件は[NEXT_UNATTENDED_BATCH.md](NEXT_UNATTENDED_BATCH.md)。
+
+- [x] **S11-1 / ローカル前段:** 最大8 Episodeの非本番Packをcommit → 検査 → 既存Evaluator → reveal → 再現する純粋関数を追加。31新規テストと実際にHashしたbrowser bundleのNode実行一致を確認。公開receiptに秘密・未Reveal Outcomeを含めない。§8.2の一部準備であり、永続Freeze・公式CRE・本番Hidden Finalの完成ではない。
+- [x] **S11-2 / ローカル実験準備:** Bazantic Recipeを実装済み非課金APIへ更新。同条件・Recipe有無だけを変える比較harness、全組の失敗・同等・悪化を保持する記録形式を追加。35テストと4組のローカル確認が成功。未完了Tool呼出し・不正HTTP Statusを拒否し、返却後もReport Hashが変わらないことを検証。注入Fixtureの成功を実Gateway / 実AI比較の証明としない。
+
+CRE公式Simulationは着手済み・認証待ち。本人ログインなしに完了できる項目へ数えない。ENSの実権限操作、Gateway / Recipe登録、有料Gateway呼出し、CRE Live / Receiver送信はこの無人準備に含めない。提出用素材と再現確認が終わってから下位項目へ進む案とする。

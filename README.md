@@ -56,6 +56,8 @@ These are separate real model calls and operator-controlled wallets. The purchas
 
 rUSD-DEMO has no monetary value. An open third-party service market, hidden Final competition, and Rescue reward settlement are **not yet complete**.
 
+For the English recorded-run demo, open local `/rescue-room/submission/en`. The [handoff guide](Docs/RESCUE_HANDOFF.md) includes a two-minute English narration, a locally recorded silent video, and clean-room replay / SDK HTTP verification. The video and latest page are not published by these local checks.
+
 ---
 
 ## The core idea

@@ -91,3 +91,48 @@ Confidential経路のfixtureは**意図的に公開データ**である。秘密
 - [TypeScript Runtime](https://docs.chain.link/cre/concepts/typescript-wasm-runtime) — Javy / QuickJSとNode API非互換。
 
 SDK semanticsは、上記資料と実際にインストールした`@chainlink/cre-sdk@1.20.1`の型定義・コンパイル入口で確認した。
+
+## S11-1 — 秘密Pack / Revealのローカル前段（2026-09-12追記）
+
+**非本番・ローカル準備のみ。公式CRE / TEE / 未知Final大会の成功ではない。** 認証で停止した公式CLIは再試行していない。
+
+追加したもの:
+
+- [`scripts/lib/rescue-secret-pack.ts`](../../scripts/lib/rescue-secret-pack.ts): 最大8 Episodeの小さなPackをcommit → 検査 → 既存Evaluatorで評価 → 明示的reveal → 再評価する純粋関数。
+- [`scripts/lib/rescue-secret-pack.test.ts`](../../scripts/lib/rescue-secret-pack.test.ts): Pack全パラメータ、順序、salt、Context、Artifact、Generator、Metric、Service Catalog、Result、公開境界の改ざんと秘密混入を検査。
+- [`scripts/verify-cre-secret-pack.ts`](../../scripts/verify-cre-secret-pack.ts): 新しい乱数で3 Episodeを作り、Reveal後の再現と、実際にHashしたbrowser-target JavaScript bundleをNode V8で実行した結果の一致を検査する。ファイル・秘密値は保存しない。
+
+### 何をCommitするか
+
+256-bit salt、Generator version、順序付きseed列と生成された**全Episodeパラメータ**、固定戦略Artifact、Evaluator version / code Hash、独立した3 Metricsの定義・方向・境界、Service Catalog、時間・判断回数・予算、集計versionを一つのdomain-separated commitmentに含める。packの変更を単なるseed一致で見逃さない。
+
+評価は既存`evaluateRescuePolicy`を直接呼ぶ。損失・需要提供率・支出の集計やゲームを複製せず、既存のContext / Result Hashも変更しない。最小対象は`simple-adaptive`等の既存8固定戦略であり、真相を読む`oracle`と`seeded-random`は対象外。外部AI Artifact / Prompt / Model実行は未接続。
+
+### 公開情報と秘密情報の分離
+
+| 段階 | 公開してよい情報 | 秘密として扱う情報 |
+| --- | --- | --- |
+| Commit | salt付きPack commitment | salt、seed、全Pack、Artifact / Contextの内訳 |
+| 評価後・Reveal前 | 上記commitment、salt付き評価commitment、非本番境界フラグ | Outcome、unsalted Context / Result / Episode Hash、全パラメータ |
+| 明示的Reveal後 | 完全なPack・salt・評価結果を受取人に開示し再計算可能 | このPackにはもはや秘密性がない |
+
+小さなScenario空間では、unsalted HashやOutcome自体も総当たり・推定の材料になる。したがって公開receiptはそれらも返さない。失敗は固定の理由コードにし、JSON parse error、assert差分、入力値、元例外を公開しない。
+
+再現scriptはNode `crypto.randomBytes(32)`でsaltと各seedを作る。純粋関数はsaltの形式しか検査できないため、**256-bitの新規乱数を使い、再利用しない責任は呼出し側にある**。テスト用固定saltを実運用へ持ち込まない。
+
+### 再現Command
+
+```powershell
+pnpm exec vitest run scripts/lib/rescue-secret-pack.test.ts
+pnpm exec tsx scripts/verify-cre-secret-pack.ts
+```
+
+scriptは入力をメモリ内だけに保持し、意図的なRevealもメモリ内で行う。標準出力は公開receipt、bundle Hash、成功した検査のフラグのみ。毎回saltとseedを作り直すので、**別実行のcommitmentが変わるのは正常**。同じPack / salt / Artifact / Runtimeなら同じcommitment・結果になることは固定fixtureテストで検証する。
+
+`evaluatorBundleHash`はこのローカル検査で実行したJavaScript bundleのHashであり、ホストやWASM / TEEの認証ではない。各APIの`runtime.codeHash`は信頼したホストから与える前提で、第三者が任意に宣言した値から正しいRuntime実行を証明できるわけではない。
+
+### まだ解決していない境界
+
+この一連の関数はstatelessであり、公開commitmentの時刻・先着性、同時受付、Freeze、Reveal日時を強制しない。公開receiptは事前に保存したものを比較に使う必要があり、Revealerが一緒に差し替えたreceiptを信頼してはいけない。今回のscriptは永続保存をしないので、別日に第三者が運営の変更不能性を検査する大会運用ではない。
+
+運営ホストはPackの真相を読める。秘密保管・アクセス制御、Hidden Final用generatorの未学習性、複数参加者の同一Context、Final Entry Freeze、外部AI実行、CREへの秘密入力受渡し、公式Simulation、TEE attestation、Onchain commitment、報酬は引き続き未実装または外部条件待ち。今回の追加を、上の未完了項目全体の解消と扱わない。

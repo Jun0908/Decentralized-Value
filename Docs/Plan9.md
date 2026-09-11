@@ -1548,3 +1548,12 @@ Strategy Studioには全10個の決定論的RuleとAI Playbookの主要3設定�
 今回のAIは損失0 USD、需要提供71.1274%、費用5 Game Credits。何もしない戦略は0 USD／100%／0 CreditsでAIを支配した。AIが勝つようにScenarioを選び直さず、その結果を表示する。資産保護・稼働率・費用のPoolは各100 Preview Creditsを独立配分し、実報酬と呼ばない。
 
 §31の「実成果物から判断・Outcomeへの接続」は短い記録継続デモとして対応したが、情報購入の有効性、未知Finalでの競技性、固定戦略への耐性は未証明。分析なし対照、複数Episode、外部Provider市場、追加購入・Patch・Resumeの完全自律対応、公開大会／報酬は未完了のまま。今回追加3 AI呼び出し、追加チェーン取引0。
+
+## 33. 人間不在バッチ — 英語素材を作成
+
+2026-09-12。計画後の実行指示により着手。横断優先順は[NEXT_UNATTENDED_BATCH.md](NEXT_UNATTENDED_BATCH.md)、成果物は[RESCUE_HANDOFF.md](RESCUE_HANDOFF.md)。
+
+- [x] **R9-1:** 日本語提出画面を維持して`/rescue-room/submission/en`を追加。225語の英語台本と約2分のタイムラインを作成。PC / Mobile、全章リンク、detailsのkeyboard開閉、JSON Download、言語切替、Console / Overflow / 禁止配色を確認。
+- [x] **R9-2:** 既存Evidenceを読む無音動画を収録。MP4 / WebM、126.08秒、1440×900。全編デコード・ブラウザ再生・代表フレームを確認。新規推論・送金なし。本人の音声を載せる最終工程は未完了。
+
+人間不在でも上記のローカル作成・検証は可能。本人音声の収録、初見ユーザーテスト、Push / 公開 / 提出は別の確認待ち。永続Revision / Final、未知Final大会、実報酬、Open Market、完全自律Patch / Resumeはこの短い提出準備バッチへ含めない。

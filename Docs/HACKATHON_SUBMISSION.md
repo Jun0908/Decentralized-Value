@@ -53,7 +53,11 @@ pnpm exec tsx scripts/verify-rescue-submission-ui.ts
 
 新規推論を明示的に許可する初回のみ`pnpm rescue:submission-demo --execute-approved-ai`。共通の$5予算予約と排他Lockを使用する。記録不明の呼び出しを新しいLabelで再実行しない。今回の追加使用量は入力4,997 / 出力109 Token、料金推計$0.0011302。過去2呼び出しを含め推計$0.0016428、合計5呼び出し。新規チェーンTransactionは0。
 
-## 3分程度の動画台本（人間が読む草案）
+## 現在の動画台本：英語・約2分
+
+ユーザー指定により、収録用の原稿は[RESCUE_NARRATION_EN.md](RESCUE_NARRATION_EN.md)へ変更した。英語画面は`/rescue-room/submission/en`。無音操作動画に本人の実録音声を載せる。以下の日本語草案は過去の構成メモであり、今回の収録原稿ではない。
+
+### 旧日本語草案（参考・収録対象外）
 
 公式動画条件と本人Dashboardを最終確認し、人間の声で収録する。未撮影・未提出。
 

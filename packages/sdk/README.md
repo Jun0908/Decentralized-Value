@@ -9,21 +9,39 @@
 - Ocean Commons の AI Season、永続 Job、Sponsor 接続の公開契約は後続の Plan12 対象です。汎用の旧 SDK メソッドがあることを、型・実行時検証付き対応と同一視しません。
 
 ```typescript
-import { FrontierClient, compareRuns } from "@frontier/sdk";
+import { FrontierClient, compareRuns, verifyRescueDoctrinePracticeIntegrity } from "@frontier/sdk";
 
 const client = new FrontierClient({ baseUrl: "http://localhost:3000" });
 const manifest = await client.arenas.get("rescue-room");
-const run = await client.evaluations.practice({
-  arenaId: manifest.id,
+const input = {
+  arenaId: "rescue-room" as const,
   artifact: manifest.artifact.sample,
+  episodeId: manifest.episodes[0]!.id,
   context: manifest.context,
-});
+};
+const run = await client.evaluations.practice(input);
+const integrity = verifyRescueDoctrinePracticeIntegrity({ request: input, run });
 console.log(run.values, run.resultHash);
+console.log(integrity.verification); // "hash-consistency", not evaluator replay or payment
 // compareRuns(run, anotherRun) rejects incompatible origins, episodes or contexts.
 void compareRuns;
 ```
 
 `runId` は SDK が作るローカル ID であり、永続サーバー Job ID ではありません。ゲーム内 credits は token や実支払いではなく、Practice は Reward 対象ではありません。正当性は比較の前提であり、独立した評価軸を一つの総合点に集約しません。
+
+## Rescue Doctrineの独立Hash照合（明示実行）
+
+`verifyRescueDoctrinePracticeIntegrity({ request, run })`は純粋関数の追加境界です。既存`evaluations.practice`の動作・応答・公開APIを変更せず、必要な呼び出し側だけが明示的に使います。Evaluator、OpenAI、RPC、Wallet、ネットワーク接続は使用しません。
+
+- `request`には**実行前に別途保持した**Artifact、Episode、Contextを渡します。応答の内容をそのまま期待値にコピーしないでください。
+- 対応は`rescue-doctrine-v0`、`rescue-doctrine-interpreter-v0`、`rescue-practice-pack-2026-09-v0`の単一Episode Practiceです。AI Playbook、追加のService継続Demo、Final、未知Versionには転用できません。
+- 元Artifactの名前のtrim、認可Service／Action集合の辞書順整列を正規化し、Service Priorityの順序は保持します。v0には省略可能な既定値はなく、必須Field欠落を補完しません。これはHash用の構造・正規化であり、Doctrineの業務ルールを再実行するものではありません。
+- Artifact、Evaluation、Outcome、Transcript、Payment Evidenceの各Hashを再計算し、提供された入力があるOrder／Action／Receipt／Deliverable／AcceptanceのHashと相互参照も確認します。SDKの`values`、`correctness`、Episode、Context、Metric方向との食い違いも拒否します。
+- 非有限値、Getter、循環参照、未知Field／Version、改ざん、不一致は`FrontierError`として失敗し、入力値や秘密情報をErrorへ転記しません。Legacy Rescueの`canonicalProtocolJson`を使用し、新しいRequest／Result V2 Hashへ変更しません。
+
+成功Reportの`integrityVerified: true`は**Hashの整合性のみ**です。`evaluatorReplay`、`correctnessVerified`、`signatureVerified`、`paymentVerified`、`commitmentPreimagesVerified`は常に`false`。Context／Manifest／Episode／Service Manifest／Public ViewのDigestは対応を照合しますが、与えられていない元データを復元して正しさを証明しません。整合的に捏造したBundleを真正な測定結果と認定する機能ではありません。`runId`、日時、Origin等も測定結果Hashの外側です。
+
+EvaluatorによるReplayは引き続き別段階です。ローカル検証は`pnpm exec vitest run packages/sdk/src/rescue-integrity.test.ts`、既存APIとの比較・Replayは`pnpm exec tsx scripts/verify-rescue-submission-api.ts`を使用します。[SDK sample](examples/rescue-practice.ts)は取得後にこの整合性検証を呼び、Reportを明示します。
 
 認証は `auth.getHeaders` から注入します。CLI の device login / OS credential storage は [CLI README](../cli/README.md) を参照してください。秘密鍵や認証 token をソース・Artifact・ログに書き込まないでください。
 

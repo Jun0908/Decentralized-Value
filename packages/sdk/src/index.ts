@@ -2,6 +2,11 @@ import { challengeManifestV2Schema, hashChallengeManifest } from "@frontier/shar
 
 export const frontierSdkVersion = "0.3.0";
 export { FrontierClient } from "./client.js";
+export { verifyRescueDoctrinePracticeIntegrity } from "./rescue-integrity.js";
+export type {
+  RescueDoctrineIntegrityRequest,
+  RescueDoctrineIntegrityReport,
+} from "./rescue-integrity.js";
 export {
   RescueOperatorClient,
   rescueOperatorWorkflowRequestSchema,

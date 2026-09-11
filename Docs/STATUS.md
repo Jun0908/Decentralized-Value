@@ -8,7 +8,23 @@ This document records the current capability boundary. Product rules live in [`P
 
 ## Working now
 
+### English submission handoff — 2026-09-12
+
+`/rescue-room/submission/en`を追加し、日本語版との切替を用意した。225語の英語台本と、既存Evidenceを読む126.08秒・1440×900の無音MP4 / WebMを作成。PC / Mobile、章リンク、keyboard details、JSON Download、Console / Overflow / Contrastを確認し、動画は全編デコードとブラウザ再生を検査した。提出素材は[RESCUE_HANDOFF.md](RESCUE_HANDOFF.md)。映像作成による追加推論・送金はない。
+
+`83d3225`の秘密ファイルなし隔離コピーで、公開Replay・tooling build・Web起動・SDKによる6実HTTPを確認した。すべて200で、2回のPracticeとローカルEvaluatorが一致。既存配布物テストとは別の最新Rescue提出経路の確認であり、公開Deployment・実参加者・Linux検証ではない。英語ページのWeb buildも成功。本人の実録音声、スポンサー認証、Push / Web公開、応募送信は未実施。
+
+### SDK integrity and sponsor local preparation — 2026-09-12
+
+SDKへ`verifyRescueDoctrinePracticeIntegrity`を追加した。元の要求・Artifact・Context・Episodeと結果の5層のHash、提供済みOrder / Receiptの相互参照を明示呼出しで検査する。11新規テスト内の105ケース、実HTTP結果、SDK build、offline tarball consumerの実行・改ざん拒否・NodeNext strict型検査を確認。Hash整合性の検証であり、Evaluator再実行・実モデル由来・診断・署名・実支払いの証明ではない。
+
+Plan11は認証不要のローカル前段を追加。秘密Packのcommit / reveal / replayは31新規テストと、実際にHashしたbundleのNode実行一致を確認した。公開receiptはsalt付きcommitmentのみで秘密・未Reveal Outcomeを出さない。Bazanticは非課金Recipeと同条件A/B基盤を追加し、35テスト、事前固定4組、失敗・同等・悪化の保持、返却後のReport不変性を確認。Fixtureを実AIの性能改善と呼ばない。公式CRE / TEE、実Gateway、ENS実認可、本番Hidden Finalは未完了。
+
+今回の統合確認: TypeScript **718成功 / 11スキップ**、全Workspace型検査、Web production build、変更範囲ESLint / Prettier、CLI / SDK生成契約差分検査が成功。追加モデル呼出し0、追加チェーン取引0。Contractテストや本番スポンサー実行はこの確認に含めない。
+
 ### Hackathon submission demo — 2026-09-12
+
+以下は英語素材バッチより前の実行記録。最新の提出素材は上記の引継ぎを参照する。
 
 `/rescue-room/submission`に、前回購入した実AI分析→実Commanderの3判断（WAIT / WAIT / PAUSE_MODULE）→Simulation Outcome→独立3 Pool Previewを接続した。ゲーム内の需要提供率71.1274%、損失0、費用5 Credits。今回の公開Episodeでは何もしない戦略が支配しており、AI優位をclaimしない。追加送金0、追加AI呼出し3回。3手番上限後にT+60まで進める限定実証で、追加購入・Patch・完全復旧Workflowではない。
 

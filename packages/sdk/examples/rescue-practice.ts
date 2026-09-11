@@ -1,7 +1,7 @@
 /** Existing non-billable public Practice API. No API key, wallet or AI model call.
  * Run from this repository: pnpm exec tsx packages/sdk/examples/rescue-practice.ts http://localhost:3000
  */
-import { FrontierClient, compareRuns } from "../src/index";
+import { FrontierClient, compareRuns, verifyRescueDoctrinePracticeIntegrity } from "../src/index";
 
 const baseUrl = process.argv[2];
 if (!baseUrl || process.argv.length !== 3)
@@ -18,6 +18,8 @@ const input = {
 };
 const first = await client.evaluations.practice(input);
 const repeat = await client.evaluations.practice(input);
+const integrity = verifyRescueDoctrinePracticeIntegrity({ request: input, run: first });
+verifyRescueDoctrinePracticeIntegrity({ request: input, run: repeat });
 console.log(
   JSON.stringify(
     {
@@ -28,6 +30,7 @@ console.log(
       artifactHash: first.artifactHash,
       resultHash: first.resultHash,
       repeatedHashMatches: first.resultHash === repeat.resultHash,
+      integrity,
       comparison: compareRuns(first, repeat),
       evidence: first.raw,
       boundary: "Deterministic simulated Practice; game credits only; no Final Entry or reward.",
