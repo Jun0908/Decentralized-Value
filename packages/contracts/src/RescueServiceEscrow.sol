@@ -211,6 +211,7 @@ contract RescueServiceEscrow is IRescueServiceEscrow, Ownable, ReentrancyGuard {
         if (msg.sender != policyExecutor) revert UnauthorizedPolicyExecutor();
         Order storage order = orders[orderKey(commander, orderId)];
         if (order.state != OrderState.DELIVERED) revert InvalidOrderState();
+        if (block.timestamp > order.deadline) revert DeliveryDeadlinePassed();
         if (acceptanceHash == bytes32(0)) revert ZeroHash();
         order.acceptanceHash = acceptanceHash;
         order.state = OrderState.RELEASED;

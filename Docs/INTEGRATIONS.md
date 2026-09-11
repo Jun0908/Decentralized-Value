@@ -81,7 +81,19 @@ Rescue Room keeps deterministic Reference Commanders and also exposes a local pa
 
 The local credential was used for a successful real-API smoke run on 2026-09-10. This does not imply that the current public Vercel deployment has the credential. Missing credentials fail with `COMMANDER_UNCONFIGURED`; AI runs are limited to three per client per ten minutes. OpenAI execution is an observed inference boundary, while the resulting Action sequence is the input to deterministic replay.
 
-Service Agent outputs still come from the committed simulator, and reserve/release/refund events use Rescue Credits in an offchain game ledger. Rescue Credits are not tokens. The repository now contains the six-decimal `rUSD-DEMO` test token, `RescueServiceEscrow`, its interface and tests, a deployment script, and deterministic reconciliation of Game Orders with future Sepolia evidence. None of those contracts is deployed or connected. No Commander wallet delegation, Service Agent wallet assignment, live Sepolia Service transaction, ENS provider discovery, Hidden Final, or reward settlement is configured. Payment states must remain labeled `simulated` and `game-credits`, never `committed` or `paid`.
+既存Controlled PracticeのService成果物は引き続きSimulatorから生成し、reserve/release/refundはoffchainのRescue Creditsで扱う。このGame Ledgerは`simulated` / `game-credits`であり、下記の実Token取引と混同しない。Rescue CreditsはTokenではない。
+
+## Rescue Operator Pilot — 実AI納品とSepolia支払い／返金
+
+2026-09-12（日本時間）に、実AI Commander→別のモデル呼び出しによるPulse Monitor納品→**5 rUSD-DEMO支払い**と、別注文の**5 rUSD-DEMO返金**を確認した。[公開Evidence](deployments/sepolia-rescue-service-demo.json)に成果物・納品Hash・Tx・残高を保存している。
+
+- Token: `0x1d8f2cc7fd630e2b382cb4053bdb8c377d9b3421`（6 decimals、テスト用途のみ）。
+- Escrow: `0x4fdfa92984dad65d6b593ec93614bfa99b4cd36c`。
+- [Providerへの支払いTx](https://sepolia.etherscan.io/tx/0x734280e06da7501b5b55352387a7efd8be9911e5ceab0c671402200e2ce87433)、[Commanderへの返金Tx](https://sepolia.etherscan.io/tx/0x46b71812525b22880f07ff7c4f8e3eae3eb403143a17016aabb1c5622b40bf4a)。
+- 役割Walletはすべて運営管理。成果物の対応・形式・参照元の検証は、診断の正しさや独立した第三者Marketの証明ではない。実AI成果物は公開観測のinterpretation sidecarで、既存ゲームOutcomeを変更しない。
+- 操作経路は`127.0.0.1:4318`に限定したBearer認証HTTP、`RescueOperatorClient`、`pnpm rescue:jobs`。`pnpm rescue:operator:server`は既定で実行無効、明示的な実行有効化とJobの`run`が必要。公開API／OpenAPIや従来のCLI認証Scopeを拡張していない。
+- 状態は単一ホストの永続ファイルへ保存し、不明な実行を新しい推論・別の署名済みTxで無条件にやり直さない。同一の保存済みTxを再送する場合もHashと内容を照合する。秘密情報はGit除外の`secrets/`、Journalは`.frontier/`に保存し、公開JSON・SDK／CLI出力へ出さない。残存Lockの自動期限切れ回収は行わない。
+- `/rescue-room/operations`はローカル実装の公開証跡UI。今回の実行は、Vercel公開、Rescue本番DB、外部Provider募集、ENS discovery、Hidden Final、大会報酬の完成を意味しない。
 
 ## Ledger — archived and unused
 

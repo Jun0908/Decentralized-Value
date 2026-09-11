@@ -48,6 +48,12 @@ The same evidence can then feed separate Efficiency, Resilience, Fairness, and F
 
 The Sepolia demonstration completes the path from allocation commitment to `RewardPaid` and records a `10,000 FDT` recipient balance increase. FDT is a demonstration token and carries no claim of monetary value.
 
+### Local Rescue Room: an AI hired another AI and paid it
+
+The new local `/rescue-room/operations` page explains a verified Commander → specialist → Sepolia escrow payment of **5 rUSD-DEMO**, plus a separate **5 rUSD-DEMO timeout refund**. [Public transaction evidence](Docs/deployments/sepolia-rescue-service-demo.json) and the [Japanese operator runbook](Docs/RESCUE_EXECUTION_BATCH.md) describe the exact scope. This page has not been deployed to the public product above.
+
+These are separate real model calls and operator-controlled wallets. The purchased service interprets supplied observations; its diagnosis is not proven correct and does not change the deterministic game outcomes. rUSD-DEMO has no monetary value. An open third-party service market, hidden Final competition, and Rescue reward settlement are **not yet complete**.
+
 ---
 
 ## The core idea

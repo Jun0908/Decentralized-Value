@@ -47,7 +47,7 @@ contract RescueServiceEscrowTest is TestBase {
     }
 
     function testOnlyTokenOwnerMayMint() external {
-        vm.expectRevert(bytes4(keccak256("OwnableUnauthorizedAccount(address)")));
+        vm.expectRevert(abi.encodeWithSignature("OwnableUnauthorizedAccount(address)", OUTSIDER));
         vm.prank(OUTSIDER);
         token.mint(OUTSIDER, UNIT);
     }
@@ -193,6 +193,20 @@ contract RescueServiceEscrowTest is TestBase {
         _fund(ORDER_THREE, 50 * UNIT, uint64(block.timestamp + 1 hours));
         vm.expectRevert(RescueServiceEscrow.InvalidOrderState.selector);
         _recordDelivery(ORDER_ONE, ATTESTOR);
+    }
+
+    function testExpiredReleaseCannotBeatRefundWithDelayedSignedTransaction() external {
+        uint64 deadline = uint64(block.timestamp + 1 hours);
+        _fund(ORDER_ONE, 5 * UNIT, deadline);
+        _recordDelivery(ORDER_ONE, ATTESTOR);
+        vm.warp(uint256(deadline) + 1);
+        vm.expectRevert(RescueServiceEscrow.DeliveryDeadlinePassed.selector);
+        vm.prank(EXECUTOR);
+        escrow.release(ORDER_ONE, COMMANDER, ACCEPTANCE);
+        assertEq(token.balanceOf(PROVIDER), 0);
+        escrow.refundExpired(ORDER_ONE, COMMANDER);
+        assertEq(token.balanceOf(COMMANDER), 150 * UNIT);
+        assertEq(token.balanceOf(address(escrow)), 0);
     }
 
     function testRefundsAnUnreleasedDeliveryAfterTimeout() external {

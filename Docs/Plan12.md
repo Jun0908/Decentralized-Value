@@ -2,7 +2,7 @@
 
 作成日: 2026-09-11
 
-状態: 実装開始。2026-09-11の並行実装第1バッチで契約生成・配布検証とCI接続を追加した。Ocean API・永続Job・新CLI操作はまだ未実装。パッケージ公開、外部登録、送金、デプロイは行っていない。現在の境界は§10を参照。
+状態: 実装中。2026-09-11の第1バッチで契約生成・配布検証とCI接続を追加。2026-09-12にRescue限定の単一ホストDurable Job・Loopback HTTP／SDK／CLIを追加した。Plan9のOperator Pilotでは実AI納品・Sepolia支払い／返金も確認済み。公開API契約、Ocean対応、本番Job基盤、npm公開、Web本番Deployは未完了。現在の境界は§10・§11を参照。
 
 目的: Web画面でできることと、外部AI AgentがAPI / SDK / CLIから安全にできることの差を埋める。APIの契約を基準に、発見 → 候補作成 → Practice → 比較 → 保存 → Final Entry → Evidence確認までを接続する。
 
@@ -257,3 +257,24 @@ API入口やlockfileは別作業と競合しやすい。実装開始時に担当
 - [ ] CLI / Webコマンド資料の同期、実認証、Linux実機の配布検証、npm公開。
 
 生成物のcheckは不足・差分時に失敗するが、ファイルやディレクトリを作らない。provenanceは直接入力の追跡であり、全runtime依存の証明ではない。配布検証は第三者依存をnpmから取得するが、lifecycle script・publish・実Frontier APIへの操作は行わない。
+
+## 11. Rescue Operator Pilot — 永続JobとローカルHTTP／SDK／CLI
+
+2026-09-12（日本時間）。P1-Bの一部をRescueのOperator検証に限って先行実装した。公開`/v1/*`・OpenAPI・既存`FrontierClient`の互換性は維持し、未完成の公開大会機能を利用可能とは表示しない。
+
+| 実装したローカル操作 | 経路 | 境界 |
+| --- | --- | --- |
+| 作成 | `POST /operator/rescue/jobs` | 入力固定、201／同一要求200。作成だけでは推論・送金しない |
+| 一覧 | `GET /operator/rescue/jobs` | 認証済みOwnerのJobのみ |
+| 取得 | `GET /operator/rescue/jobs/:id` | 状態・有限Event履歴・結果。内部Run Token等は非公開 |
+| 明示実行 | `POST /operator/rescue/jobs/:id/run` | 実行有効化済みOperatorでqueuedのみ。202は完了・支払済みを意味しない |
+
+- [x] `rescue-job-v1`でOwner、入力Hash付きIdempotency、排他的Claim、Worker fencing、結果を単一ホストのファイルへ永続化する。曖昧な課金状態や再起動後のrunningを自動再実行せず、照合・明示的復旧を要求する。
+- [x] Bearer認証、Loopback Bind／Host照合、Origin制限、JSON 64KiB上限を設ける。受理する入力は`rescue-service-workflow-request-v0`のPublic Episode＋既存の正規化Playbookのみ。
+- [x] 別クライアント`RescueOperatorClient`のlist／create／get／runを追加。明示的Loopback URLと認証注入を必須にし、Response・Job IDを検証、未知の例外や秘密情報をErrorへ転記しない。
+- [x] `pnpm rescue:jobs`で`list`、`get --job ID`、`create --file REQUEST.json`、`run --job ID`を提供する。接続先は`http://127.0.0.1:4318`固定、TokenはGit除外ファイルから読み、出力はJob概要に限定する。既存`frontier` CLIの公開コマンド契約とは別のOperator用Script。
+- [x] Store／HTTP／SDK／CLIの41テストで、再起動、Owner分離、重複、古いWorkerの拒否、未知の実行失敗、HTTP注入による接続、秘密情報を含まない出力を確認した。これは単一ホストの検証であり、本番DB・実参加者認証の合格ではない。
+
+接続先のPlan9 Pilotでは、実AI Commander→Pulse Monitorの別モデル呼び出し→5 rUSD-DEMO支払い、別注文5 rUSD-DEMO返金を確認した。[公開Evidence](deployments/sepolia-rescue-service-demo.json)とローカル`/rescue-room/operations`で記録を確認できる。ただし実Serviceは公開観測のinterpretation sidecarで、ゲームOutcome・診断Correctnessは新たに検証していない。Walletは運営管理。
+
+未完了はOceanを含む公開Job契約、Production DB／複数ホスト運用、Cancel／専用cursor Events API、外部参加者Scope、SDK／CLIの公開大会フロー、Hidden Final、Pool報酬である。§4〜§8の広いチェック項目を、このローカルPilotだけで完了扱いにしない。

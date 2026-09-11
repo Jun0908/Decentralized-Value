@@ -1516,3 +1516,22 @@ Strategy Studioには全10個の決定論的RuleとAI Playbookの主要3設定�
 4. [x] Parameter meaningと3つのStrategy Summaryを追加する。
 5. [x] Desktop / Mobile / Reduced Motion / Console / Contrastの自動検証を更新する。
 6. [x] 同一Episode、同一DoctrineでAction Replay、Outcome、Hashが不変であることを確認する。
+
+## 31. 実AIサービスとSepolia決済のOperator Pilot
+
+2026-09-12（日本時間）。§29の競技・UX Gateを通過済みとはせず、ユーザー承認に基づき、実AI実行と実決済の接続検証を独立したPilotとして先行した。[公開Evidence JSON](deployments/sepolia-rescue-service-demo.json)と[実行バッチ](RESCUE_EXECUTION_BATCH.md)を参照。
+
+- [x] 実AI Commanderが公開観測から`pulse-monitor`を選び、別のモデル呼び出しでPulse Monitorが構造化成果物を納品する。
+- [x] 依頼・Order・観測・成果物の対応、形式、参照元を検証し、納品／Receipt／Acceptance Hashを記録する。
+- [x] `RescueUSDDemo` / `RescueServiceEscrow`をSepoliaへデプロイし、運営管理のCommander・Executor・Attestor・Provider Walletを分離する。
+- [x] 5 rUSD-DEMOの拘束→納品記録→Provider支払いを実行し、Provider残高5を確認する。
+- [x] 別の未納品注文で5 rUSD-DEMOの期限切れ返金を実行し、Commander残高95を確認する。
+- [x] 単一ホストのDurable Job／Payment予約／署名済みTx Journalを接続する。不明な実行は自動で最初からやり直さず、照合待ちとして扱う。
+- [x] Loopback限定HTTP／SDK／CLIと、`/rescue-room/operations`の公開証跡UIを追加する。Job作成と実行要求を分離し、既存Practiceから暗黙に実送金しない。
+
+今回のPulse Monitorは、公開観測を解釈する追加の実行経路（interpretation sidecar）である。既存SimulatorのService Evidence・Protocol State・Outcomeを置き換えず、納品の形式が正しいことをIncident診断の正しさと呼ばない。支払い成功は、診断性能・競技性・市場での独立性の合格を意味しない。
+
+- [ ] 実AI Serviceの成果物をゲーム内の判断・Outcomeへ接続し、情報購入の有効性と固定戦略への耐性を評価する。
+- [ ] 外部Provider／参加者の認証、独立したService Market、Production DB／複数ホストの実行・費用管理。
+- [ ] Durable Revision／Final Entry、Unknown FinalのCommit・Freeze・複数Episode評価、Full Field計算、独立Value PoolのAllocation／報酬。
+- [ ] 初見5人テストなど既存UX GateとWeb本番Deploy。今回の証跡UI追加だけでは完了扱いにしない。

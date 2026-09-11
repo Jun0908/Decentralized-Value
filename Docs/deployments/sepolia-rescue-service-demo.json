@@ -1,0 +1,34 @@
+{
+  "verifiedAt": "2026-09-11T15:38:15.810Z",
+  "deployment": {
+    "tokenAddress": "0x1d8f2cc7fd630e2b382cb4053bdb8c377d9b3421",
+    "escrowAddress": "0x4fdfa92984dad65d6b593ec93614bfa99b4cd36c",
+    "commanderAddress": "0x4E333f3a231e21E55FaB47e7E635408D53AE9e8d"
+  },
+  "purchase": {
+    "serviceName": "Pulse Monitor",
+    "providerAddress": "0xc4c148289144179de7947cf02d4b05217fb9f538",
+    "amount": "5",
+    "commanderReason": "initial-activity-scan",
+    "observation": "Unusual withdrawal and address activity detected",
+    "serviceSummary": "Unusual withdrawal volume and new-address activity were observed, but the cause is unknown and no exploit is confirmed. Continue monitoring and gather targeted evidence.",
+    "recommendation": "continue-monitoring",
+    "deliveryHash": "0x77b7e313c4032904e1eef27e53b22c17ea0cd6118bf74cfff29167df642156f8",
+    "receiptHash": "0xa81eab3fe8fa466fb82eac43cbb5a35b68a522c1b26ff12b8589694748cb97f5",
+    "acceptanceHash": "0x291280479de51c83f09e181a7a11564a8f8b97fed18762af86d0b4140088cb25",
+    "model": "gpt-5.6-luna",
+    "inputTokens": 1567,
+    "outputTokens": 166,
+    "estimatedModelCostUsd": 0.0005126,
+    "fundingTx": "0xbe221b9bc418a1ce34f49006ac495da9971ffc02ad40a8c89e427911f627e3b2",
+    "deliveryTx": "0xa48325febd35fd34e9ee38b0c7fb908255892aace1fba96599e5bf625dbde103",
+    "releaseTx": "0x734280e06da7501b5b55352387a7efd8be9911e5ceab0c671402200e2ce87433",
+    "providerBalanceAfter": "5"
+  },
+  "refund": {
+    "amount": "5",
+    "fundingTx": "0xf21ec4f6c304dfbef12d10810d9b6662f3b3b5b1a51f0685d42e01b8399f4fd7",
+    "refundTx": "0x46b71812525b22880f07ff7c4f8e3eae3eb403143a17016aabb1c5622b40bf4a",
+    "commanderBalanceAfter": "95"
+  }
+}

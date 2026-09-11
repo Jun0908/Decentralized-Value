@@ -1,4 +1,5 @@
 import type { RescueRunPaymentEvidence, ServiceDefinition } from "@frontier/rescue-room";
+import Link from "next/link";
 
 function shortHash(value: string | null): string {
   if (!value) return "awaiting delivery";
@@ -65,6 +66,11 @@ export function RescuePaymentJourney({
           <small>rUSD-DEMO · six decimals · Sepolia demo token · no monetary value.</small>
         </article>
       </div>
+
+      <p>
+        このPracticeの残高はゲーム内クレジットです。別途行った実AI・Sepoliaの検証は
+        <Link href="/rescue-room/operations">「AIの雇用・納品・支払い」</Link>で確認できます。
+      </p>
 
       {evidence?.orders.length ? (
         <div className="rescue-payment-orders">

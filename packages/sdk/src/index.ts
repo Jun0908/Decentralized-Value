@@ -2,6 +2,17 @@ import { challengeManifestV2Schema, hashChallengeManifest } from "@frontier/shar
 
 export const frontierSdkVersion = "0.3.0";
 export { FrontierClient } from "./client.js";
+export {
+  RescueOperatorClient,
+  rescueOperatorWorkflowRequestSchema,
+  rescueOperatorCreateSchema,
+  rescueOperatorJobSchema,
+} from "./rescue-operator.js";
+export type {
+  RescueOperatorWorkflowRequest,
+  RescueOperatorCreateInput,
+  RescueOperatorJob,
+} from "./rescue-operator.js";
 export type {
   PracticeInput,
   PracticeRun,

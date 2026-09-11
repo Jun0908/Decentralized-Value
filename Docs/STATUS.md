@@ -1,6 +1,6 @@
 # Current implementation status
 
-- **Last verified:** 2026-09-11
+- **Last verified:** 2026-09-12（下記Rescue Operator Pilotを追加。過去の検証記録は各日付の範囲）
 - **Public application:** <https://web-rho-seven-d6te7t3f0y.vercel.app>
 - **Active plans:** [`Plan9.md`](Plan9.md) (Rescue Room), [`Plan11.md`](Plan11.md) (Sponsor integration), [`Plan12.md`](Plan12.md) (API / SDK / CLI). Parallel ownership and current batch: [`PARALLEL_IMPLEMENTATION.md`](PARALLEL_IMPLEMENTATION.md).
 
@@ -8,7 +8,20 @@ This document records the current capability boundary. Product rules live in [`P
 
 ## Working now
 
-### Parallel foundations — local only, not deployed
+### Rescue Operator Pilot — 実AI・Sepolia支払い／返金を確認
+
+2026-09-12（日本時間）、実AI Commanderが公開観測から`pulse-monitor`を選び、別のモデル呼び出しによるPulse Monitorの成果物を受け取り、Sepoliaで**5 rUSD-DEMOを支払った**。別の未納品注文では**5 rUSD-DEMOの期限切れ返金**も確認した。[公開Evidence JSON](deployments/sepolia-rescue-service-demo.json)にTx、納品Hash、Provider残高5、返金後Commander残高95を記録している。rUSD-DEMOは価値を主張しないテストTokenで、Rescue Creditsとは別物。
+
+- `RescueUSDDemo` / `RescueServiceEscrow`、運営管理の役割Wallet、永続Payment予約・署名済みTx照合・Receipt確認を限定的なOperator経路へ接続した。公開WebのPractice操作が自動的に実送金する変更ではない。
+- 単一ホスト用Durable Job StoreはOwner、入力Hash付きIdempotency、排他的Claim、Worker fencing、有限Event履歴を保存する。再起動後の不明な推論／送金を自動再実行せず、必要なら`needs-reconciliation`で止める。
+- `127.0.0.1:4318`のBearer認証付きHTTP、別クライアント`RescueOperatorClient`、`pnpm rescue:jobs`で作成・一覧・取得・明示的Runを扱う。作成だけでは実行しない。公開`/v1/*`・OpenAPI・既存`FrontierClient`契約は変更していない。
+- ローカルWebの`/rescue-room/operations`に、観測→依頼→納品→支払い／返金の公開証跡UIを追加した。Web本番へのデプロイ完了を意味しない。
+
+**未達の境界:** 今回のServiceは公開観測を解釈する追加の実行経路（sidecar）であり、既存SimulatorのService Evidence・Outcomeを置き換えない。検証対象は依頼との対応・形式・参照元・送金で、診断の正しさやゲーム上の有効性は未評価。Walletはすべて運営管理であり、第三者Service Market、Hidden Final、Pool報酬、Rescue本番DB／複数ホスト運用は未完成。詳細は[実行バッチ](RESCUE_EXECUTION_BATCH.md)、[Plan9](Plan9.md)の§31、[Plan12](Plan12.md)の§11を参照。
+
+### Parallel foundations — 2026-09-11の初回バッチ記録
+
+以下はOperator Pilot以前の検証範囲。Rescueの接続・実支払い・ローカルJobの最新状態は上記を優先する。
 
 - Rescue payment preparation now validates an operator-owned Sepolia policy, curated Service/provider bindings, accepted Game Order hashes, per-order/cumulative limits, policy nonce and explicit wall-clock deadlines. It returns an unsigned `fundOrder` reservation intent with `paymentState: not-requested`. The immutable in-process snapshots are not durable atomic reservations; signing, RPC, approvals, receipts and actual payment remain unconnected.
 - New versioned Evaluation Request / Result / Execution Evidence schemas preserve independent metrics and bind artifact, evaluator, context, aggregation and optional round/snapshot references. The new hash format uses locale-independent key ordering without changing legacy hashes. Execution records remain `unverified`; schema/hash checks are not signature, ENS, CRE or payment verification.
@@ -28,7 +41,7 @@ The SDK and CLI implementation is integrated into this monorepo under `packages/
 - Device authorization uses one-time exchange, expiring scoped sessions, revocation, origin checks, and OS credential storage on the CLI. Missing Privy configuration or required production Redis remains unavailable, not a simulated login success.
 - `pnpm verify:cli` exercises the actual CLI against isolated local API/account fixtures, including a lost submission response and immutable resume. It does not register or submit to live accounts.
 
-Integrated verification on Windows with Node.js 22.22.1 covers `build:tooling`, the full workspace typecheck, 375 passing TypeScript tests with 11 opt-in Redis cases skipped, five complete local-only CLI workflows, the production Web build, global ESLint, and six desktop/mobile browser route checks without console errors, framework overlays, blank pages, or horizontal overflow. The generated CLI OpenAPI contract is reproducible. Contract tests still require Foundry, which is not installed on this machine.
+Integrated verification on Windows with Node.js 22.22.1 covers `build:tooling`, the full workspace typecheck, 375 passing TypeScript tests with 11 opt-in Redis cases skipped, five complete local-only CLI workflows, the production Web build, global ESLint, and six desktop/mobile browser route checks without console errors, framework overlays, blank pages, or horizontal overflow. The generated CLI OpenAPI contract is reproducible. Foundry was unavailable during that earlier SDK/CLI verification; this is not the later Rescue Operator verification record.
 
 The final main TypeScript suite passes 290 tests with 11 opt-in Redis cases skipped. The first actual Redis submission run passed 6/7 and exposed a legacy hexadecimal-ID decoding bug. The decoder and surviving-key TTL upgrade are fixed and covered by regression tests, but the post-fix real-Redis rerun is pending because Docker cannot inspect/execute newly created containers. Do not treat this as completed real-Redis acceptance. Retry with `FRONTIER_VERIFY_REDIS=1 pnpm exec vitest run apps/web/src/lib/plan6-store.redis.test.ts` on a working isolated Docker host; do not point it at production Redis.
 
@@ -64,7 +77,7 @@ Sepolia evidence: [deployment record](deployments/sepolia-reward-demo.json), [al
 | Legacy order-book sample | Retained as historical technical material; its throughput axis is simulated rather than observed chain throughput. |
 | Ledger adapter | Retained as historical optional code and unused by the public path. |
 | Secret Gate competition | The first controlled Chrome feasibility run verified all 32 proofs but returned `PIVOT`: latency and memory variance exceeded the declared stability gate. Personal-device measurements remain available, but the competition path is closed and no official leaderboard or Value Pool is active. |
-| Rescue Room competition | Phase 0 returned `GO`; Phase 1 is complete; the local Controlled Practice accepts editable deterministic Doctrine Artifacts and can run a real AI Commander from a participant Playbook. The six-decimal `rUSD-DEMO` token, `RescueServiceEscrow`, interface, deploy script, evidence schema, and duplicate/overspend/delivery/refund tests are implemented locally. Sepolia deployment, role-wallet assignment, Policy Executor transaction adapter, live receipts, durable revision/final-entry storage, Incident Shift, committed hidden Final packs, participant uniqueness, and full-field recomputation remain incomplete. Game-credit payments are simulated and explicitly not tokens. |
+| Rescue Room competition | Phase 0 `GO`、Phase 1、Doctrine／AI Controlled Practiceは実装済み。独立したOperator PilotではSepolia Contract・運営管理Wallet・Payment Executor・実支払い／返金・単一ホストDurable Jobまで接続した。既存PracticeのGame Creditsは引き続きsimulated。実AI ServiceのゲームOutcomeへの接続、永続Revision／Final Entry、Incident Shift、Hidden Final、参加者一意性、Full Field再計算、Pool報酬、本番Storeは未完成。 |
 
 ## Not yet a production tournament
 
