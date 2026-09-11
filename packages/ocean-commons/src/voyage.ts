@@ -122,19 +122,95 @@ function fogFor(
   return stable(best);
 }
 
-function captionFor(phase: VoyagePhase, round: VoyageRound["boats"], storm: number): string {
-  const raiders = round.filter((boat) => boat.zoneId === "nursery").length;
-  const idle = round.filter((boat) => boat.clampReason === "OUT_OF_FUEL").length;
+/**
+ * Everything notable this round, most dramatic first.
+ *
+ * The replay used to say "The fleet is at sea" for almost every round while
+ * three and a half contracts a season were being struck, argued over and
+ * occasionally broken underneath it. All of it was in the data and none of it
+ * was in words, so a viewer watched hulls drift and learned nothing.
+ *
+ * A list rather than a single line, because the same fact stays true for
+ * several rounds — a boat is out of fuel for the rest of the season — and
+ * repeating it makes a replay look stuck. The caller takes the first line that
+ * is not what it said last round.
+ */
+function captionsFor(
+  phase: VoyagePhase,
+  boats: VoyageBoat[],
+  bonds: VoyageBond[],
+  storm: number,
+  names: Map<BoatId, string>,
+  before: VoyageBoat[],
+): string[] {
+  // Going bankrupt and running dry are events, not states. Reporting them for
+  // every round they remain true made a replay look stuck on bad news.
+  const wasActive = new Set(before.filter((boat) => boat.active).map((boat) => boat.boatId));
+  const hadFuel = new Set(
+    before.filter((boat) => boat.clampReason !== "OUT_OF_FUEL").map((boat) => boat.boatId),
+  );
+  const who = (id: BoatId) => names.get(id) ?? id;
+  const list = (crew: VoyageBoat[]) => crew.map((boat) => boat.name).join(" and ");
+  const out: string[] = [];
+
+  for (const bond of bonds.filter((one) => one.broken)) {
+    out.push(`${who(bond.to)} broke its word to ${who(bond.from)}. The escrow goes back.`);
+  }
+  for (const bond of bonds.filter((one) => one.fresh)) {
+    // A pooled fund is paid into round by round, so nothing sits in escrow at
+    // the moment it is struck; reporting "pays 0" reads as a bug.
+    out.push(
+      bond.escrowRemaining > 0
+        ? `${who(bond.from)} pays ${who(bond.to)} ${bond.escrowRemaining.toFixed(0)} to ${termsOf(bond)}.`
+        : `${who(bond.from)} and ${who(bond.to)} agree to ${termsOf(bond)}.`,
+    );
+  }
+
+  const sunk = boats.filter((boat) => !boat.active && wasActive.has(boat.boatId));
+  if (sunk.length > 0) {
+    out.push(`${list(sunk)} ${sunk.length === 1 ? "has" : "have"} gone bankrupt.`);
+  }
+
+  const raiders = boats.filter((boat) => boat.zoneId === "nursery");
   if (phase === "GALE") {
-    return raiders > 0
-      ? `The bank is shut. ${raiders} ${raiders === 1 ? "boat is" : "boats are"} in the nursery.`
-      : "The bank is shut. Everyone is inshore.";
+    out.push(
+      raiders.length > 0
+        ? `The bank is shut, and ${list(raiders)} went into the nursery.`
+        : "The bank is shut. Everyone is working inshore.",
+    );
+  } else if (raiders.length > 0) {
+    out.push(`${list(raiders)} ${raiders.length === 1 ? "is" : "are"} fishing the nursery reserve.`);
   }
-  if (idle > 0) {
-    return `${idle} ${idle === 1 ? "boat is" : "boats are"} out of fuel and stuck in port.`;
+
+  const dry = boats.filter(
+    (boat) => boat.clampReason === "OUT_OF_FUEL" && hadFuel.has(boat.boatId),
+  );
+  if (dry.length > 0) {
+    out.push(`${list(dry)} ${dry.length === 1 ? "is" : "are"} out of fuel and tied up for the rest of the season.`);
   }
-  if (storm > 0.5) return "Rough water. The exposed grounds pay badly today.";
-  return "The fleet is at sea.";
+
+  const best = boats.reduce((top, boat) => (boat.catch > top.catch ? boat : top), boats[0]!);
+  if (phase === "RESULT") out.push("The season is over.");
+  if (storm > 0.5) out.push("Rough water. The exposed grounds pay badly today.");
+  if (best.catch > 0) out.push(`${best.name} has the best of it, landing ${best.catch.toFixed(0)}.`);
+  out.push("A quiet round. Nobody landed anything worth the fuel.");
+  return out;
+}
+
+/** What a contract actually obliges someone to do, in plain words. */
+function termsOf(bond: VoyageBond): string {
+  switch (bond.kind) {
+    case "CATCH_LIMIT":
+      return "hold to a catch limit";
+    case "CONSERVATION_BUYOUT":
+      return "leave a ground alone";
+    case "MUTUAL_AID":
+      return "share the aid fund";
+    case "CONSERVATION_FUND":
+      return "pool money for restraint";
+    case "SOUNDING_EXCHANGE":
+      return "trade readings";
+  }
 }
 
 /**
@@ -147,7 +223,9 @@ function captionFor(phase: VoyagePhase, round: VoyageRound["boats"], storm: numb
 export function toVoyage(log: MatchLog, viewpoint: BoatId | null = null): Voyage {
   const { scenario } = log;
   const boatsById = new Map(scenario.boats.map((boat) => [boat.id, boat]));
+  const names = new Map(scenario.boats.map((boat) => [boat.id, boat.name]));
 
+  let saidLast = "";
   const rounds: VoyageRound[] = log.rounds.map((record, index) => {
     const storm = record.weather.stormSeverity;
     // A pact is on screen from the round it was struck until its term runs out
@@ -238,12 +316,25 @@ export function toVoyage(log: MatchLog, viewpoint: BoatId | null = null): Voyage
       phase,
       stormSeverity: stable(storm),
       price: stable(record.priceBefore),
-      caption: captionFor(phase, boats, storm),
+      caption: "",
       boats,
       grounds,
       bonds,
     };
   });
+
+  for (const [index, round] of rounds.entries()) {
+    const options = captionsFor(
+      round.phase,
+      round.boats,
+      round.bonds,
+      round.stormSeverity,
+      names,
+      index === 0 ? round.boats.map((boat) => ({ ...boat, active: true, clampReason: null })) : rounds[index - 1]!.boats,
+    );
+    round.caption = options.find((line) => line !== saidLast) ?? options[0]!;
+    saidLast = round.caption;
+  }
 
   return { seed: scenario.seed, rounds, viewpoint };
 }
