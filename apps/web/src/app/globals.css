@@ -9241,3 +9241,47 @@ a.table-row:hover {
 .ocean-legend i.dashed-sounding {
   background: repeating-linear-gradient(90deg, #c9a227 0 2px, transparent 2px 4px);
 }
+
+/* Sailing a mission costs a model call and about ninety seconds, so the control
+   has to look like a commitment rather than another toggle beside the instant
+   preview buttons. */
+.ocean-mission-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+}
+.ocean-mission-actions button {
+  border: 1px solid var(--lime);
+  background: rgba(199, 255, 69, 0.09);
+  color: var(--lime);
+  font: 0.8rem var(--font-mono);
+  letter-spacing: 0.08em;
+  padding: 0.6rem 1.1rem;
+  cursor: pointer;
+}
+.ocean-mission-actions button:hover:not(:disabled) {
+  background: rgba(199, 255, 69, 0.16);
+}
+.ocean-mission-actions button:disabled {
+  border-color: var(--line);
+  background: transparent;
+  color: var(--muted);
+  cursor: progress;
+}
+.ocean-mission-actions .lever-explanation {
+  flex: 1 1 22ch;
+  margin: 0;
+}
+.ocean-mission-error {
+  border-left: 2px solid var(--orange);
+  padding-left: 0.9rem;
+  color: var(--orange);
+  margin: 0;
+}
+.ocean-mission-result {
+  display: grid;
+  gap: 0.85rem;
+  border: 1px solid var(--lime);
+  padding: 1rem;
+}

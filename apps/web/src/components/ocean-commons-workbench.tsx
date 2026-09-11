@@ -99,6 +99,19 @@ type Entry = Scores & {
   frontier: boolean;
 };
 
+type MissionRun = {
+  mission: string;
+  seed: string;
+  scores: Scores;
+  voyage: Voyage;
+  rounds: number;
+  survived: number;
+  fleet: number;
+  fuelLeft: number;
+  contracts: number;
+  usage: { calls: number; failures: number; inputTokens: number; outputTokens: number };
+};
+
 type Result = {
   voyage: Voyage;
   scores: Scores;
@@ -180,6 +193,14 @@ export function OceanCommonsWorkbench({
     { key: string; approach: string; seed: string; rounds: number; scores: Scores }[]
   >([]);
 
+  // A season sailed by a model from the mission text. Separate from the
+  // scripted preview on purpose: one is instant, the other costs a minute and
+  // real money, and conflating them would hide which is which.
+  const [sailing, setSailing] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const [missionRun, setMissionRun] = useState<MissionRun | null>(null);
+  const [missionError, setMissionError] = useState<string | null>(null);
+
   const runKey = `${approach}@${seed}`;
   // Derived rather than stored: a `busy` flag set from inside the effect would
   // be a synchronous setState on every render pass, which cascades.
@@ -252,7 +273,49 @@ export function OceanCommonsWorkbench({
     };
   }, [approach, seed]);
 
+  // A season takes minutes and the wait varies, so a disabled button on its own
+  // is indistinguishable from a page that has stopped responding.
+  useEffect(() => {
+    if (!sailing) return;
+    const started = Date.now();
+    const timer = window.setInterval(() => {
+      setElapsed(Math.round((Date.now() - started) / 1000));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [sailing]);
+
   const chosen = APPROACHES.find((one) => one.id === approach)!;
+
+  async function sailWithMission() {
+    setSailing(true);
+    setElapsed(0);
+    setMissionError(null);
+    try {
+      const response = await fetch("/v1/ocean-commons/seasons", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ mission, seed }),
+      });
+      const payload = (await response.json()) as MissionRun & {
+        error?: { code?: string; message?: string };
+      };
+      if (!response.ok) {
+        throw new Error(
+          payload.error?.code === "SEASON_UNCONFIGURED"
+            ? "No model is configured on this server, so a mission cannot be sailed here."
+            : (payload.error?.message ?? "The season could not be sailed."),
+        );
+      }
+      setMissionRun({ ...payload, mission, seed });
+    } catch (cause) {
+      setMissionError(cause instanceof Error ? cause.message : "The season could not be sailed.");
+    } finally {
+      setSailing(false);
+    }
+  }
+
+  // The replay shows whichever season the visitor last produced.
+  const shown = missionRun ?? result;
 
   return (
     <div className="competition-shell ocean-competition">
@@ -393,11 +456,69 @@ export function OceanCommonsWorkbench({
             spellCheck={false}
           />
         </label>
-        <p className="lever-explanation">
-          A model-backed boat reads this text and nothing else about your intent. The practice
-          season below is sailed by scripted skippers, so it shows the world reacting rather than
-          your words being interpreted — pick the approach closest to what you wrote.
-        </p>
+        <div className="ocean-mission-actions">
+          <button type="button" onClick={() => void sailWithMission()} disabled={sailing}>
+            {sailing
+              ? `Sailing your mission… ${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`
+              : "Sail with your mission"}
+          </button>
+          <p className="lever-explanation">
+            A model-backed boat reads this text and nothing else about your intent. One season has
+            measured between three and six minutes — the model answers twice a round, once to
+            negotiate and once to fish, and how long it thinks is its own business. The page stays
+            usable while it runs.
+          </p>
+        </div>
+        {missionError ? (
+          <p className="ocean-mission-error" role="alert">
+            {missionError}
+          </p>
+        ) : null}
+        {missionRun ? (
+          <div className="ocean-mission-result">
+            <p className="eyebrow">Your mission sailed season {missionRun.seed.slice(-1)}</p>
+            <div className="live-preview-metrics">
+              <article>
+                <span>CREW LIVELIHOOD</span>
+                <strong>{cash(missionRun.scores.livelihood)}</strong>
+                <small>DemoUSD · median solvent boat</small>
+              </article>
+              <article>
+                <span>RESTRAINT EFFICACY</span>
+                <strong>{pct(missionRun.scores.restraint)}</strong>
+                <small>
+                  {missionRun.scores.forgone < 1
+                    ? "gave up nothing to measure"
+                    : `of the ${missionRun.scores.forgone.toFixed(0)} fish left, this much held`}
+                </small>
+              </article>
+              <article>
+                <span>COOPERATION EFFICACY</span>
+                <strong>{missionRun.scores.cooperation.toFixed(3)}</strong>
+                <small>
+                  {missionRun.scores.cooperation < 0
+                    ? "negative · contracts left the sea worse"
+                    : "stewardship points per 1,000 spent"}
+                </small>
+              </article>
+            </div>
+            <p className="lever-explanation">
+              {missionRun.rounds} rounds, {missionRun.survived} of {missionRun.fleet} boats solvent,
+              {" "}
+              {missionRun.contracts} contracts signed, {missionRun.fuelLeft.toFixed(0)} fuel left.
+              The model answered {missionRun.usage.calls} times
+              {missionRun.usage.failures > 0
+                ? `, and ${missionRun.usage.failures} of those could not be used — a boat whose agent fails stays in port that round.`
+                : "."}{" "}
+              The replay above now shows this season.
+            </p>
+          </div>
+        ) : (
+          <p className="lever-explanation">
+            The scripted preview below is instant and costs nothing, so it shows the world
+            reacting. Sailing your mission shows your words being interpreted.
+          </p>
+        )}
 
         <div className="ocean-approaches">
           {APPROACHES.map((one) => (
@@ -461,7 +582,10 @@ export function OceanCommonsWorkbench({
             <p className="eyebrow">04 · WATCH THE SEASON</p>
             <h2>See what you could not see at the time.</h2>
           </div>
-          <span>Seed {result?.scenarioSeed ?? seed}</span>
+          <span>
+            {missionRun ? "Your mission" : "Scripted preview"} · seed{" "}
+            {shown && "scenarioSeed" in shown ? shown.scenarioSeed : (missionRun?.seed ?? seed)}
+          </span>
         </div>
         <div className="ocean-reading-key" aria-label="How to read the scene">
           <span>
@@ -477,8 +601,8 @@ export function OceanCommonsWorkbench({
             <b>Bars under each hull</b> are fuel left for the whole season.
           </span>
         </div>
-        {result ? (
-          <OceanVoyageStage voyage={result.voyage} />
+        {shown ? (
+          <OceanVoyageStage voyage={shown.voyage} />
         ) : (
           <p className="empty-state">Putting to sea…</p>
         )}

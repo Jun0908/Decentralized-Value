@@ -98,6 +98,20 @@ const microgridEvaluationSchema = z
     allocations: z.record(z.string(), z.number().int().nonnegative().max(1_000_000)),
   })
   .strict();
+import {
+  MISSION_MAX_LENGTH,
+  oceanPracticeSeeds,
+  sailSeasonWithMission,
+  type SeasonResult,
+} from "@frontier/ocean-commons";
+
+const oceanSeasonSchema = z
+  .object({
+    /** The owner's standing instruction. Untrusted text on its way to a model. */
+    mission: z.string().trim().min(1).max(MISSION_MAX_LENGTH),
+    seed: z.string().min(1),
+  })
+  .strict();
 const rescueRoomEvaluationSchema = z
   .object({
     policyId: z.enum(rescuePracticePolicyIds),
@@ -176,6 +190,11 @@ export type RescueRoomOptions = {
   commander?: RescueRoomCommanderExecutor;
 };
 
+export type OceanCommonsOptions = {
+  /** Sails one season. Injected in tests so no run reaches a model. */
+  season?: (input: { mission: string; seed: string }) => Promise<SeasonResult>;
+};
+
 class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -233,6 +252,9 @@ async function body(request: Request): Promise<unknown> {
 export class FrontierApi {
   private readonly limiter = new SlidingWindowLimiter();
   private readonly rescueCommanderLimiter = new SlidingWindowLimiter(3, 10 * 60_000);
+  // A season costs a model call per boat-turn, so this is a spending limit
+  // before it is a traffic one.
+  private readonly oceanSeasonLimiter = new SlidingWindowLimiter(3, 10 * 60_000);
   readonly competition = new CompetitionSandboxStore();
   constructor(
     readonly store: FrontierStore,
@@ -241,6 +263,7 @@ export class FrontierApi {
     private readonly plan5: Plan5Options = {},
     private readonly plan6: Plan6Options = {},
     private readonly rescueRoom: RescueRoomOptions = {},
+    private readonly oceanCommons: OceanCommonsOptions = {},
   ) {}
 
   async fetch(request: Request): Promise<Response> {
@@ -938,6 +961,49 @@ export class FrontierApi {
         throw new ApiError(502, "COMMANDER_EXECUTION_FAILED", "AI Commander execution failed");
       }
     }
+    if (path === "/v1/ocean-commons/seasons") {
+      const client = request.headers.get("x-forwarded-for") ?? "local";
+      if (!this.oceanSeasonLimiter.accept(client)) {
+        throw new ApiError(
+          429,
+          "SEASON_RATE_LIMITED",
+          "At most three model-sailed seasons are allowed per client every ten minutes",
+        );
+      }
+      const parsed = oceanSeasonSchema.parse(await body(request));
+      if (!oceanPracticeSeeds.includes(parsed.seed)) {
+        throw new ApiError(400, "UNKNOWN_PRACTICE_SEASON", "Unknown Ocean Commons practice season");
+      }
+      const sail =
+        this.oceanCommons.season ??
+        (async (input: { mission: string; seed: string }) => {
+          // Imported here so the credential check only runs when a season is
+          // actually requested, and never at module load.
+          const { openaiBackend } = await import("@frontier/ocean-commons");
+          return sailSeasonWithMission({ ...input, backend: openaiBackend() });
+        });
+      try {
+        const season = await sail({ mission: parsed.mission, seed: parsed.seed });
+        return json(
+          {
+            state: "simulated",
+            inferenceState: "openai-api",
+            paymentState: "game-credits",
+            ...season,
+          },
+          200,
+        );
+      } catch (cause) {
+        const message = cause instanceof Error ? cause.message : String(cause);
+        if (message.includes("OPENAI_API_KEY")) {
+          throw new ApiError(503, "SEASON_UNCONFIGURED", message);
+        }
+        if (cause instanceof Error && cause.name === "AbortError") {
+          throw new ApiError(504, "SEASON_TIMEOUT", "The season timed out");
+        }
+        throw new ApiError(502, "SEASON_EXECUTION_FAILED", "Sailing the season failed");
+      }
+    }
     if (path === "/v1/rescue-room/evaluations") {
       const parsed = rescueRoomEvaluationSchema.parse(await body(request));
       const scenario = publicRescueRoomScenario();
@@ -1227,6 +1293,7 @@ export function createApi(
   plan5?: Plan5Options,
   plan6?: Plan6Options,
   rescueRoom?: RescueRoomOptions,
+  oceanCommons?: OceanCommonsOptions,
 ): FrontierApi {
   return new FrontierApi(
     new FrontierStore(benchmarkRecordSchema.parse(benchmark)),
@@ -1235,6 +1302,7 @@ export function createApi(
     plan5,
     plan6,
     rescueRoom,
+    oceanCommons,
   );
 }
 
@@ -1249,6 +1317,7 @@ export function createDemoApi(
   plan5?: Plan5Options,
   plan6?: Plan6Options,
   rescueRoom?: RescueRoomOptions,
+  oceanCommons?: OceanCommonsOptions,
 ): FrontierApi {
   const store = new FrontierStore(benchmarkRecordSchema.parse(benchmark));
   const dispatcher: EvaluationDispatcher = {
@@ -1264,5 +1333,13 @@ export function createDemoApi(
     },
   };
 
-  return new FrontierApi(store, dispatcher, runnerDirectory, plan5, plan6, rescueRoom);
+  return new FrontierApi(
+    store,
+    dispatcher,
+    runnerDirectory,
+    plan5,
+    plan6,
+    rescueRoom,
+    oceanCommons,
+  );
 }

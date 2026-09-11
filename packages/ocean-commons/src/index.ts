@@ -8,5 +8,6 @@ export * from "./match";
 export * from "./evaluator";
 export * from "./manifest";
 export * from "./voyage";
+export * from "./season";
 export * from "./llm-agent";
 export * from "./openai-agent";

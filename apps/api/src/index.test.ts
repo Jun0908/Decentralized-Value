@@ -849,3 +849,93 @@ describe("Frontier API contracts", () => {
     expect((await api.fetch(request("/nope"))).status).toBe(404);
   });
 });
+
+describe("Ocean Commons seasons", () => {
+  const season = {
+    scores: { livelihood: 412, restraint: 0.31, forgone: 88, cooperation: 0.07 },
+    voyage: { seed: "ocean-practice-v1:0", rounds: [], viewpoint: "kaiyo" },
+    seed: "ocean-practice-v1:0",
+    rounds: 8,
+    survived: 4,
+    fleet: 5,
+    fuelLeft: 0,
+    contracts: 3,
+    turns: [],
+    usage: { calls: 16, failures: 0, inputTokens: 9000, outputTokens: 4000 },
+  };
+
+  it("sails a season from the mission text and never echoes a credential", async () => {
+    const sail = vi.fn(async () => season as never);
+    const api = createApi(benchmark, undefined, undefined, undefined, undefined, undefined, {
+      season: sail,
+    });
+    const response = await api.fetch(
+      request("/v1/ocean-commons/seasons", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ mission: "Keep the crew paid.", seed: "ocean-practice-v1:0" }),
+      }),
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(sail).toHaveBeenCalledWith({
+      mission: "Keep the crew paid.",
+      seed: "ocean-practice-v1:0",
+    });
+    expect(payload.inferenceState).toBe("openai-api");
+    expect(payload.paymentState).toBe("game-credits");
+    expect(payload.scores.livelihood).toBe(412);
+    // A season is sailed server-side precisely so the key stays there.
+    expect(JSON.stringify(payload)).not.toContain("OPENAI");
+  });
+
+  it("refuses a season nobody published, and a mission longer than the cap", async () => {
+    const sail = vi.fn(async () => season as never);
+    const api = createApi(benchmark, undefined, undefined, undefined, undefined, undefined, {
+      season: sail,
+    });
+    const post = (body: unknown) =>
+      api.fetch(
+        request("/v1/ocean-commons/seasons", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        }),
+      );
+
+    const unknownSeed = await post({ mission: "Fish.", seed: "not-a-season" });
+    const tooLong = await post({ mission: "x".repeat(2_001), seed: "ocean-practice-v1:0" });
+
+    expect(unknownSeed.status).toBe(400);
+    expect((await unknownSeed.json()).error.code).toBe("UNKNOWN_PRACTICE_SEASON");
+    expect(tooLong.status).toBe(400);
+    expect(sail).not.toHaveBeenCalled();
+  });
+
+  it("stops a client after three seasons in ten minutes", async () => {
+    const sail = vi.fn(async () => season as never);
+    const api = createApi(benchmark, undefined, undefined, undefined, undefined, undefined, {
+      season: sail,
+    });
+    const post = () =>
+      api.fetch(
+        request("/v1/ocean-commons/seasons", {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-forwarded-for": "1.2.3.4" },
+          body: JSON.stringify({ mission: "Fish carefully.", seed: "ocean-practice-v1:0" }),
+        }),
+      );
+
+    const statuses = [
+      (await post()).status,
+      (await post()).status,
+      (await post()).status,
+      (await post()).status,
+    ];
+
+    // Each season is a paid model run, so the limit is a spending control.
+    expect(statuses).toEqual([200, 200, 200, 429]);
+    expect(sail).toHaveBeenCalledTimes(3);
+  });
+});
