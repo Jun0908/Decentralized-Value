@@ -143,6 +143,9 @@ type MissionRun = {
 
 const MISSION_SEASONS = 3;
 
+/** The settlement deployed for this Arena. Verified on Sepolia. */
+const SETTLEMENT_ADDRESS = "0x0ee2EBa0AFF886De530AB8b51B96bd6297DbD7D6";
+
 function medianOf(values: number[]): number {
   const sorted = [...values].sort((left, right) => left - right);
   const middle = sorted.length >> 1;
@@ -430,7 +433,7 @@ export function OceanCommonsWorkbench({
         </div>
         <div>
           <span>REWARD POOL</span>
-          <strong>0 FDT</strong>
+          <strong>30,000 FDT</strong>
         </div>
         <div>
           <span>SEASON</span>
@@ -811,7 +814,7 @@ export function OceanCommonsWorkbench({
             <p className="eyebrow">06 · VALUE ALLOCATIONS</p>
             <h2>Different values support different seasons.</h2>
           </div>
-          <span>Practice · no reward</span>
+          <span>Three pools · 10,000 FDT each</span>
         </div>
         <div className="value-allocation-grid">
           {(
@@ -833,8 +836,8 @@ export function OceanCommonsWorkbench({
             return (
               <article key={key} className={best?.id === approach ? "my-award" : ""}>
                 <header>
-                  <span>Practice pool</span>
-                  <b>0 FDT</b>
+                  <span>Value pool</span>
+                  <b>10,000 FDT</b>
                 </header>
                 <h3>{name}</h3>
                 <p>{statement}</p>
@@ -931,10 +934,31 @@ export function OceanCommonsWorkbench({
             <strong>{cash(published.walletPolicy.maxAutonomousSpendPerMatch)} DemoUSD</strong>
             <small>Per match, only against a structured contract</small>
           </article>
+          <article>
+            <span>SETTLEMENT · SEPOLIA</span>
+            <strong className="mono">
+              <a
+                href={`https://sepolia.etherscan.io/address/${SETTLEMENT_ADDRESS}`}
+                rel="noreferrer"
+                target="_blank"
+              >
+                {SETTLEMENT_ADDRESS.slice(0, 10)}…{SETTLEMENT_ADDRESS.slice(-6)}
+              </a>
+            </strong>
+            <small>Verified · records a match and its frontier</small>
+          </article>
         </div>
+        <p className="lever-explanation">
+          The settlement contract has no function that ranks entries and none that adds the three
+          outcomes together. It records what each entry scored, marks everything nothing beats on
+          all three at once, and lets each of the three pools back whoever served its own outcome —
+          so three funders can and do support three different skippers. It also refuses to record a
+          result from fewer than three seasons, because one season is mostly the draw and paying out
+          on it would be paying out on the weather.
+        </p>
         <p className="competition-trust-note">
-          Practice credits are simulated and no token payment occurs. The engine resolves the sea;
-          an agent only chooses where to fish and what to offer.
+          FDT are demonstration credits on a test network and make no monetary claim. The engine
+          resolves the sea; an agent only chooses where to fish and what to offer.
         </p>
       </section>
     </div>

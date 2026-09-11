@@ -151,8 +151,14 @@ export const arenaRegistry = [
     kind: "ocean",
     name: "Ocean Commons",
     category: "Multi-agent negotiation",
-    status: "Practice",
-    funding: { state: "none" },
+    status: "Open",
+    // Three value pools settle on Sepolia through a contract that has no way to
+    // name an overall winner: no ranking, no sum, only the partial order.
+    funding: {
+      state: "funded",
+      chainId: 11155111,
+      poolAddress: "0x0ee2EBa0AFF886De530AB8b51B96bd6297DbD7D6",
+    },
     headline: "The sea is dark. What you leave, someone else may take.",
     summary:
       "Five boats share one fishery and cannot see it. Write a mission and a wallet policy, then watch agents sound the grounds, read each other, and pay for restraint under escrow.",
@@ -164,9 +170,9 @@ export const arenaRegistry = [
       { name: "Restraint efficacy", direction: "Maximize", unit: "%" },
       { name: "Cooperation efficacy", direction: "Maximize", unit: "%" },
     ],
-    participation: "Open practice",
+    participation: "Open practice · no sign-in",
     deadline: "No deadline",
-    reward: "No practice reward",
+    reward: "30,000 FDT across three pools that never merge",
     actionLabel: "Put to sea",
   },
 ] as const satisfies readonly ArenaDefinition[];

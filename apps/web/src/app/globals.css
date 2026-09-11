@@ -9285,3 +9285,10 @@ a.table-row:hover {
   border: 1px solid var(--lime);
   padding: 1rem;
 }
+/* The shared trust note is placed by a grid built for another section, which
+   leaves it one word wide here. */
+.ocean-settlement .competition-trust-note {
+  grid-column: 1 / -1;
+  justify-self: stretch;
+  max-width: 74ch;
+}
