@@ -5,6 +5,7 @@ import {
   parseAbi,
   parseEventLogs,
   TransactionReceiptNotFoundError,
+  TransactionNotFoundError,
   type Address,
   type Hex,
   type LocalAccount,
@@ -308,6 +309,14 @@ export function createRescuePaymentViemChain(options: {
         throw error;
       }
     },
+    async knownTransaction(hash) {
+      try {
+        return (await client.getTransaction({ hash })).hash === hash;
+      } catch (error) {
+        if (error instanceof TransactionNotFoundError) return false;
+        throw error;
+      }
+    },
     async receipt(record, transaction, confirmations) {
       let receipt;
       try {
@@ -329,6 +338,7 @@ export function createRescuePaymentViemChain(options: {
         transactionHash: receipt.transactionHash,
         blockHash: receipt.blockHash,
         blockNumber: String(receipt.blockNumber),
+        blockTimestampUnixSeconds: String(block.timestamp),
       };
       if (receipt.status === "reverted")
         return { ...base, status: "reverted", verifiedEvent: false };

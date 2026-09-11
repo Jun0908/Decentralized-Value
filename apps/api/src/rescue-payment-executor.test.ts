@@ -139,6 +139,7 @@ async function fixture(overrides: Partial<RescuePaymentExecutorLimits> = {}) {
       transactionHash,
       blockHash: hash,
       blockNumber: "10",
+      blockTimestampUnixSeconds: String(now),
       status,
       verifiedEvent: status === "confirmed",
     });
@@ -157,6 +158,142 @@ async function fixture(overrides: Partial<RescuePaymentExecutorLimits> = {}) {
 }
 
 describe("durable Rescue payment executor", () => {
+  it("never first-broadcasts an unknown prepared release after expiry", async () => {
+    const f = await fixture();
+    const release = {
+      kind: "release" as const,
+      deliverableHash: hash,
+      receiptHash: hash,
+      acceptanceHash: hash,
+    };
+    f.chain.broadcast = vi.fn(async () => {
+      throw new Error("offline before acceptance");
+    });
+    await expect(f.executor.execute(f.record.key, release, now)).rejects.toThrow("offline");
+    f.chain.knownTransaction = vi.fn(async () => false);
+    await expect(f.executor.execute(f.record.key, release, now + 121)).rejects.toThrow(
+      "not known on chain",
+    );
+    expect(f.chain.broadcast).toHaveBeenCalledTimes(1);
+    expect((await f.executor.inspect(f.record.key))?.transactions.release?.status).toBe("prepared");
+  });
+
+  it("only rebroadcasts a known expired release exactly, then allows refund after confirmed revert", async () => {
+    const f = await fixture();
+    const release = {
+      kind: "release" as const,
+      deliverableHash: hash,
+      receiptHash: hash,
+      acceptanceHash: hash,
+    };
+    const first = await f.executor.execute(f.record.key, release, now);
+    f.chain.knownTransaction = vi.fn(async (txHash) => txHash === first.transactionHash);
+    const replay = await f.executor.execute(f.record.key, release, now + 121);
+    expect(replay.status).toBe("broadcast");
+    expect(replay.rawTransaction).toBe(first.rawTransaction);
+    expect(f.chain.prepareSigned).toHaveBeenCalledTimes(1);
+    f.confirm(first.transactionHash, "reverted");
+    expect((await f.executor.execute(f.record.key, release, now + 122)).status).toBe("reverted");
+    expect(
+      (await f.executor.execute(f.record.key, { kind: "refundExpired" }, now + 123)).status,
+    ).toBe("broadcast");
+  });
+
+  it("preserves timely mined release evidence when queried after the deadline", async () => {
+    const f = await fixture();
+    const release = {
+      kind: "release" as const,
+      deliverableHash: hash,
+      receiptHash: hash,
+      acceptanceHash: hash,
+    };
+    const first = await f.executor.execute(f.record.key, release, now);
+    f.confirm(first.transactionHash);
+    expect((await f.executor.execute(f.record.key, release, now + 121)).status).toBe("confirmed");
+    expect(f.sent).toHaveLength(1);
+  });
+
+  it("never reports an unexpectedly successful release mined after deadline paid", async () => {
+    const f = await fixture();
+    const release = {
+      kind: "release" as const,
+      deliverableHash: hash,
+      receiptHash: hash,
+      acceptanceHash: hash,
+    };
+    const first = await f.executor.execute(f.record.key, release, now);
+    f.confirm(first.transactionHash);
+    f.receipts.get(first.transactionHash)!.blockTimestampUnixSeconds = String(now + 121);
+    await expect(f.executor.execute(f.record.key, release, now + 122)).rejects.toThrow(
+      "cannot be reported paid",
+    );
+    expect((await f.executor.inspect(f.record.key))?.transactions.release?.status).not.toBe(
+      "confirmed",
+    );
+  });
+
+  it.each(["raw", "call", "nonce", "fee", "hash", "intent", "key", "receipt"])(
+    "revalidates stored %s even when the journal checksum is recomputed",
+    async (field) => {
+      const f = await fixture();
+      await f.executor.execute(f.record.key, { kind: "fund" }, now);
+      await f.options.store.exclusive(async (state, persist) => {
+        const record = state.records[f.record.key]!;
+        const tx = record.transactions.fund!;
+        if (field === "raw") {
+          tx.rawTransaction = await commander.signTransaction({
+            type: "eip1559",
+            chainId: 11155111,
+            to: address(9) as Hex,
+            data: tx.call.data,
+            nonce: tx.nonce,
+            value: 0n,
+            gas: 100000n,
+            maxFeePerGas: 10000000n,
+            maxPriorityFeePerGas: 1000000n,
+          });
+          tx.transactionHash = keccak256(tx.rawTransaction);
+        }
+        if (field === "call") tx.call.data = "0x1234";
+        if (field === "nonce") tx.nonce += 1;
+        if (field === "fee") tx.maximumFeeWei = "1";
+        if (field === "hash") tx.transactionHash = otherHash;
+        if (field === "intent") (record.intent.args as { amount: string }).amount = "1";
+        if (field === "key") record.key = otherHash;
+        if (field === "receipt") tx.status = "confirmed";
+        await persist();
+      });
+      const restarted = createRescuePaymentExecutor(f.options);
+      await expect(restarted.execute(f.record.key, { kind: "fund" }, now + 1)).rejects.toThrow();
+      await expect(restarted.inspect(f.record.key)).rejects.toThrow();
+      expect(f.sent).toHaveLength(1);
+    },
+  );
+
+  it("rejects duplicate signer nonces even with two otherwise valid signed calls", async () => {
+    const f = await fixture();
+    await f.executor.execute(f.record.key, { kind: "approve" }, now);
+    await f.executor.execute(f.record.key, { kind: "fund" }, now);
+    await f.options.store.exclusive(async (state, persist) => {
+      const tx = state.records[f.record.key]!.transactions.fund!;
+      tx.nonce = 0;
+      tx.rawTransaction = await commander.signTransaction({
+        type: "eip1559",
+        chainId: 11155111,
+        to: tx.call.to,
+        data: tx.call.data,
+        nonce: 0,
+        value: 0n,
+        gas: 100000n,
+        maxFeePerGas: 10000000n,
+        maxPriorityFeePerGas: 1000000n,
+      });
+      tx.transactionHash = keccak256(tx.rawTransaction);
+      await persist();
+    });
+    await expect(f.executor.inspect(f.record.key)).rejects.toThrow("Duplicate signer nonce");
+  });
+
   it("never races a prepared release against a timeout refund", async () => {
     const f = await fixture();
     await f.executor.execute(
@@ -430,6 +567,7 @@ describe("durable Rescue payment executor", () => {
       blockNumber: "10",
       status: "confirmed",
       verifiedEvent: false,
+      blockTimestampUnixSeconds: String(now),
     });
     await expect(f.executor.execute(f.record.key, { kind: "fund" }, now)).rejects.toThrow(
       "receipt evidence mismatch",

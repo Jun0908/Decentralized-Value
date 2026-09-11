@@ -34,6 +34,7 @@ export type RescuePaymentReceipt = {
   transactionHash: Hex;
   blockHash: Hex;
   blockNumber: string;
+  blockTimestampUnixSeconds: string;
   status: "confirmed" | "reverted";
   /** Transfer event AND matching Escrow event are checked for fund/release/refund. */
   verifiedEvent: boolean;
@@ -91,6 +92,8 @@ export interface RescuePaymentChainPort {
     limits: RescuePaymentExecutorLimits,
   ): Promise<Hex>;
   broadcast(rawTransaction: Hex): Promise<Hex>;
+  /** Optional exact-hash lookup. Missing support fails closed for expired signed release. */
+  knownTransaction?(transactionHash: Hex): Promise<boolean>;
   receipt(
     record: RescuePaymentRecord,
     transaction: RescuePaymentTransaction,
@@ -159,9 +162,145 @@ export function createRescuePaymentExecutor(options: {
     throw new Error("Transaction fee exceeds total fee ceiling");
 
   function bindLimits(state: RescuePaymentJournalState) {
+    if (
+      state.version !== 1 ||
+      !state.records ||
+      Array.isArray(state.records) ||
+      (!state.limits && Object.keys(state.records).length > 0)
+    )
+      throw new Error("Invalid payment journal state");
     if (state.limits && !same(state.limits, limits))
       throw new Error("Payment journal limits changed; operator reconciliation required");
     state.limits = limits;
+  }
+
+  async function validateSignedCall(raw: Hex, call: RescuePaymentCall, nonce: number) {
+    if (!raw.startsWith("0x02")) throw new Error("Only EIP-1559 payment transactions are allowed");
+    const parsed = parseTransaction(raw);
+    const signer = await recoverTransactionAddress({
+      serializedTransaction: raw as `0x02${string}`,
+    });
+    if (
+      !Number.isSafeInteger(nonce) ||
+      nonce < 0 ||
+      parsed.type !== "eip1559" ||
+      parsed.chainId !== 11155111 ||
+      signer.toLowerCase() !== call.from.toLowerCase() ||
+      parsed.to?.toLowerCase() !== call.to.toLowerCase() ||
+      parsed.data !== call.data ||
+      (parsed.value ?? 0n) !== 0n ||
+      parsed.nonce !== nonce ||
+      !parsed.gas ||
+      !parsed.maxFeePerGas ||
+      parsed.maxPriorityFeePerGas === undefined ||
+      parsed.gas > BigInt(limits.maximumGas) ||
+      parsed.maxFeePerGas > BigInt(limits.maximumFeePerGasWei) ||
+      parsed.maxPriorityFeePerGas > BigInt(limits.maximumPriorityFeePerGasWei) ||
+      parsed.maxPriorityFeePerGas > parsed.maxFeePerGas
+    )
+      throw new Error("Signed transaction violates the fixed payment call or fee policy");
+    return parsed.gas * parsed.maxFeePerGas;
+  }
+
+  function validateReceipt(
+    receipt: RescuePaymentReceipt,
+    transaction: RescuePaymentTransaction,
+    record: RescuePaymentRecord,
+  ) {
+    if (
+      receipt.transactionHash !== transaction.transactionHash ||
+      !/^0x[0-9a-f]{64}$/.test(receipt.blockHash) ||
+      !/^(0|[1-9][0-9]*)$/.test(receipt.blockNumber) ||
+      !/^(0|[1-9][0-9]*)$/.test(receipt.blockTimestampUnixSeconds) ||
+      !["confirmed", "reverted"].includes(receipt.status) ||
+      (receipt.status === "confirmed" && !receipt.verifiedEvent)
+    )
+      throw new Error("Payment receipt evidence mismatch");
+    if (
+      transaction.operation.kind === "release" &&
+      receipt.status === "confirmed" &&
+      BigInt(receipt.blockTimestampUnixSeconds) > BigInt(record.intent.args.deadline)
+    )
+      throw new Error("Release mined after deadline cannot be reported paid");
+  }
+
+  /** A JSON checksum detects torn/corrupt writes, not semantic substitution. Rebuild every
+   * intent and recover every signature on resume; never trust serialized fee/nonce/call fields.
+   * This still cannot authenticate omitted history or a wholly replaced operator policy.
+   * Protect the journal and retain backups; the process-local API is not a policy authority.
+   */
+  async function validateRestoredState(state: RescuePaymentJournalState) {
+    const groups = new Map<string, RescuePaymentRecord[]>();
+    for (const [key, record] of Object.entries(state.records)) {
+      const policy = rescuePaymentPolicySchema.parse(record.policy);
+      if (!same(policy, record.policy)) throw new Error("Noncanonical stored payment policy");
+      const expectedKey = rescuePaymentExecutorHash({
+        chainId: 11155111,
+        commander: policy.commanderWallet,
+        context: record.purchase.order.episodeContextHash,
+        orderId: record.purchase.order.orderId,
+      });
+      if (key !== expectedKey || record.key !== expectedKey)
+        throw new Error("Payment journal reservation key mismatch");
+      const scope = `${policy.commanderWallet}:${record.purchase.order.episodeContextHash}`;
+      groups.set(scope, [...(groups.get(scope) ?? []), record]);
+    }
+    let totalFee = 0n;
+    const signerNonces = new Set<string>();
+    for (const records of groups.values()) {
+      const policy = records[0]!.policy;
+      let local = createRescuePaymentPolicyState(policy);
+      for (const record of records.sort((a, b) =>
+        Number(BigInt(a.purchase.policyNonce) - BigInt(b.purchase.policyNonce)),
+      )) {
+        if (!same(record.policy, policy))
+          throw new Error("Wallet Episode has conflicting stored policies");
+        const replay = reserveRescuePaymentIntent(
+          policy,
+          local,
+          record.purchase,
+          record.reservedAtUnixSeconds,
+        );
+        if (replay.reused || !same(replay.intent, record.intent))
+          throw new Error("Payment journal intent mismatch");
+        local = replay.state;
+        for (const [kind, transaction] of Object.entries(record.transactions)) {
+          const operation = validateOperation(transaction.operation);
+          if (
+            kind !== operation.kind ||
+            !["prepared", "broadcast", "confirmed", "reverted"].includes(transaction.status)
+          )
+            throw new Error("Invalid stored payment transaction state");
+          const expectedCall = options.chain.callFor(record, operation);
+          if (!same(expectedCall, transaction.call))
+            throw new Error("Stored payment call does not match reserved intent");
+          const fee = await validateSignedCall(
+            transaction.rawTransaction,
+            expectedCall,
+            transaction.nonce,
+          );
+          if (
+            transaction.transactionHash !== keccak256(transaction.rawTransaction) ||
+            transaction.maximumFeeWei !== String(fee) ||
+            fee > BigInt(limits.maximumTransactionFeeWei)
+          )
+            throw new Error("Stored payment hash or fee metadata mismatch");
+          const nonceKey = `${expectedCall.from.toLowerCase()}:${transaction.nonce}`;
+          if (signerNonces.has(nonceKey))
+            throw new Error("Duplicate signer nonce in payment journal");
+          signerNonces.add(nonceKey);
+          totalFee += fee;
+          if (["confirmed", "reverted"].includes(transaction.status)) {
+            if (!transaction.receipt || transaction.receipt.status !== transaction.status)
+              throw new Error("Stored payment confirmation lacks corresponding receipt");
+            validateReceipt(transaction.receipt, transaction, record);
+          } else if (transaction.receipt)
+            throw new Error("Unconfirmed stored payment has stale receipt");
+        }
+      }
+    }
+    if (totalFee > BigInt(limits.maximumTotalFeeWei))
+      throw new Error("Stored payment gas budget exceeded");
   }
 
   async function requireSepolia() {
@@ -175,6 +314,7 @@ export function createRescuePaymentExecutor(options: {
       const purchase = structuredClone(purchaseInput);
       return options.store.exclusive(async (state, persist) => {
         bindLimits(state);
+        await validateRestoredState(state);
         const context = purchase.order.episodeContextHash;
         const scope = Object.values(state.records).filter(
           (r) =>
@@ -227,7 +367,11 @@ export function createRescuePaymentExecutor(options: {
     },
 
     async inspect(key: Hex) {
-      return options.store.exclusive(async (state) => structuredClone(state.records[key] ?? null));
+      return options.store.exclusive(async (state) => {
+        bindLimits(state);
+        await validateRestoredState(state);
+        return structuredClone(state.records[key] ?? null);
+      });
     },
 
     async execute(key: Hex, operationInput: RescuePaymentOperation, now: number) {
@@ -235,6 +379,7 @@ export function createRescuePaymentExecutor(options: {
       if (!Number.isSafeInteger(now) || now < 0) throw new Error("Invalid wall clock");
       return options.store.exclusive(async (state, persist) => {
         bindLimits(state);
+        await validateRestoredState(state);
         const record = state.records[key];
         if (!record) throw new Error("Unknown payment reservation");
         await requireSepolia();
@@ -272,30 +417,7 @@ export function createRescuePaymentExecutor(options: {
           const nonce = Math.max(pending, ...prior.map((t) => t.nonce + 1));
           if (!Number.isSafeInteger(nonce) || nonce < 0) throw new Error("Invalid signer nonce");
           const raw = await options.chain.prepareSigned(call, nonce, limits);
-          if (!raw.startsWith("0x02"))
-            throw new Error("Only EIP-1559 payment transactions are allowed");
-          const parsed = parseTransaction(raw);
-          const signer = await recoverTransactionAddress({
-            serializedTransaction: raw as `0x02${string}`,
-          });
-          if (
-            parsed.type !== "eip1559" ||
-            parsed.chainId !== 11155111 ||
-            signer.toLowerCase() !== call.from.toLowerCase() ||
-            parsed.to?.toLowerCase() !== call.to.toLowerCase() ||
-            parsed.data !== call.data ||
-            (parsed.value ?? 0n) !== 0n ||
-            parsed.nonce !== nonce ||
-            !parsed.gas ||
-            !parsed.maxFeePerGas ||
-            parsed.maxPriorityFeePerGas === undefined ||
-            parsed.gas > BigInt(limits.maximumGas) ||
-            parsed.maxFeePerGas > BigInt(limits.maximumFeePerGasWei) ||
-            parsed.maxPriorityFeePerGas > BigInt(limits.maximumPriorityFeePerGasWei) ||
-            parsed.maxPriorityFeePerGas > parsed.maxFeePerGas
-          )
-            throw new Error("Signed transaction violates the fixed payment call or fee policy");
-          const fee = parsed.gas * parsed.maxFeePerGas;
+          const fee = await validateSignedCall(raw, call, nonce);
           const reservedFees = Object.values(state.records)
             .flatMap((r) => Object.values(r.transactions))
             .reduce((sum, t) => sum + BigInt(t.maximumFeeWei), 0n);
@@ -324,11 +446,7 @@ export function createRescuePaymentExecutor(options: {
           limits.requiredConfirmations,
         );
         if (receipt) {
-          if (
-            receipt.transactionHash !== transaction.transactionHash ||
-            (receipt.status === "confirmed" && !receipt.verifiedEvent)
-          )
-            throw new Error("Payment receipt evidence mismatch");
+          validateReceipt(receipt, transaction, record);
           transaction.receipt = receipt;
           transaction.status = receipt.status;
           await persist();
@@ -337,6 +455,14 @@ export function createRescuePaymentExecutor(options: {
         delete transaction.receipt;
         transaction.status = "prepared";
         await persist();
+        if (
+          operation.kind === "release" &&
+          now > record.intent.args.deadline &&
+          !(await options.chain.knownTransaction?.(transaction.transactionHash))
+        )
+          throw new Error(
+            "Expired signed release is not known on chain; operator reconciliation required",
+          );
         // Ambiguous RPC failure intentionally leaves prepared raw bytes for identical retry.
         const sentHash = await options.chain.broadcast(transaction.rawTransaction);
         if (sentHash !== transaction.transactionHash) throw new Error("Broadcast hash mismatch");
