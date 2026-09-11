@@ -1,139 +1,264 @@
 # Value Decentralization
 
-**Frontier Protocol rewards useful tradeoffs without hiding them inside one score.**
+[日本語](README_JA.md)
 
-Most competitions combine cost, performance, safety or resilience into a weighted total. That produces a clean ranking, but the weights have already decided which kind of improvement matters most.
+**Decentralize how progress is defined—not just how value is transferred.**
 
-Value Decentralization keeps each metric independent and lets funders publish separate Value Pools with visible rules and budgets. Correct solutions can receive support for efficiency, resilience, fairness, or the new Pareto-frontier area they contribute—without one overall winner.
+**Shared evidence. Independent values. Verifiable settlement.**
 
-[Live product](https://web-rho-seven-d6te7t3f0y.vercel.app) · [Sepolia reward](https://sepolia.etherscan.io/tx/0xd976a968aefeb66d7e60fba7a9cf64c8711195fc3652aeccc20c7448069ad708) · [Architecture](https://web-rho-seven-d6te7t3f0y.vercel.app/architecture)
+Most competitions collapse cost, performance, resilience, fairness, or safety into one weighted score. That looks objective, but the weights already encode one definition of what “better” means.
 
-## A result you can reproduce
+Value Decentralization is an open evaluation protocol for **sharing evidence without forcing everyone to share the same values**. Correct solutions are measured under the same published context, each outcome stays independent, and different Value Pools can support efficiency, resilience, fairness, or genuinely new tradeoffs—without inventing one global winner or one master score.
 
-The Calldata Compression arena runs compiled Solidity decoder bytecode inside an EthereumJS Cancun EVM. The preloaded Packed codec produces:
+[Live Product](https://web-rho-seven-d6te7t3f0y.vercel.app) · [Architecture](https://web-rho-seven-d6te7t3f0y.vercel.app/architecture) · [Sepolia Reward](https://sepolia.etherscan.io/tx/0xd976a968aefeb66d7e60fba7a9cf64c8711195fc3652aeccc20c7448069ad708) · [Whitepaper](https://github.com/Jun0908/Decentralized-Value-Whitepaper)
+
+## Judges: see the protocol in 60 seconds
+
+### 1. Run a real EVM evaluation
+
+**[Ethereum Calldata Compression](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/calldata-compression)**
+
+This arena does not animate precomputed numbers. It **executes compiled Solidity decoder bytecode inside an EthereumJS Cancun EVM**.
+
+Current reproducible result for the preloaded Packed codec:
 
 | Calldata gas | Decoder gas | Correctness | Frontier contribution |
-| -----------: | ----------: | :---------: | --------------------: |
-|      `8,200` |    `13,061` |   `PASS`    |              `+5.27%` |
+| ---: | ---: | :---: | ---: |
+| `8,200` | `13,061` | `PASS` | `+5.27%` |
 
-Dictionary encoding uses less calldata. Packed decoding uses less execution gas. Neither dominates the other, so both remain rewardable. Standard ABI performs worse on both axes and receives no frontier reward.
+Dictionary encoding uses less calldata. Packed decoding uses less execution gas. Neither dominates the other, so both survive on the Pareto frontier. Standard ABI is worse on both axes and falls off the frontier.
 
-The measurement and result hash are calculated from executable bytecode rather than a precomputed animation.
+### 2. Keep multiple definitions of progress alive
 
-**[Run the live EVM proof](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/calldata-compression)**
+**[72-Hour Disaster Response](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/emergency-supply)**
 
-## How it works
+A strategy across five suppliers, four routes, and four regions is replayed against seven disruption scenarios. The evaluator keeps these outcomes independent:
+
+- 72-hour cost — minimize
+- worst-case delivery — maximize
+- worst-region coverage — maximize
+
+The same evidence can then feed separate Efficiency, Resilience, Fairness, and Frontier Expansion pools. **There is no overall score and no universal winner.**
+
+### 3. Verify that an allocation was actually paid
+
+- [Allocation commitment](https://sepolia.etherscan.io/tx/0x96fd7a9d1f4a3bbd2fa7a9ea28d250a16e8eedbaff05b51a4f33e581c3839f2c)
+- [RewardPaid](https://sepolia.etherscan.io/tx/0xd976a968aefeb66d7e60fba7a9cf64c8711195fc3652aeccc20c7448069ad708)
+- [Machine-readable deployment evidence](Docs/deployments/sepolia-reward-demo.json)
+
+The Sepolia demonstration completes the path from allocation commitment to `RewardPaid` and records a `10,000 FDT` recipient balance increase. FDT is a demonstration token and carries no claim of monetary value.
+
+---
+
+## The core idea
+
+> **Shared evidence does not require shared values.**
+
+A conventional weighted score might do this:
 
 ```text
-Public goals, constraints, and Value Pools
-        ↓
-Builder or AI agent submits a solution
-        ↓
-Correctness gate and deterministic measurement
-        ↓
-Independent pool rules and Pareto contribution
-        ↓
-Ethereum allocation and reward
+40% cost + 35% resilience + 25% fairness = one winner
 ```
 
-Each challenge fixes its dataset, hard constraints, metrics and evaluation environment before results arrive. Invalid artifacts never enter the performance comparison.
-
-A valid result remains on the frontier when no other result performs at least as well on every axis and strictly better on one. Its exclusive contribution is the frontier area lost when that result is removed.
+Value Decentralization keeps the measurements separate:
 
 ```text
-contribution[i] = HV(frontier) - HV(frontier without result[i])
-
-reward[i] = rewardPool × contribution[i] ÷ totalContribution
+                    ┌─ Efficiency Pool
+Shared Evidence ────├─ Resilience Pool
+                    ├─ Fairness Pool
+                    └─ Frontier Expansion Pool
 ```
 
-The same evidence can therefore unlock different rewards without asking one sponsor to compress every value into a preferred weighting.
+Pareto is not a replacement ideology or a new sovereign score. It is a **safeguard against deleting useful tradeoffs too early**.
+
+## What is technically different
+
+### 1. A deterministic multi-objective engine, not a chart
+
+[`packages/shared/src/multiobjective.ts`](packages/shared/src/multiobjective.ts) handles the protocol-level comparison logic:
+
+- `MINIMIZE` and `MAXIMIZE` metrics in one engine
+- hard-constraint gating before performance comparison
+- normalization against published bounds
+- full Pareto frontier recomputation
+- exact hypervolume up to 6 dimensions
+- exclusive frontier contribution
+- stable ordering so submission order cannot change the result
+
+For a Frontier Expansion pool, an artifact’s exclusive contribution is the outcome-space area lost when that artifact is removed:
+
+```text
+exclusive[i] = HV(all results) - HV(all results without i)
+```
+
+Reward allocation then uses deterministic integer arithmetic and fixed tie-breaks.
+
+### 2. Evaluation becomes an evidence chain
+
+Challenges, artifacts, outcomes, and allocations are bound together rather than stored as unrelated rows:
+
+```text
+dataset + constraints + metrics + evaluator version
+                         ↓
+                    Context Hash
+                         ↓
+artifact + measurements + correctness
+                         ↓
+                     Result Hash
+                         ↓
+pool rules + final allocations
+                         ↓
+                   Allocation Root
+                         ↓
+              Ethereum commitment/payment
+```
+
+Canonical serialization and cryptographic hashing make changes to evaluator context, artifacts, or outcomes visible in the resulting evidence.
+
+### 3. Real bytecode, real EVM execution
+
+In Calldata Compression, candidate codecs are compiled and their runtime bytecode executes under Cancun rules. The evaluator checks, together:
+
+- equality with the reference decoded output
+- malformed-input rejection
+- calldata gas
+- decoder execution gas
+
+The evidence therefore comes from the executable artifact itself, not from a self-reported benchmark.
+
+### 4. Real browser-side zero-knowledge proving
+
+**[Secret Gate](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/secret-gate)** uses Semaphore V4:
+
+- a disposable identity is created in the browser
+- only its public commitment is enrolled
+- a real membership proof is generated in a Web Worker
+- the server verifies the proof
+- an atomic nullifier store rejects same-scope reuse
+
+The private identity itself does not need to become public application state.
+
+### 5. Turn nondeterministic AI into reproducible evidence
+
+**Rescue Room** supports deterministic reference commanders and a participant AI Commander path using the OpenAI Agents SDK.
+
+We do **not** claim that rerunning an LLM produces identical reasoning. Instead, the reproducible boundary is:
+
+```text
+Public View Hash
+      ↓
+Structured Action
+      ↓
+Action Record
+      ↓
+Deterministic Replay
+      ↓
+Same Outcome / Result Hash
+```
+
+The protocol reproduces what the agent actually did, not its hidden chain of thought.
+
+---
+
+## Six arenas, one protocol
+
+| Arena | Independent outcomes | State |
+| --- | --- | --- |
+| **72-Hour Disaster Response** | cost ↓ · worst-case delivery ↑ · regional coverage ↑ | Demo competition |
+| **Ethereum Calldata Compression** | calldata gas ↓ · decoder gas ↓ | Practice |
+| **Community Microgrid Dispatch** | cost ↓ · worst-case energy ↑ · carbon ↓ | Practice |
+| **Secret Gate** | proof latency ↓ · memory ↓ | Practice / observational |
+| **Rescue Room** | user loss ↓ · demand served ↑ · response spend ↓ | Controlled Practice |
+| **Ocean Commons** | livelihood ↑ · restraint ↑ · cooperation ↑ | Practice |
+
+Each domain needs its own evaluator, but the protocol primitives remain shared: **Context, Hard Constraints, independent Outcomes, Pareto, Evidence, and Value Pools**.
 
 ## Why Ethereum
 
-Arena-specific evaluation runs offchain, where different datasets and execution environments are practical. Ethereum handles the boundary that participants should be able to verify independently.
+The goal is not to force every domain-specific computation onchain.
 
-The Sepolia demonstration records the final allocation, prevents a second commitment or duplicate claim and emits the reward event publicly.
+Evaluations can involve simulation, compilation, EVM execution, ZK proving, or AI action replay, so those workloads remain domain-specific and offchain. Ethereum is used at the boundary where participants should not have to trust an operator to rewrite the final allocation after seeing the result.
 
-- [Deployment record](Docs/deployments/sepolia-reward-demo.json)
-- [Allocation commitment](https://sepolia.etherscan.io/tx/0x96fd7a9d1f4a3bbd2fa7a9ea28d250a16e8eedbaff05b51a4f33e581c3839f2c)
-- [RewardPaid transaction](https://sepolia.etherscan.io/tx/0xd976a968aefeb66d7e60fba7a9cf64c8711195fc3652aeccc20c7448069ad708)
+In the current demonstration path, `FrontierRewardPool`:
 
-The demonstration increased the recipient balance by `10,000 FDT`. FDT is a Sepolia demonstration token with no claim of monetary value.
+- commits one allocation per challenge
+- rejects reservations beyond funded balance
+- prevents duplicate reward destinations within the same allocation
+- provides participant claim fallback
+- emits public `RewardPaid` events
 
-## Four working arenas
+Ethereum does **not** prove that an offchain evaluator is socially correct. It makes clear **what was committed and what was actually paid**.
 
-### Ethereum Calldata Compression
+## Evidence without overclaiming
 
-Measures calldata gas and decoder execution gas while requiring the Solidity decoder to reproduce the reference result and reject malformed input.
+This project deliberately separates different evidence states instead of calling everything “verified.”
 
-[Measure a codec](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/calldata-compression)
+| State | Meaning |
+| --- | --- |
+| `measured` | a deterministic evaluator produced a result |
+| `simulated` | a modeled boundary is explicitly labeled |
+| `committed` | corresponding onchain evidence exists |
+| `paid` | transfer/event and recipient evidence exist |
+| `Practice` | measurement is real while the production tournament layer remains incomplete |
 
-### 72-Hour Disaster Response
+The public evaluators and Sepolia reward demonstration are real. That does not mean a production tournament has already been fully deployed.
 
-Builds a response strategy across five suppliers, four routes and four regions, then replays seven disruption scenarios. Independent Value Pools reward the cheapest valid strategy, strongest worst-case delivery, fairest regional coverage and positive frontier contribution without declaring an overall winner.
+## Working today
 
-The arena also includes four practice-only learning missions and a machine-readable AI Agent path. Its Starter Kit publishes the Strategy schema, evaluator contract, public scenarios, equal usage limits, baseline Agent and reproduction command. Human and Agent entries are measured by the same evaluator; Agent metadata and effort never affect rewards.
+- compiled Solidity bytecode execution in a Cancun EVM
+- direction-aware Pareto, exact hypervolume, and exclusive contribution
+- context-bound deterministic result hashing
+- Disaster Response strategy builder, seven scenarios, replay, revision, and Final Entry flow
+- deterministic 3-axis Microgrid evaluation
+- real browser-side Semaphore V4 proof generation
+- deterministic Rescue Room simulation plus AI Playbook path
+- Redis-backed participant state for production-configured competition paths
+- Sepolia allocation commitment and `RewardPaid` demonstration
+- same-origin public API and OpenAPI surface
 
-[Build a response strategy](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/emergency-supply)
+For the exact implementation boundary, see [`Docs/STATUS.md`](Docs/STATUS.md).
 
-### Community Microgrid Dispatch
+## Architecture
 
-Measures energy cost, worst-case delivered energy and lifecycle carbon as three independent axes.
+```text
+Challenge
+  │
+  ├─ Hard Constraints
+  ├─ Independent Metrics
+  ├─ Versioned Context
+  └─ Independent Value Pools
+          │
+          ▼
+Human / AI Agent
+          │
+       Artifact
+          │
+          ▼
+Deterministic Evaluator
+  ├─ Correctness Gate
+  ├─ Outcome Vector
+  ├─ Pareto Frontier
+  ├─ Hypervolume / Contribution
+  └─ Context + Result Evidence
+          │
+          ▼
+Independent Allocations
+          │
+          ▼
+Ethereum Commitment / Settlement
+```
 
-[Build a dispatch](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/microgrid-dispatch)
-
-### Secret Gate
-
-Creates a disposable Semaphore identity in the browser, enrolls only its public commitment, and generates a real zero-knowledge membership proof in a Web Worker. The current reference Gate verifies offchain and rejects a second use of the same nullifier. Its personal-device latency and memory measurements are observational practice evidence, not an official competition.
-
-[Prove membership](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/secret-gate)
-
-Each arena supplies its own inputs, correctness checks and metrics. The challenge shell, frontier engine and settlement interface remain shared.
-
-## Beyond a better competition
-
-Ethereum made ownership and participation more open. Value Decentralization applies the same direction to a quieter question: which improvements receive capital?
-
-When price is the only visible axis, the cheapest solution wins. Keeping environmental impact separate can leave room for low-cost, low-carbon, locally resilient and circular approaches to develop at the same time.
-
-The protocol does not choose society's values. Communities publish the axes, bounds and correctness rules. Those choices stay visible, and another community can create a market with different rules.
-
-## Current status
-
-### SDK and CLI (local preview)
-
-The monorepo now contains the TypeScript SDK in `packages/sdk` and the `frontier` CLI in `packages/cli`. They support context-locked Practice for Disaster Response and Rescue Room Doctrine, independent-metric comparison, and authenticated Disaster Response revisions, history, download, and Final Entry selection. The local usage page is `/docs/cli`; saved results use `/submissions/[id]?arena=disaster-response`.
-
-Run `pnpm build:tooling` and `pnpm exec frontier --help` from the repository root. The packages are private, are not on npm, and these API/Web changes have not been deployed. Public Practice needs no account; submission requires configured Privy and storage. `pnpm verify:cli` verifies complete workflows with isolated local fixture accounts, including safe resume after a lost response. It never submits to a live account.
-
-### Existing application evidence
-
-Working today:
-
-- compiled Solidity execution in a Cancun EVM;
-- deterministic correctness, metric and Pareto evaluation;
-- editable Disaster Response and Microgrid simulations;
-- independent Value Pool manifests, deterministic allocations, and a community Protect a Region practice pool;
-- automated TypeScript suites covering evaluators, API, SDK, CLI, storage, and UI boundaries;
-- real client-side Semaphore proof generation and one-use offchain Gate verification;
-- a publicly inspectable Sepolia reward-path demonstration.
-
-The public evaluators and Sepolia reward demonstration are real. Disaster Response and Classic Emergency Supply participant state use durable Redis storage in production. Participant uniqueness, isolated arbitrary-code execution, hidden final workloads, and scheduled final settlement are not deployed.
-
-See [Docs/STATUS.md](Docs/STATUS.md) for the exact implementation boundary.
-
-## Run locally
+## Local development
 
 Requirements:
 
 - Node.js `22+`
-- pnpm `11.24.0` through Corepack
+- pnpm `11.24.0`
 - Foundry `1.8.1` for contract tests
 
 ```bash
 corepack enable
 pnpm install --frozen-lockfile
-pnpm build:tooling
 pnpm dev
 ```
 
@@ -143,16 +268,44 @@ Run the full verification suite:
 pnpm run ci
 ```
 
-Optional integrations use `.env.local`. Never commit private keys, wallet material or service credentials.
+## Repository map
+
+```text
+apps/web                      Next.js application + same-origin routes
+apps/api                      reusable API / competition orchestration
+apps/runner                   evaluation / attestation boundary
+packages/shared               schemas, hashes, Pareto, hypervolume, allocation
+packages/disaster-response    seven-scenario Strategy evaluator
+packages/calldata-compression Solidity codecs + Cancun EVM evaluator
+packages/microgrid-dispatch   deterministic energy evaluator
+packages/secret-gate          Semaphore policy / evidence
+packages/rescue-room          incident simulator / AI action replay
+packages/ocean-commons        multi-agent commons simulator
+packages/contracts            Solidity settlement contracts
+openapi/frontier-v1.yaml      public API source of truth
+```
+
+## Long-term ambition
+
+The ambition is larger than building a better competition platform.
+
+We want any community to be able to define a value, make it measurable and verifiable, attach independent demand to improving it, and keep that value from disappearing inside somebody else’s weighting function.
+
+If that demand persists, new builders, evaluators, standards, companies, and eventually entirely new industries can form around values that markets previously ignored.
+
+**Ethereum decentralized who can own and transact. Value Decentralization asks the next question:**
+
+> **Can we decentralize how progress itself is defined?**
 
 ## Documentation
 
+- [Whitepaper](https://github.com/Jun0908/Decentralized-Value-Whitepaper)
 - [Product model](Docs/PRODUCT.md)
 - [Architecture and trust boundaries](Docs/ARCHITECTURE.md)
 - [Current implementation status](Docs/STATUS.md)
-- [Demo and recovery guide](Docs/DEMO.md)
-- [Optional integrations](Docs/INTEGRATIONS.md)
+- [Demo guide](Docs/DEMO.md)
+- [External integrations](Docs/INTEGRATIONS.md)
 
 ## Provenance
 
-Development began during the hackathon on 2026-09-05. The human project owner directed the product thesis, arena choices, metrics, fairness model and reward philosophy. Codex and Claude Code supported implementation. Generated work was checked through deterministic fixtures, TypeScript and Foundry tests, production builds and browser verification.
+Development began during ETHOnline on 2026-09-05. The human project owner directed the product thesis, arena choices, metrics, fairness model, and reward philosophy. Codex and Claude Code supported implementation. Generated work is checked through deterministic fixtures, TypeScript and Foundry tests, production builds, benchmarks, and browser verification.
