@@ -26,6 +26,12 @@ export type RejectedProposal = {
   proposer: string;
   reason: string;
   errors: ValidationError[];
+  /**
+   * What was actually turned down. Without it a rejection is only a count, and
+   * a refused offer is half of every negotiation — the replay could show deals
+   * being struck but never one being declined.
+   */
+  offer?: Proposal;
 };
 
 export type MatchLog = {
@@ -290,6 +296,7 @@ export async function runMatch(
               proposer: proposal.proposer,
               reason: "COUNTERPARTY_REJECTED",
               errors: [],
+              offer: proposal,
             });
             continue;
           }

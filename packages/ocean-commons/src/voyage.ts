@@ -70,6 +70,14 @@ export type VoyageBond = {
   fresh: boolean;
 };
 
+/** An offer that was made and turned down. Half of every negotiation. */
+export type VoyageRefusal = {
+  from: BoatId;
+  to: BoatId;
+  kind: PactKind;
+  payment: number;
+};
+
 export type VoyageRound = {
   round: number;
   phase: VoyagePhase;
@@ -80,6 +88,7 @@ export type VoyageRound = {
   boats: VoyageBoat[];
   grounds: VoyageGround[];
   bonds: VoyageBond[];
+  refusals: VoyageRefusal[];
 };
 
 export type Voyage = {
@@ -142,6 +151,7 @@ function captionsFor(
   storm: number,
   names: Map<BoatId, string>,
   before: VoyageBoat[],
+  refusals: VoyageRefusal[],
 ): string[] {
   // Going bankrupt and running dry are events, not states. Reporting them for
   // every round they remain true made a replay look stuck on bad news.
@@ -163,6 +173,16 @@ function captionsFor(
       bond.escrowRemaining > 0
         ? `${who(bond.from)} pays ${who(bond.to)} ${bond.escrowRemaining.toFixed(0)} to ${termsOf(bond)}.`
         : `${who(bond.from)} and ${who(bond.to)} agree to ${termsOf(bond)}.`,
+    );
+  }
+
+  // A refusal outranks most of the weather: somebody named a price and was told
+  // no, which is the negotiation the Arena is actually about.
+  for (const refusal of refusals) {
+    out.push(
+      refusal.payment > 0
+        ? `${who(refusal.to)} turned down ${refusal.payment.toFixed(0)} from ${who(refusal.from)}.`
+        : `${who(refusal.to)} refused to ${termsOf({ kind: refusal.kind } as VoyageBond)} with ${who(refusal.from)}.`,
     );
   }
 
@@ -320,6 +340,16 @@ export function toVoyage(log: MatchLog, viewpoint: BoatId | null = null): Voyage
       boats,
       grounds,
       bonds,
+      refusals: log.rejectedProposals
+        .filter((entry) => entry.round === record.round && entry.offer !== undefined)
+        .flatMap((entry) =>
+          entry.offer!.counterparties.map((party) => ({
+            from: entry.offer!.proposer,
+            to: party,
+            kind: entry.offer!.terms.kind,
+            payment: stable(entry.offer!.payment),
+          })),
+        ),
     };
   });
 
@@ -331,6 +361,7 @@ export function toVoyage(log: MatchLog, viewpoint: BoatId | null = null): Voyage
       round.stormSeverity,
       names,
       index === 0 ? round.boats.map((boat) => ({ ...boat, active: true, clampReason: null })) : rounds[index - 1]!.boats,
+      round.refusals,
     );
     round.caption = options.find((line) => line !== saidLast) ?? options[0]!;
     saidLast = round.caption;
