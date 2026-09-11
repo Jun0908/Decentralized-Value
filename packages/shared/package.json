@@ -1,13 +1,43 @@
 {
   "name": "@frontier/shared",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./cli": "./src/cli.ts",
+    "./multiobjective": "./src/multiobjective.ts",
+    "./manifest": "./src/manifest.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./cli": {
+        "types": "./dist/cli.d.ts",
+        "import": "./dist/cli.js"
+      },
+      "./multiobjective": {
+        "types": "./dist/multiobjective.d.ts",
+        "import": "./dist/multiobjective.js"
+      },
+      "./manifest": {
+        "types": "./dist/manifest.d.ts",
+        "import": "./dist/manifest.js"
+      }
+    }
   },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json && node build.mjs",
     "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
   },
   "dependencies": {
     "viem": "2.56.3",

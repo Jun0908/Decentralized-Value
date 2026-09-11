@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.tgz binary
+*.png binary
+*.pdf binary
+*.wasm binary
+*.zkey binary

@@ -2,6 +2,7 @@ import {
   artifactSchema,
   benchmarkRecordSchema,
   bytes32Schema,
+  cliArenaIdSchema,
   canonicalProtocolJson,
   stringifyProtocolJson,
 } from "@frontier/shared";
@@ -48,6 +49,8 @@ import {
   createPlan6CommunityValuePool,
   createPlan6StarterKitZip,
   disasterResponseStrategySchema,
+  disasterResponseInputHash,
+  Plan6StoreError,
   plan6ChallengeId,
   plan6SubmissionSchema,
   plan6ValueFunderId,
@@ -62,11 +65,14 @@ import {
   type RescueRoomCommanderExecutor,
 } from "./rescue-room-agent";
 import { createRescueRoomStarterKitZip } from "./rescue-room-competition";
+import { cliArenaManifest, contextPrecondition } from "./cli-manifest";
+import { CliAuthError, type CliAuthService, type CliAuthScope } from "./cli-auth";
 
 export * from "./plan5-competition";
 export * from "./plan6-competition";
 export * from "./rescue-room-agent";
 export * from "./rescue-room-competition";
+export * from "./cli-auth";
 
 const evaluationSchema = z.object({ artifactId: bytes32Schema });
 const supplyEvaluationSchema = z
@@ -163,6 +169,7 @@ export type Plan6Options = {
   store?: Plan6CompetitionStore;
   identity?: Plan5IdentityResolver;
   settlement?: Plan6Settlement;
+  cliAuth?: CliAuthService;
 };
 
 export type RescueRoomOptions = {
@@ -203,7 +210,11 @@ class SlidingWindowLimiter {
 function json(body: unknown, status = 200, headers?: HeadersInit): Response {
   return new Response(stringifyProtocolJson(body), {
     status,
-    headers: { "content-type": "application/json; charset=utf-8", ...headers },
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+      ...headers,
+    },
   });
 }
 
@@ -235,6 +246,13 @@ export class FrontierApi {
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/$/, "") || "/";
+    if (path.startsWith("/v1/cli/auth/")) {
+      if (!this.plan6.cliAuth)
+        return error(503, "CLI_AUTH_UNCONFIGURED", "CLI authentication is not configured");
+      return (
+        (await this.plan6.cliAuth.handle(request)) ?? error(404, "NOT_FOUND", "Route not found")
+      );
+    }
     const client = request.headers.get("x-forwarded-for") ?? "local";
     if (!this.limiter.accept(client)) return error(429, "RATE_LIMITED", "Too many requests");
 
@@ -246,6 +264,8 @@ export class FrontierApi {
         allowed: ["GET", "POST", "PUT"],
       });
     } catch (cause) {
+      if (cause instanceof Plan6StoreError || cause instanceof CliAuthError)
+        return error(cause.status, cause.code, cause.message);
       if (cause instanceof ApiError) return error(cause.status, cause.code, cause.message);
       if (cause instanceof z.ZodError)
         return error(400, "VALIDATION_ERROR", "Request validation failed", cause.issues);
@@ -255,6 +275,23 @@ export class FrontierApi {
 
   private async get(path: string, url: URL, request: Request): Promise<Response> {
     const { store } = this;
+    if (path === "/v1/cli/arenas" || path.startsWith("/v1/cli/arenas/")) {
+      const options = {
+        storage: this.plan6.store?.durability ?? ("unconfigured" as const),
+        authenticationAvailable: this.plan6.cliAuth?.available ?? false,
+        production: process.env.NODE_ENV === "production",
+      };
+      if (path === "/v1/cli/arenas") {
+        return json({
+          schemaVersion: "1",
+          arenas: cliArenaIdSchema.options.map((id) => cliArenaManifest(id, options)),
+        });
+      }
+      const id = cliArenaIdSchema.safeParse(path.slice("/v1/cli/arenas/".length));
+      if (!id.success)
+        return error(404, "ARENA_NOT_SUPPORTED", "This Arena is not supported by the CLI");
+      return json(cliArenaManifest(id.data, options));
+    }
     if (path === "/v1/challenges/disaster-response") {
       const leaderboard = this.plan6.store
         ? await buildPlan6Leaderboard(this.plan6.store)
@@ -540,24 +577,64 @@ export class FrontierApi {
           "A unique Idempotency-Key between 8 and 128 characters is required",
         );
       }
-      const existing = await competition.submissionForIdempotency(
-        participant.participantId,
-        idempotencyKey,
-      );
-      if (existing) return json({ storage: competition.durability, submission: existing });
       const parsed = plan6SubmissionSchema.parse(await body(request));
-      const previousEvaluation = (
-        await competition.submissionsForParticipant(participant.participantId)
-      ).at(-1)?.evaluation;
-      const submission = await competition.addSubmission(
-        preparePlan6Submission(participant, parsed, previousEvaluation ?? null),
-      );
-      await competition.saveSubmissionIdempotency(
+      const digest = keccak256(stringToHex(canonicalProtocolJson(parsed)));
+      const existing = await competition.lookupSubmissionIdempotency(
         participant.participantId,
         idempotencyKey,
-        submission.submissionId,
       );
-      return json({ storage: competition.durability, submission }, 201);
+      if (existing) {
+        const sourceHash = keccak256(
+          stringToHex(
+            canonicalProtocolJson({
+              sourceMethod: parsed.sourceMethod,
+              repositoryUrl: parsed.repositoryUrl,
+              sourceCommit: parsed.sourceCommit,
+              agentEvidence: parsed.agentEvidence,
+            }),
+          ),
+        );
+        if (
+          (existing.bodyDigest !== null && existing.bodyDigest !== digest) ||
+          existing.submission.inputHash !== disasterResponseInputHash(parsed.strategy) ||
+          existing.submission.sourceHash !== sourceHash
+        ) {
+          return error(
+            409,
+            "IDEMPOTENCY_CONFLICT",
+            "This operation is bound to another submission body",
+          );
+        }
+        return json({ storage: competition.durability, submission: existing.submission });
+      }
+      const mismatch = contextPrecondition(request, "disaster-response");
+      if (mismatch) return error(409, "CONTEXT_MISMATCH", mismatch);
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        const previous = (
+          await competition.submissionsForParticipant(participant.participantId)
+        ).at(-1);
+        const prepared = preparePlan6Submission(participant, parsed, previous?.evaluation ?? null);
+        try {
+          const result = await competition.commitSubmission(
+            prepared,
+            idempotencyKey,
+            digest,
+            previous?.revision ?? 0,
+          );
+          return json(
+            { storage: competition.durability, submission: result.submission },
+            result.status === "saved" ? 201 : 200,
+          );
+        } catch (cause) {
+          if (
+            !(cause instanceof Plan6StoreError) ||
+            cause.code !== "REVISION_CONFLICT" ||
+            attempt === 3
+          )
+            throw cause;
+        }
+      }
+      return error(409, "REVISION_CONFLICT", "Retry this operation with the same idempotency key");
     }
     if (path === "/v1/challenges/disaster-response/demo-settlement") {
       const identity = await this.requirePlan6Identity(request);
@@ -658,8 +735,14 @@ export class FrontierApi {
       }
     }
     if (path === "/v1/disaster-response/evaluations") {
+      const mismatch = contextPrecondition(request, "disaster-response");
+      if (mismatch) return error(409, "CONTEXT_MISMATCH", mismatch);
       const strategy = disasterResponseStrategySchema.parse(await body(request));
-      return json({ state: "measured", ...evaluateDisasterResponseStrategy(strategy) });
+      return json({
+        state: "measured",
+        inputHash: disasterResponseInputHash(strategy),
+        ...evaluateDisasterResponseStrategy(strategy),
+      });
     }
     if (path === "/v1/challenges/emergency-supply/join") {
       const identity = await this.requirePlan5Identity(undefined, request);
@@ -803,6 +886,8 @@ export class FrontierApi {
       return json({ state: "measured", ...evaluateMicrogridDispatch(parsed.allocations) }, 200);
     }
     if (path === "/v1/rescue-room/doctrine-evaluations") {
+      const mismatch = contextPrecondition(request, "rescue-room");
+      if (mismatch) return error(409, "CONTEXT_MISMATCH", mismatch);
       const parsed = rescueRoomDoctrineEvaluationSchema.parse(await body(request));
       const scenario = publicRescueRoomScenario();
       if (!scenario.episodes.some(({ id }) => id === parsed.episodeId)) {
@@ -965,11 +1050,25 @@ export class FrontierApi {
 
   private async put(path: string, request: Request): Promise<Response> {
     if (path === "/v1/challenges/disaster-response/final-entry") {
+      const mismatch = contextPrecondition(request, "disaster-response");
+      if (mismatch) return error(409, "CONTEXT_MISMATCH", mismatch);
       const identity = await this.requirePlan6Identity(request);
       const competition = this.requirePlan6Store(true);
       const participant = await competition.participantForUser(identity.userId);
       if (!participant) throw new ApiError(409, "NOT_JOINED", "Join this challenge first");
       const parsed = plan6FinalEntrySchema.parse(await body(request));
+      const selected = (
+        await competition.submissionsForParticipant(participant.participantId)
+      ).find(({ submissionId }) => submissionId === parsed.submissionId);
+      if (!selected)
+        return error(404, "SUBMISSION_NOT_FOUND", "This submission is not in your history");
+      if (selected.evaluation.contextHash !== publicDisasterResponseScenario().contextHash) {
+        return error(
+          409,
+          "CONTEXT_MISMATCH",
+          "This saved submission belongs to an older evaluation context",
+        );
+      }
       const finalEntry = await competition.selectFinal(
         participant.participantId,
         parsed.submissionId,
@@ -1040,6 +1139,25 @@ export class FrontierApi {
   }
 
   private async requirePlan6Identity(request?: Request) {
+    if (request?.headers.get("authorization")?.startsWith("Bearer frontier_cli_")) {
+      const scopeByOperation: Record<string, CliAuthScope> = {
+        "GET /v1/challenges/disaster-response/submissions/mine": "disaster:read",
+        "POST /v1/challenges/disaster-response/join": "disaster:join",
+        "POST /v1/challenges/disaster-response/submissions": "disaster:submit",
+        "PUT /v1/challenges/disaster-response/final-entry": "disaster:entry",
+      };
+      const scope =
+        scopeByOperation[`${request.method} ${new URL(request.url).pathname.replace(/\/$/, "")}`];
+      if (!scope)
+        throw new ApiError(
+          403,
+          "CLI_SCOPE_FORBIDDEN",
+          "CLI sessions cannot authorize this operation",
+        );
+      if (!this.plan6.cliAuth)
+        throw new ApiError(503, "CLI_AUTH_UNCONFIGURED", "CLI authentication is not configured");
+      return this.plan6.cliAuth.resolve(request, scope);
+    }
     if (!this.plan6.identity)
       throw new ApiError(
         503,
@@ -1059,6 +1177,13 @@ export class FrontierApi {
   }
 
   private async requirePlan5Identity(_url?: URL, request?: Request) {
+    if (request?.headers.get("authorization")?.startsWith("Bearer frontier_cli_")) {
+      throw new ApiError(
+        403,
+        "CLI_SCOPE_FORBIDDEN",
+        "CLI sessions do not authorize Classic arena operations",
+      );
+    }
     if (!this.plan5.identity) {
       throw new ApiError(
         503,

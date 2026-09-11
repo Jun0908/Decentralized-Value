@@ -1,0 +1,262 @@
+.page {
+  width: min(100% - 2rem, 72rem);
+  margin: auto;
+  padding: 3rem 0 5rem;
+  line-height: 1.7;
+  letter-spacing: 0;
+}
+.header {
+  max-width: 52rem;
+  margin-bottom: 2.5rem;
+}
+.page h1 {
+  font-size: 2.5rem;
+  line-height: 1.15;
+  letter-spacing: 0;
+  margin: 0.75rem 0 1rem;
+}
+.page h2 {
+  font-size: 1.45rem;
+  line-height: 1.3;
+  letter-spacing: 0;
+  margin: 0 0 1rem;
+}
+.page p {
+  color: var(--muted);
+}
+.page a {
+  color: var(--lime);
+  text-underline-offset: 0.2em;
+}
+.page a:hover {
+  text-decoration: underline;
+}
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font: 0.75rem var(--font-mono);
+}
+.eyebrow svg {
+  width: 1.3rem;
+  height: 1.3rem;
+  flex-shrink: 0;
+}
+.notice {
+  border-left: 3px solid #e9b763;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 12rem minmax(0, 1fr);
+  gap: 3rem;
+  align-items: start;
+}
+.desktopContents {
+  position: sticky;
+  top: 7rem;
+  font-size: 0.82rem;
+}
+.contentsLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 1rem;
+  font-size: 0.82rem;
+}
+.contentsLinks a {
+  color: var(--muted);
+}
+.mobileContents {
+  display: none;
+}
+.article {
+  min-width: 0;
+}
+.article > section {
+  border-top: 1px solid var(--line);
+  padding: 2rem 0;
+  scroll-margin-top: 8rem;
+}
+.page code {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+}
+.codeBlock {
+  margin: 1rem 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #101316;
+}
+.codeHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.75rem;
+  border-bottom: 1px solid var(--line);
+  padding: 0.4rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.copyStatus {
+  margin-left: auto;
+  font-size: 0.7rem;
+}
+.codeHeader button {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+  border-radius: 4px;
+  padding: 0.35rem;
+  color: var(--ink);
+  background: #242a2f;
+}
+.codeHeader svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.codeBlock pre {
+  margin: 0;
+  padding: 1rem;
+  overflow-x: auto;
+  line-height: 1.8;
+}
+.codeBlock code {
+  white-space: pre;
+  overflow-wrap: normal;
+}
+.segmented {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  gap: 3px;
+}
+.segmented button {
+  border-radius: 4px;
+  padding: 0.65rem 0.8rem;
+  background: transparent;
+  color: var(--muted);
+  font: 600 0.8rem var(--font-sans);
+}
+.segmented button[aria-pressed="true"] {
+  background: #30383b;
+  color: white;
+}
+.tableWrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.page table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.85rem;
+}
+.page th,
+.page td {
+  padding: 0.9rem 0.7rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.page th {
+  font-weight: 600;
+}
+.page td {
+  color: var(--muted);
+}
+.page thead {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.figure {
+  margin: 1.5rem 0 0;
+}
+.figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 25rem;
+  object-fit: contain;
+  background: #101316;
+  border-radius: 6px;
+}
+.figure figcaption {
+  color: var(--muted);
+  font-size: 0.75rem;
+  margin-top: 0.6rem;
+}
+.files,
+.states {
+  margin: 1.25rem 0;
+}
+.files > div,
+.states > div {
+  display: grid;
+  grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+  gap: 1rem;
+  border-bottom: 1px solid var(--line);
+  padding: 0.8rem 0;
+  font-size: 0.85rem;
+}
+.page dt {
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.page dd {
+  margin: 0;
+  color: var(--muted);
+}
+.page blockquote {
+  margin: 1rem 0;
+  padding-left: 1rem;
+  border-left: 2px solid #70bcc8;
+  color: var(--ink);
+}
+.page summary {
+  cursor: pointer;
+}
+.page :is(summary, pre, .tableWrap):focus-visible {
+  outline: 2px solid var(--lime);
+  outline-offset: 4px;
+}
+@media (max-width: 760px) {
+  .page {
+    padding-top: 2rem;
+  }
+  .page h1 {
+    font-size: 2rem;
+  }
+  .layout {
+    display: block;
+  }
+  .desktopContents {
+    display: none;
+  }
+  .mobileContents {
+    display: block;
+    margin-bottom: 1.5rem;
+  }
+  .files > div,
+  .states > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.3rem;
+  }
+  .page th,
+  .page td {
+    padding: 0.65rem 0.35rem;
+    font-size: 0.78rem;
+  }
+  .page th code {
+    font-size: 0.72rem;
+  }
+}

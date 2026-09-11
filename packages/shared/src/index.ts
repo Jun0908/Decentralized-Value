@@ -6,3 +6,4 @@ export * from "./manifest";
 export * from "./competition";
 export * from "./settlement";
 export * from "./schemas";
+export * from "./cli";

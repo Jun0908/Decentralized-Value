@@ -1,0 +1,1639 @@
+{
+  "manifest": {
+    "schemaVersion": "1",
+    "id": "disaster-response",
+    "challengeId": "disaster-response-v2",
+    "name": "72-Hour Disaster Response",
+    "webPath": "/arenas/emergency-supply",
+    "context": {
+      "contextHash": "0xa32679e82c8449b21240206b4a8b67bb834bfb03e4ecffa278aa6031cad839aa",
+      "runtimeContextHash": null,
+      "manifestHash": "0x2a70810f1f58eb796b53382dc8fb9904558b0aee8c8299659841983489a1dd63",
+      "evaluatorVersion": "disaster-response-evaluator-v2",
+      "dataVersion": "disaster-network-2026-09-v2",
+      "metrics": [
+        {
+          "key": "totalProcurementCost",
+          "name": "72-hour cost exposure",
+          "direction": "MINIMIZE",
+          "unit": "USD",
+          "lowerBound": 30000,
+          "upperBound": 100000
+        },
+        {
+          "key": "worstCaseDeliveredKits",
+          "name": "Worst-case delivery",
+          "direction": "MAXIMIZE",
+          "unit": "kits",
+          "lowerBound": 0,
+          "upperBound": 1000
+        },
+        {
+          "key": "regionalFairnessPpm",
+          "name": "Worst-region coverage",
+          "direction": "MAXIMIZE",
+          "unit": "ppm",
+          "lowerBound": 0,
+          "upperBound": 1000000
+        }
+      ],
+      "evidenceState": "measured"
+    },
+    "artifact": {
+      "kind": "strategy",
+      "filename": "strategy.json",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://frontier.example/schemas/disaster-response-strategy-v2.json",
+        "title": "Frontier Disaster Response Strategy v2",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schemaVersion",
+          "name",
+          "primarySupplierOrder",
+          "emergencySupplierOrder",
+          "regionPolicy",
+          "reserveKits",
+          "emergencyBudgetUsd"
+        ],
+        "properties": {
+          "schemaVersion": {
+            "const": "2"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "primarySupplierOrder": {
+            "type": "array",
+            "minItems": 5,
+            "maxItems": 5,
+            "uniqueItems": true,
+            "items": {
+              "enum": ["harbor-aid", "northstar", "inland-works", "local-grid", "airbridge"]
+            }
+          },
+          "emergencySupplierOrder": {
+            "type": "array",
+            "minItems": 5,
+            "maxItems": 5,
+            "uniqueItems": true,
+            "items": {
+              "enum": ["harbor-aid", "northstar", "inland-works", "local-grid", "airbridge"]
+            }
+          },
+          "regionPolicy": {
+            "enum": ["deadline-first", "highest-need", "equalize-coverage"]
+          },
+          "reserveKits": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 300
+          },
+          "emergencyBudgetUsd": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 25000
+          }
+        }
+      },
+      "schemaHash": "0x11efbc5cbf311bb07d94092c34dec76e2eba20412016f1a598871578b295b310",
+      "sample": {
+        "schemaVersion": "2",
+        "name": "Adaptive regional mesh",
+        "primarySupplierOrder": [
+          "harbor-aid",
+          "inland-works",
+          "northstar",
+          "local-grid",
+          "airbridge"
+        ],
+        "emergencySupplierOrder": [
+          "airbridge",
+          "local-grid",
+          "northstar",
+          "inland-works",
+          "harbor-aid"
+        ],
+        "regionPolicy": "equalize-coverage",
+        "reserveKits": 220,
+        "emergencyBudgetUsd": 18000
+      }
+    },
+    "starter": {
+      "path": "/v1/challenges/disaster-response/starter-kit",
+      "sha256": "3ec664a72fb90b4cb8ebb1fd9f087d1771e56473af3fd64621976d739d601309"
+    },
+    "episodes": [],
+    "constraints": [
+      "Use every published supplier exactly once in each priority list",
+      "Reserve 0 to 300 kits across independent corridors",
+      "Keep emergency spending at or below 25,000 USD"
+    ],
+    "limits": {
+      "practiceRunsPerMinute": 30,
+      "maxRevisions": 20
+    },
+    "capabilities": {
+      "practice": {
+        "supported": true,
+        "available": true,
+        "reason": null,
+        "authentication": "none"
+      },
+      "submit": {
+        "supported": true,
+        "available": true,
+        "reason": null,
+        "authentication": "cli-session"
+      },
+      "finalEntry": {
+        "supported": true,
+        "available": true,
+        "reason": null,
+        "authentication": "cli-session"
+      },
+      "contextPrecondition": true
+    },
+    "storage": "ephemeral-memory",
+    "paymentState": "not-requested",
+    "rewardEligible": false
+  },
+  "raw": {
+    "state": "measured",
+    "schemaVersion": "2",
+    "arenaId": "disaster-response-v2",
+    "dataVersion": "disaster-network-2026-09-v2",
+    "evaluatorVersion": "disaster-response-evaluator-v2",
+    "contextHash": "0xa32679e82c8449b21240206b4a8b67bb834bfb03e4ecffa278aa6031cad839aa",
+    "finalScenarioCommitment": "0x40926d2a82349473a6ab7eaa5d69e19b5cc11af7f7db0ea3a11232b41299becf",
+    "manifestHash": "0x2a70810f1f58eb796b53382dc8fb9904558b0aee8c8299659841983489a1dd63",
+    "strategy": {
+      "schemaVersion": "2",
+      "name": "Adaptive regional mesh",
+      "primarySupplierOrder": [
+        "harbor-aid",
+        "inland-works",
+        "northstar",
+        "local-grid",
+        "airbridge"
+      ],
+      "emergencySupplierOrder": [
+        "airbridge",
+        "local-grid",
+        "northstar",
+        "inland-works",
+        "harbor-aid"
+      ],
+      "regionPolicy": "equalize-coverage",
+      "reserveKits": 220,
+      "emergencyBudgetUsd": 18000
+    },
+    "correctness": true,
+    "constraintFailures": [],
+    "totalProcurementCost": 67240,
+    "worstCaseDeliveredKits": 750,
+    "regionalFairnessPpm": 181818,
+    "scenarioOutcomes": [
+      {
+        "scenarioId": "training-clear",
+        "scenarioName": "Clear network",
+        "scenarioSummary": "All four delivery corridors remain available.",
+        "totalCostUsd": 49240,
+        "deliveredKits": 1000,
+        "fairnessPpm": 1000000,
+        "lostKits": 0,
+        "regionOutcomes": [
+          {
+            "regionId": "coast",
+            "regionName": "Coastal Shelter",
+            "demand": 280,
+            "delivered": 280,
+            "coveragePpm": 1000000
+          },
+          {
+            "regionId": "river",
+            "regionName": "River District",
+            "demand": 260,
+            "delivered": 260,
+            "coveragePpm": 1000000
+          },
+          {
+            "regionId": "highland",
+            "regionName": "Highland Clinic",
+            "demand": 220,
+            "delivered": 220,
+            "coveragePpm": 1000000
+          },
+          {
+            "regionId": "south",
+            "regionName": "South Community",
+            "demand": 240,
+            "delivered": 240,
+            "coveragePpm": 1000000
+          }
+        ],
+        "timeline": [
+          {
+            "hour": 72,
+            "kind": "DELIVERY",
+            "message": "1000 kits arrived before regional deadlines"
+          }
+        ],
+        "explanation": [
+          "No supplier or route failed in this scenario, so no in-transit kits were lost.",
+          "0 recovery kits were purchased for $0 from routes that remained available.",
+          "Coastal Shelter set the scenario floor at 100.0% coverage."
+        ],
+        "replayTrace": {
+          "initialBudgetUsd": 54000,
+          "emergencyBudgetUsd": 18000,
+          "initialSpentUsd": 49240,
+          "initialBudgetRemainingUsd": 4760,
+          "recoverySpentUsd": 0,
+          "recoveryBudgetRemainingUsd": 18000,
+          "disruptions": [],
+          "shipments": [
+            {
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "kits": 520,
+              "costUsd": 17680,
+              "orderedAtHour": 0,
+              "arrivalHour": 18,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "inland-works",
+              "supplierName": "Inland Works",
+              "routeId": "west-rail",
+              "routeName": "West Rail",
+              "phase": "PRIMARY",
+              "kits": 260,
+              "costUsd": 13520,
+              "orderedAtHour": 0,
+              "arrivalHour": 16,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RESERVE",
+              "kits": 220,
+              "costUsd": 18040,
+              "orderedAtHour": 0,
+              "arrivalHour": 6,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            }
+          ],
+          "deliveries": [
+            {
+              "hour": 6,
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RESERVE",
+              "regionId": "coast",
+              "regionName": "Coastal Shelter",
+              "kits": 220
+            },
+            {
+              "hour": 16,
+              "supplierId": "inland-works",
+              "supplierName": "Inland Works",
+              "routeId": "west-rail",
+              "routeName": "West Rail",
+              "phase": "PRIMARY",
+              "regionId": "river",
+              "regionName": "River District",
+              "kits": 260
+            },
+            {
+              "hour": 18,
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "regionId": "highland",
+              "regionName": "Highland Clinic",
+              "kits": 220
+            },
+            {
+              "hour": 18,
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "regionId": "south",
+              "regionName": "South Community",
+              "kits": 240
+            },
+            {
+              "hour": 18,
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "regionId": "coast",
+              "regionName": "Coastal Shelter",
+              "kits": 60
+            }
+          ]
+        }
+      },
+      {
+        "scenarioId": "training-port",
+        "scenarioName": "East Port shutdown",
+        "scenarioSummary": "Storm surge closes the shared low-cost port at hour 12.",
+        "totalCostUsd": 67240,
+        "deliveredKits": 750,
+        "fairnessPpm": 181818,
+        "lostKits": 520,
+        "regionOutcomes": [
+          {
+            "regionId": "coast",
+            "regionName": "Coastal Shelter",
+            "demand": 280,
+            "delivered": 220,
+            "coveragePpm": 785714
+          },
+          {
+            "regionId": "river",
+            "regionName": "River District",
+            "demand": 260,
+            "delivered": 260,
+            "coveragePpm": 1000000
+          },
+          {
+            "regionId": "highland",
+            "regionName": "Highland Clinic",
+            "demand": 220,
+            "delivered": 40,
+            "coveragePpm": 181818
+          },
+          {
+            "regionId": "south",
+            "regionName": "South Community",
+            "demand": 240,
+            "delivered": 230,
+            "coveragePpm": 958333
+          }
+        ],
+        "timeline": [
+          {
+            "hour": 12,
+            "kind": "DISRUPTION",
+            "message": "Storm surge closes East Port"
+          },
+          {
+            "hour": 18,
+            "kind": "REROUTE",
+            "message": "40 kits rerouted through Air Corridor"
+          },
+          {
+            "hour": 22,
+            "kind": "REROUTE",
+            "message": "230 kits rerouted through Local Roads"
+          },
+          {
+            "hour": 72,
+            "kind": "DELIVERY",
+            "message": "750 kits arrived before regional deadlines"
+          }
+        ],
+        "explanation": [
+          "Storm surge closes East Port. 520 kits were lost before delivery.",
+          "270 recovery kits were purchased for $18,000 from routes that remained available.",
+          "Highland Clinic set the scenario floor at 18.2% coverage."
+        ],
+        "replayTrace": {
+          "initialBudgetUsd": 54000,
+          "emergencyBudgetUsd": 18000,
+          "initialSpentUsd": 49240,
+          "initialBudgetRemainingUsd": 4760,
+          "recoverySpentUsd": 18000,
+          "recoveryBudgetRemainingUsd": 0,
+          "disruptions": [
+            {
+              "hour": 12,
+              "label": "Storm surge closes East Port",
+              "disabledSupplierIds": [],
+              "disabledRouteIds": ["east-port"]
+            }
+          ],
+          "shipments": [
+            {
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "kits": 520,
+              "costUsd": 17680,
+              "orderedAtHour": 0,
+              "arrivalHour": 18,
+              "status": "LOST",
+              "lostAtHour": 12
+            },
+            {
+              "supplierId": "inland-works",
+              "supplierName": "Inland Works",
+              "routeId": "west-rail",
+              "routeName": "West Rail",
+              "phase": "PRIMARY",
+              "kits": 260,
+              "costUsd": 13520,
+              "orderedAtHour": 0,
+              "arrivalHour": 16,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RESERVE",
+              "kits": 220,
+              "costUsd": 18040,
+              "orderedAtHour": 0,
+              "arrivalHour": 6,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RECOVERY",
+              "kits": 40,
+              "costUsd": 3280,
+              "orderedAtHour": 12,
+              "arrivalHour": 18,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "local-grid",
+              "supplierName": "Local Grid",
+              "routeId": "local-road",
+              "routeName": "Local Roads",
+              "phase": "RECOVERY",
+              "kits": 230,
+              "costUsd": 14720,
+              "orderedAtHour": 12,
+              "arrivalHour": 22,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            }
+          ],
+          "deliveries": [
+            {
+              "hour": 6,
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RESERVE",
+              "regionId": "coast",
+              "regionName": "Coastal Shelter",
+              "kits": 220
+            },
+            {
+              "hour": 16,
+              "supplierId": "inland-works",
+              "supplierName": "Inland Works",
+              "routeId": "west-rail",
+              "routeName": "West Rail",
+              "phase": "PRIMARY",
+              "regionId": "river",
+              "regionName": "River District",
+              "kits": 260
+            },
+            {
+              "hour": 18,
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RECOVERY",
+              "regionId": "highland",
+              "regionName": "Highland Clinic",
+              "kits": 40
+            },
+            {
+              "hour": 22,
+              "supplierId": "local-grid",
+              "supplierName": "Local Grid",
+              "routeId": "local-road",
+              "routeName": "Local Roads",
+              "phase": "RECOVERY",
+              "regionId": "south",
+              "regionName": "South Community",
+              "kits": 230
+            }
+          ]
+        }
+      },
+      {
+        "scenarioId": "training-rail",
+        "scenarioName": "West Rail landslide",
+        "scenarioSummary": "A landslide blocks the rail corridor at hour 8.",
+        "totalCostUsd": 66600,
+        "deliveredKits": 1000,
+        "fairnessPpm": 1000000,
+        "lostKits": 260,
+        "regionOutcomes": [
+          {
+            "regionId": "coast",
+            "regionName": "Coastal Shelter",
+            "demand": 280,
+            "delivered": 280,
+            "coveragePpm": 1000000
+          },
+          {
+            "regionId": "river",
+            "regionName": "River District",
+            "demand": 260,
+            "delivered": 260,
+            "coveragePpm": 1000000
+          },
+          {
+            "regionId": "highland",
+            "regionName": "Highland Clinic",
+            "demand": 220,
+            "delivered": 220,
+            "coveragePpm": 1000000
+          },
+          {
+            "regionId": "south",
+            "regionName": "South Community",
+            "demand": 240,
+            "delivered": 240,
+            "coveragePpm": 1000000
+          }
+        ],
+        "timeline": [
+          {
+            "hour": 8,
+            "kind": "DISRUPTION",
+            "message": "Landslide blocks West Rail"
+          },
+          {
+            "hour": 14,
+            "kind": "REROUTE",
+            "message": "40 kits rerouted through Air Corridor"
+          },
+          {
+            "hour": 18,
+            "kind": "REROUTE",
+            "message": "220 kits rerouted through Local Roads"
+          },
+          {
+            "hour": 72,
+            "kind": "DELIVERY",
+            "message": "1000 kits arrived before regional deadlines"
+          }
+        ],
+        "explanation": [
+          "Landslide blocks West Rail. 260 kits were lost before delivery.",
+          "260 recovery kits were purchased for $17,360 from routes that remained available.",
+          "Coastal Shelter set the scenario floor at 100.0% coverage."
+        ],
+        "replayTrace": {
+          "initialBudgetUsd": 54000,
+          "emergencyBudgetUsd": 18000,
+          "initialSpentUsd": 49240,
+          "initialBudgetRemainingUsd": 4760,
+          "recoverySpentUsd": 17360,
+          "recoveryBudgetRemainingUsd": 640,
+          "disruptions": [
+            {
+              "hour": 8,
+              "label": "Landslide blocks West Rail",
+              "disabledSupplierIds": [],
+              "disabledRouteIds": ["west-rail"]
+            }
+          ],
+          "shipments": [
+            {
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "kits": 520,
+              "costUsd": 17680,
+              "orderedAtHour": 0,
+              "arrivalHour": 18,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "inland-works",
+              "supplierName": "Inland Works",
+              "routeId": "west-rail",
+              "routeName": "West Rail",
+              "phase": "PRIMARY",
+              "kits": 260,
+              "costUsd": 13520,
+              "orderedAtHour": 0,
+              "arrivalHour": 16,
+              "status": "LOST",
+              "lostAtHour": 8
+            },
+            {
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RESERVE",
+              "kits": 220,
+              "costUsd": 18040,
+              "orderedAtHour": 0,
+              "arrivalHour": 6,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RECOVERY",
+              "kits": 40,
+              "costUsd": 3280,
+              "orderedAtHour": 8,
+              "arrivalHour": 14,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "local-grid",
+              "supplierName": "Local Grid",
+              "routeId": "local-road",
+              "routeName": "Local Roads",
+              "phase": "RECOVERY",
+              "kits": 220,
+              "costUsd": 14080,
+              "orderedAtHour": 8,
+              "arrivalHour": 18,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            }
+          ],
+          "deliveries": [
+            {
+              "hour": 6,
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RESERVE",
+              "regionId": "coast",
+              "regionName": "Coastal Shelter",
+              "kits": 220
+            },
+            {
+              "hour": 14,
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RECOVERY",
+              "regionId": "river",
+              "regionName": "River District",
+              "kits": 40
+            },
+            {
+              "hour": 18,
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "regionId": "highland",
+              "regionName": "Highland Clinic",
+              "kits": 220
+            },
+            {
+              "hour": 18,
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "regionId": "south",
+              "regionName": "South Community",
+              "kits": 240
+            },
+            {
+              "hour": 18,
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "regionId": "river",
+              "regionName": "River District",
+              "kits": 60
+            },
+            {
+              "hour": 18,
+              "supplierId": "local-grid",
+              "supplierName": "Local Grid",
+              "routeId": "local-road",
+              "routeName": "Local Roads",
+              "phase": "RECOVERY",
+              "regionId": "river",
+              "regionName": "River District",
+              "kits": 160
+            },
+            {
+              "hour": 18,
+              "supplierId": "local-grid",
+              "supplierName": "Local Grid",
+              "routeId": "local-road",
+              "routeName": "Local Roads",
+              "phase": "RECOVERY",
+              "regionId": "coast",
+              "regionName": "Coastal Shelter",
+              "kits": 60
+            }
+          ]
+        }
+      },
+      {
+        "scenarioId": "final-cyclone",
+        "scenarioName": "Cyclone landfall",
+        "scenarioSummary": "East Port closes before its shipments arrive.",
+        "totalCostUsd": 67240,
+        "deliveredKits": 750,
+        "fairnessPpm": 208333,
+        "lostKits": 520,
+        "regionOutcomes": [
+          {
+            "regionId": "coast",
+            "regionName": "Coastal Shelter",
+            "demand": 280,
+            "delivered": 220,
+            "coveragePpm": 785714
+          },
+          {
+            "regionId": "river",
+            "regionName": "River District",
+            "demand": 260,
+            "delivered": 260,
+            "coveragePpm": 1000000
+          },
+          {
+            "regionId": "highland",
+            "regionName": "Highland Clinic",
+            "demand": 220,
+            "delivered": 220,
+            "coveragePpm": 1000000
+          },
+          {
+            "regionId": "south",
+            "regionName": "South Community",
+            "demand": 240,
+            "delivered": 50,
+            "coveragePpm": 208333
+          }
+        ],
+        "timeline": [
+          {
+            "hour": 10,
+            "kind": "DISRUPTION",
+            "message": "Cyclone closes East Port"
+          },
+          {
+            "hour": 16,
+            "kind": "REROUTE",
+            "message": "40 kits rerouted through Air Corridor"
+          },
+          {
+            "hour": 20,
+            "kind": "REROUTE",
+            "message": "230 kits rerouted through Local Roads"
+          },
+          {
+            "hour": 72,
+            "kind": "DELIVERY",
+            "message": "750 kits arrived before regional deadlines"
+          }
+        ],
+        "explanation": [
+          "Cyclone closes East Port. 520 kits were lost before delivery.",
+          "270 recovery kits were purchased for $18,000 from routes that remained available.",
+          "South Community set the scenario floor at 20.8% coverage."
+        ],
+        "replayTrace": {
+          "initialBudgetUsd": 54000,
+          "emergencyBudgetUsd": 18000,
+          "initialSpentUsd": 49240,
+          "initialBudgetRemainingUsd": 4760,
+          "recoverySpentUsd": 18000,
+          "recoveryBudgetRemainingUsd": 0,
+          "disruptions": [
+            {
+              "hour": 10,
+              "label": "Cyclone closes East Port",
+              "disabledSupplierIds": [],
+              "disabledRouteIds": ["east-port"]
+            }
+          ],
+          "shipments": [
+            {
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "kits": 520,
+              "costUsd": 17680,
+              "orderedAtHour": 0,
+              "arrivalHour": 18,
+              "status": "LOST",
+              "lostAtHour": 10
+            },
+            {
+              "supplierId": "inland-works",
+              "supplierName": "Inland Works",
+              "routeId": "west-rail",
+              "routeName": "West Rail",
+              "phase": "PRIMARY",
+              "kits": 260,
+              "costUsd": 13520,
+              "orderedAtHour": 0,
+              "arrivalHour": 16,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RESERVE",
+              "kits": 220,
+              "costUsd": 18040,
+              "orderedAtHour": 0,
+              "arrivalHour": 6,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RECOVERY",
+              "kits": 40,
+              "costUsd": 3280,
+              "orderedAtHour": 10,
+              "arrivalHour": 16,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "local-grid",
+              "supplierName": "Local Grid",
+              "routeId": "local-road",
+              "routeName": "Local Roads",
+              "phase": "RECOVERY",
+              "kits": 230,
+              "costUsd": 14720,
+              "orderedAtHour": 10,
+              "arrivalHour": 20,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            }
+          ],
+          "deliveries": [
+            {
+              "hour": 6,
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RESERVE",
+              "regionId": "coast",
+              "regionName": "Coastal Shelter",
+              "kits": 220
+            },
+            {
+              "hour": 16,
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RECOVERY",
+              "regionId": "river",
+              "regionName": "River District",
+              "kits": 40
+            },
+            {
+              "hour": 16,
+              "supplierId": "inland-works",
+              "supplierName": "Inland Works",
+              "routeId": "west-rail",
+              "routeName": "West Rail",
+              "phase": "PRIMARY",
+              "regionId": "highland",
+              "regionName": "Highland Clinic",
+              "kits": 220
+            },
+            {
+              "hour": 16,
+              "supplierId": "inland-works",
+              "supplierName": "Inland Works",
+              "routeId": "west-rail",
+              "routeName": "West Rail",
+              "phase": "PRIMARY",
+              "regionId": "south",
+              "regionName": "South Community",
+              "kits": 40
+            },
+            {
+              "hour": 20,
+              "supplierId": "local-grid",
+              "supplierName": "Local Grid",
+              "routeId": "local-road",
+              "routeName": "Local Roads",
+              "phase": "RECOVERY",
+              "regionId": "river",
+              "regionName": "River District",
+              "kits": 220
+            },
+            {
+              "hour": 20,
+              "supplierId": "local-grid",
+              "supplierName": "Local Grid",
+              "routeId": "local-road",
+              "routeName": "Local Roads",
+              "phase": "RECOVERY",
+              "regionId": "south",
+              "regionName": "South Community",
+              "kits": 10
+            }
+          ]
+        }
+      },
+      {
+        "scenarioId": "final-contamination",
+        "scenarioName": "Supplier contamination",
+        "scenarioSummary": "The largest low-cost supplier is removed at dispatch.",
+        "totalCostUsd": 67240,
+        "deliveredKits": 750,
+        "fairnessPpm": 269230,
+        "lostKits": 520,
+        "regionOutcomes": [
+          {
+            "regionId": "coast",
+            "regionName": "Coastal Shelter",
+            "demand": 280,
+            "delivered": 220,
+            "coveragePpm": 785714
+          },
+          {
+            "regionId": "river",
+            "regionName": "River District",
+            "demand": 260,
+            "delivered": 70,
+            "coveragePpm": 269230
+          },
+          {
+            "regionId": "highland",
+            "regionName": "Highland Clinic",
+            "demand": 220,
+            "delivered": 220,
+            "coveragePpm": 1000000
+          },
+          {
+            "regionId": "south",
+            "regionName": "South Community",
+            "demand": 240,
+            "delivered": 240,
+            "coveragePpm": 1000000
+          }
+        ],
+        "timeline": [
+          {
+            "hour": 0,
+            "kind": "DISRUPTION",
+            "message": "Harbor Aid stock recalled"
+          },
+          {
+            "hour": 6,
+            "kind": "REROUTE",
+            "message": "40 kits rerouted through Air Corridor"
+          },
+          {
+            "hour": 10,
+            "kind": "REROUTE",
+            "message": "230 kits rerouted through Local Roads"
+          },
+          {
+            "hour": 72,
+            "kind": "DELIVERY",
+            "message": "750 kits arrived before regional deadlines"
+          }
+        ],
+        "explanation": [
+          "Harbor Aid stock recalled. 520 kits were lost before delivery.",
+          "270 recovery kits were purchased for $18,000 from routes that remained available.",
+          "River District set the scenario floor at 26.9% coverage."
+        ],
+        "replayTrace": {
+          "initialBudgetUsd": 54000,
+          "emergencyBudgetUsd": 18000,
+          "initialSpentUsd": 49240,
+          "initialBudgetRemainingUsd": 4760,
+          "recoverySpentUsd": 18000,
+          "recoveryBudgetRemainingUsd": 0,
+          "disruptions": [
+            {
+              "hour": 0,
+              "label": "Harbor Aid stock recalled",
+              "disabledSupplierIds": ["harbor-aid"],
+              "disabledRouteIds": []
+            }
+          ],
+          "shipments": [
+            {
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "kits": 520,
+              "costUsd": 17680,
+              "orderedAtHour": 0,
+              "arrivalHour": 18,
+              "status": "LOST",
+              "lostAtHour": 0
+            },
+            {
+              "supplierId": "inland-works",
+              "supplierName": "Inland Works",
+              "routeId": "west-rail",
+              "routeName": "West Rail",
+              "phase": "PRIMARY",
+              "kits": 260,
+              "costUsd": 13520,
+              "orderedAtHour": 0,
+              "arrivalHour": 16,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RESERVE",
+              "kits": 220,
+              "costUsd": 18040,
+              "orderedAtHour": 0,
+              "arrivalHour": 6,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RECOVERY",
+              "kits": 40,
+              "costUsd": 3280,
+              "orderedAtHour": 0,
+              "arrivalHour": 6,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "local-grid",
+              "supplierName": "Local Grid",
+              "routeId": "local-road",
+              "routeName": "Local Roads",
+              "phase": "RECOVERY",
+              "kits": 230,
+              "costUsd": 14720,
+              "orderedAtHour": 0,
+              "arrivalHour": 10,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            }
+          ],
+          "deliveries": [
+            {
+              "hour": 6,
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RESERVE",
+              "regionId": "coast",
+              "regionName": "Coastal Shelter",
+              "kits": 220
+            },
+            {
+              "hour": 6,
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RECOVERY",
+              "regionId": "river",
+              "regionName": "River District",
+              "kits": 40
+            },
+            {
+              "hour": 10,
+              "supplierId": "local-grid",
+              "supplierName": "Local Grid",
+              "routeId": "local-road",
+              "routeName": "Local Roads",
+              "phase": "RECOVERY",
+              "regionId": "highland",
+              "regionName": "Highland Clinic",
+              "kits": 220
+            },
+            {
+              "hour": 10,
+              "supplierId": "local-grid",
+              "supplierName": "Local Grid",
+              "routeId": "local-road",
+              "routeName": "Local Roads",
+              "phase": "RECOVERY",
+              "regionId": "south",
+              "regionName": "South Community",
+              "kits": 10
+            },
+            {
+              "hour": 16,
+              "supplierId": "inland-works",
+              "supplierName": "Inland Works",
+              "routeId": "west-rail",
+              "routeName": "West Rail",
+              "phase": "PRIMARY",
+              "regionId": "south",
+              "regionName": "South Community",
+              "kits": 230
+            },
+            {
+              "hour": 16,
+              "supplierId": "inland-works",
+              "supplierName": "Inland Works",
+              "routeId": "west-rail",
+              "routeName": "West Rail",
+              "phase": "PRIMARY",
+              "regionId": "river",
+              "regionName": "River District",
+              "kits": 30
+            }
+          ]
+        }
+      },
+      {
+        "scenarioId": "final-aftershock",
+        "scenarioName": "Aftershock cascade",
+        "scenarioSummary": "Rail and local roads fail together as regional demand rises.",
+        "totalCostUsd": 61760,
+        "deliveredKits": 962,
+        "fairnessPpm": 683229,
+        "lostKits": 260,
+        "regionOutcomes": [
+          {
+            "regionId": "coast",
+            "regionName": "Coastal Shelter",
+            "demand": 322,
+            "delivered": 220,
+            "coveragePpm": 683229
+          },
+          {
+            "regionId": "river",
+            "regionName": "River District",
+            "demand": 260,
+            "delivered": 260,
+            "coveragePpm": 1000000
+          },
+          {
+            "regionId": "highland",
+            "regionName": "Highland Clinic",
+            "demand": 242,
+            "delivered": 242,
+            "coveragePpm": 1000000
+          },
+          {
+            "regionId": "south",
+            "regionName": "South Community",
+            "demand": 240,
+            "delivered": 240,
+            "coveragePpm": 1000000
+          }
+        ],
+        "timeline": [
+          {
+            "hour": 7,
+            "kind": "DISRUPTION",
+            "message": "Aftershock blocks West Rail and Local Roads"
+          },
+          {
+            "hour": 13,
+            "kind": "REROUTE",
+            "message": "40 kits rerouted through Air Corridor"
+          },
+          {
+            "hour": 27,
+            "kind": "REROUTE",
+            "message": "220 kits rerouted through East Port"
+          },
+          {
+            "hour": 72,
+            "kind": "DELIVERY",
+            "message": "962 kits arrived before regional deadlines"
+          }
+        ],
+        "explanation": [
+          "Aftershock blocks West Rail and Local Roads. 260 kits were lost before delivery.",
+          "260 recovery kits were purchased for $12,520 from routes that remained available.",
+          "Coastal Shelter set the scenario floor at 68.3% coverage."
+        ],
+        "replayTrace": {
+          "initialBudgetUsd": 54000,
+          "emergencyBudgetUsd": 18000,
+          "initialSpentUsd": 49240,
+          "initialBudgetRemainingUsd": 4760,
+          "recoverySpentUsd": 12520,
+          "recoveryBudgetRemainingUsd": 5480,
+          "disruptions": [
+            {
+              "hour": 7,
+              "label": "Aftershock blocks West Rail and Local Roads",
+              "disabledSupplierIds": [],
+              "disabledRouteIds": ["west-rail", "local-road"]
+            }
+          ],
+          "shipments": [
+            {
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "kits": 520,
+              "costUsd": 17680,
+              "orderedAtHour": 0,
+              "arrivalHour": 18,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "inland-works",
+              "supplierName": "Inland Works",
+              "routeId": "west-rail",
+              "routeName": "West Rail",
+              "phase": "PRIMARY",
+              "kits": 260,
+              "costUsd": 13520,
+              "orderedAtHour": 0,
+              "arrivalHour": 16,
+              "status": "LOST",
+              "lostAtHour": 7
+            },
+            {
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RESERVE",
+              "kits": 220,
+              "costUsd": 18040,
+              "orderedAtHour": 0,
+              "arrivalHour": 6,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RECOVERY",
+              "kits": 40,
+              "costUsd": 3280,
+              "orderedAtHour": 7,
+              "arrivalHour": 13,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "northstar",
+              "supplierName": "Northstar Relief",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "RECOVERY",
+              "kits": 220,
+              "costUsd": 9240,
+              "orderedAtHour": 7,
+              "arrivalHour": 27,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            }
+          ],
+          "deliveries": [
+            {
+              "hour": 6,
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RESERVE",
+              "regionId": "coast",
+              "regionName": "Coastal Shelter",
+              "kits": 220
+            },
+            {
+              "hour": 13,
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RECOVERY",
+              "regionId": "river",
+              "regionName": "River District",
+              "kits": 40
+            },
+            {
+              "hour": 18,
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "regionId": "highland",
+              "regionName": "Highland Clinic",
+              "kits": 242
+            },
+            {
+              "hour": 18,
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "regionId": "south",
+              "regionName": "South Community",
+              "kits": 240
+            },
+            {
+              "hour": 18,
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "regionId": "river",
+              "regionName": "River District",
+              "kits": 38
+            },
+            {
+              "hour": 27,
+              "supplierId": "northstar",
+              "supplierName": "Northstar Relief",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "RECOVERY",
+              "regionId": "river",
+              "regionName": "River District",
+              "kits": 182
+            }
+          ]
+        }
+      },
+      {
+        "scenarioId": "final-air-grounded",
+        "scenarioName": "Air corridor grounded",
+        "scenarioSummary": "Heavy weather grounds emergency flights at hour 4.",
+        "totalCostUsd": 63320,
+        "deliveredKits": 1000,
+        "fairnessPpm": 1000000,
+        "lostKits": 220,
+        "regionOutcomes": [
+          {
+            "regionId": "coast",
+            "regionName": "Coastal Shelter",
+            "demand": 280,
+            "delivered": 280,
+            "coveragePpm": 1000000
+          },
+          {
+            "regionId": "river",
+            "regionName": "River District",
+            "demand": 260,
+            "delivered": 260,
+            "coveragePpm": 1000000
+          },
+          {
+            "regionId": "highland",
+            "regionName": "Highland Clinic",
+            "demand": 220,
+            "delivered": 220,
+            "coveragePpm": 1000000
+          },
+          {
+            "regionId": "south",
+            "regionName": "South Community",
+            "demand": 240,
+            "delivered": 240,
+            "coveragePpm": 1000000
+          }
+        ],
+        "timeline": [
+          {
+            "hour": 4,
+            "kind": "DISRUPTION",
+            "message": "Air corridor grounded"
+          },
+          {
+            "hour": 14,
+            "kind": "REROUTE",
+            "message": "220 kits rerouted through Local Roads"
+          },
+          {
+            "hour": 72,
+            "kind": "DELIVERY",
+            "message": "1000 kits arrived before regional deadlines"
+          }
+        ],
+        "explanation": [
+          "Air corridor grounded. 220 kits were lost before delivery.",
+          "220 recovery kits were purchased for $14,080 from routes that remained available.",
+          "Coastal Shelter set the scenario floor at 100.0% coverage."
+        ],
+        "replayTrace": {
+          "initialBudgetUsd": 54000,
+          "emergencyBudgetUsd": 18000,
+          "initialSpentUsd": 49240,
+          "initialBudgetRemainingUsd": 4760,
+          "recoverySpentUsd": 14080,
+          "recoveryBudgetRemainingUsd": 3920,
+          "disruptions": [
+            {
+              "hour": 4,
+              "label": "Air corridor grounded",
+              "disabledSupplierIds": [],
+              "disabledRouteIds": ["air-corridor"]
+            }
+          ],
+          "shipments": [
+            {
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "kits": 520,
+              "costUsd": 17680,
+              "orderedAtHour": 0,
+              "arrivalHour": 18,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "inland-works",
+              "supplierName": "Inland Works",
+              "routeId": "west-rail",
+              "routeName": "West Rail",
+              "phase": "PRIMARY",
+              "kits": 260,
+              "costUsd": 13520,
+              "orderedAtHour": 0,
+              "arrivalHour": 16,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            },
+            {
+              "supplierId": "airbridge",
+              "supplierName": "Airbridge",
+              "routeId": "air-corridor",
+              "routeName": "Air Corridor",
+              "phase": "RESERVE",
+              "kits": 220,
+              "costUsd": 18040,
+              "orderedAtHour": 0,
+              "arrivalHour": 6,
+              "status": "LOST",
+              "lostAtHour": 4
+            },
+            {
+              "supplierId": "local-grid",
+              "supplierName": "Local Grid",
+              "routeId": "local-road",
+              "routeName": "Local Roads",
+              "phase": "RECOVERY",
+              "kits": 220,
+              "costUsd": 14080,
+              "orderedAtHour": 4,
+              "arrivalHour": 14,
+              "status": "SURVIVED",
+              "lostAtHour": null
+            }
+          ],
+          "deliveries": [
+            {
+              "hour": 14,
+              "supplierId": "local-grid",
+              "supplierName": "Local Grid",
+              "routeId": "local-road",
+              "routeName": "Local Roads",
+              "phase": "RECOVERY",
+              "regionId": "coast",
+              "regionName": "Coastal Shelter",
+              "kits": 220
+            },
+            {
+              "hour": 16,
+              "supplierId": "inland-works",
+              "supplierName": "Inland Works",
+              "routeId": "west-rail",
+              "routeName": "West Rail",
+              "phase": "PRIMARY",
+              "regionId": "river",
+              "regionName": "River District",
+              "kits": 260
+            },
+            {
+              "hour": 18,
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "regionId": "highland",
+              "regionName": "Highland Clinic",
+              "kits": 220
+            },
+            {
+              "hour": 18,
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "regionId": "south",
+              "regionName": "South Community",
+              "kits": 240
+            },
+            {
+              "hour": 18,
+              "supplierId": "harbor-aid",
+              "supplierName": "Harbor Aid",
+              "routeId": "east-port",
+              "routeName": "East Port",
+              "phase": "PRIMARY",
+              "regionId": "coast",
+              "regionName": "Coastal Shelter",
+              "kits": 60
+            }
+          ]
+        }
+      }
+    ],
+    "worstScenarioId": "training-port",
+    "pareto": {
+      "frontier": true,
+      "dominatedBy": [],
+      "improvesOver": []
+    },
+    "contribution": {
+      "hypervolumeBeforePpm": 310217,
+      "hypervolumeAfterPpm": 318835,
+      "frontierExpansionPpm": 8618,
+      "exclusiveContributionPpm": 8618,
+      "contributionSharePpm": 27029
+    },
+    "strategyDiff": [],
+    "outcomeDiff": null,
+    "resultHash": "0xb27f182924df4a304e4d5d25fe1dfa55e9fdfcc2c52c1823811aa141867e71db",
+    "inputHash": "0x993df6aa5bd5f3fae34cf9bda4590e9c41efd4a33498203e5b3e523d4e599f50"
+  }
+}

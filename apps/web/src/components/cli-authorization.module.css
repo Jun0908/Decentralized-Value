@@ -1,0 +1,219 @@
+.page {
+  width: min(100% - 2rem, 42rem);
+  margin: 3rem auto 5rem;
+  min-height: 60vh;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.heading > svg {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--lime);
+  flex: none;
+}
+.heading p {
+  margin: 0 0 0.35rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.heading h1 {
+  margin: 0;
+  font-size: 2rem;
+  letter-spacing: 0;
+}
+.intro {
+  margin: 1.5rem 0;
+  line-height: 1.6;
+}
+.notice,
+.error {
+  padding: 1rem 0 1rem 1rem;
+  border-left: 3px solid #ffbc72;
+  line-height: 1.6;
+}
+.error {
+  color: #ffb3b3;
+  border-color: #ff9292;
+}
+.account {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem 0;
+  font-size: 0.875rem;
+}
+.account span:last-child,
+.muted {
+  color: var(--muted);
+  line-height: 1.6;
+}
+.account span:last-child {
+  font-size: 0.8125rem;
+}
+.form {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+.form > label {
+  font-weight: 600;
+}
+.codeRow {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+.codeRow input {
+  min-width: 0;
+  width: 100%;
+  border: 1px solid #62686d;
+  border-radius: 4px;
+  padding: 0.85rem;
+  background: #15181c;
+  color: #fff;
+  font:
+    600 1.125rem var(--font-mono),
+    monospace;
+  letter-spacing: 0;
+}
+.codeRow input::placeholder {
+  color: #939b9f;
+}
+.codeRow button {
+  flex: none;
+}
+.page button {
+  border-radius: 4px;
+  min-height: 44px;
+  letter-spacing: 0;
+}
+.page button:disabled {
+  cursor: not-allowed;
+}
+.page input:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+.review {
+  border-top: 1px solid var(--line);
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+}
+.review h2,
+.result h2 {
+  font-size: 1.25rem;
+  margin: 0 0 1.5rem;
+  letter-spacing: 0;
+}
+.review dl {
+  margin: 0;
+  display: grid;
+  gap: 1rem;
+}
+.review dl > div {
+  display: grid;
+  grid-template-columns: 10rem 1fr;
+  gap: 1rem;
+}
+.review dt {
+  color: var(--muted);
+}
+.review dd {
+  margin: 0;
+}
+.review ul {
+  display: grid;
+  gap: 0.8rem;
+  margin: 1.75rem 0;
+  padding: 0;
+  list-style: none;
+}
+.review li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.review li svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  color: #8fe0c3;
+  flex: none;
+}
+.confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.confirm input {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0.2rem 0 0;
+  flex: none;
+  accent-color: var(--lime);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.actions svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex: none;
+}
+.page .deny {
+  border: 1px solid #80888c;
+  background: transparent;
+  color: #fff;
+}
+.page .change {
+  margin-top: 1rem;
+  padding-left: 0;
+  background: transparent;
+  color: #bce5fa;
+  text-decoration: underline;
+}
+.result {
+  padding: 2rem 0;
+}
+.result > svg {
+  width: 2rem;
+  height: 2rem;
+  color: var(--lime);
+  margin-bottom: 1rem;
+}
+.result a {
+  display: inline-block;
+  color: #bce5fa;
+  text-decoration: underline;
+  margin-top: 1rem;
+}
+@media (max-width: 520px) {
+  .page {
+    margin-top: 2rem;
+  }
+  .codeRow {
+    flex-direction: column;
+  }
+  .review dl > div {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}

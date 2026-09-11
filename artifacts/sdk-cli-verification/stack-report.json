@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-09-11T12:53:33.590Z",
+  "cliEntry": "packages/cli/dist/bin.js",
+  "mode": "isolated-local-fixtures",
+  "liveAccountsUsed": false,
+  "records": [
+    {
+      "step": "Disaster Response starter and offline validation",
+      "passed": true
+    },
+    {
+      "step": "Deterministic official Practice, independent local Run IDs and metric comparison",
+      "passed": true
+    },
+    {
+      "step": "Confirmed registration/submission, lost response, immutable resume and one revision",
+      "passed": true
+    },
+    {
+      "step": "Owned history, exact artifact download, Final Entry and saved-result URL",
+      "passed": true
+    },
+    {
+      "step": "Rescue Room Doctrine determinism, same-Episode comparison and explicit submission rejection",
+      "passed": true
+    }
+  ]
+}

@@ -1,18 +1,36 @@
 {
   "name": "@frontier/sdk",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
+  "description": "Typed Frontier Protocol client for public practice and participant submissions",
+  "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@frontier/shared": "workspace:*"
+    "@frontier/shared": "workspace:*",
+    "zod": "4.5.4"
   },
   "devDependencies": {
+    "esbuild": "0.28.2",
     "vitest": "5.0.0"
   }
 }

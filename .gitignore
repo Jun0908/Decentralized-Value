@@ -23,6 +23,7 @@ packages/contracts/broadcast/
 secrets/
 
 # Local tools
+.frontier/
 .vercel/
 .turbo/
 .pnpm-store/

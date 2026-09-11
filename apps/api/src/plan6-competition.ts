@@ -45,6 +45,47 @@ export type Plan6Submission = {
   submittedAt: string;
 };
 
+export type Plan6SubmissionInput = Omit<
+  Plan6Submission,
+  "submissionId" | "revision" | "submittedAt"
+>;
+
+export type Plan6SubmissionCommit = {
+  status: "existing" | "saved";
+  submission: Plan6Submission;
+};
+
+export type Plan6SubmissionIdempotency = {
+  // Legacy bindings have no request digest; compare inputHash and sourceHash instead.
+  bodyDigest: string | null;
+  submission: Plan6Submission;
+};
+
+export class Plan6StoreError extends Error {
+  constructor(
+    readonly status: number,
+    readonly code: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = "Plan6StoreError";
+  }
+}
+
+export function createPlan6SubmissionRecord(
+  input: Plan6SubmissionInput,
+  revision: number,
+): Plan6Submission {
+  return {
+    ...input,
+    revision,
+    submissionId: keccak256(
+      stringToHex(`${input.participantId}:${revision}:${input.sourceHash}:${input.inputHash}`),
+    ),
+    submittedAt: new Date().toISOString(),
+  };
+}
+
 export type Plan6AgentEvidence = {
   name: string;
   version: string;
@@ -132,6 +173,18 @@ export interface Plan6CompetitionStore {
   join(identity: Plan5Identity): Promise<Plan6Participant>;
   submissionsForParticipant(participantId: string): Promise<Plan6Submission[]>;
   submissionsForChallenge(): Promise<Plan6Submission[]>;
+  // Supply the prior revision when input.evaluation includes a prior-evaluation diff.
+  commitSubmission(
+    input: Plan6SubmissionInput,
+    idempotencyKey: string | null,
+    bodyDigest: string,
+    expectedPreviousRevision?: number,
+  ): Promise<Plan6SubmissionCommit>;
+  lookupSubmissionIdempotency(
+    participantId: string,
+    idempotencyKey: string,
+  ): Promise<Plan6SubmissionIdempotency | null>;
+  /** @deprecated Use commitSubmission for atomic idempotent writes. */
   addSubmission(
     input: Omit<Plan6Submission, "submissionId" | "revision" | "submittedAt">,
   ): Promise<Plan6Submission>;
@@ -139,6 +192,7 @@ export interface Plan6CompetitionStore {
     participantId: string,
     idempotencyKey: string,
   ): Promise<Plan6Submission | null>;
+  /** @deprecated Compatibility binding only; cannot make a prior addSubmission atomic. */
   saveSubmissionIdempotency(
     participantId: string,
     idempotencyKey: string,
@@ -243,7 +297,10 @@ export class MemoryPlan6CompetitionStore implements Plan6CompetitionStore {
   private readonly participants = new Map<string, Plan6Participant>();
   private readonly userParticipants = new Map<string, string>();
   private readonly submissions = new Map<string, Plan6Submission>();
-  private readonly submissionIdempotency = new Map<string, string>();
+  private readonly submissionIdempotency = new Map<
+    string,
+    { submissionId: string; bodyDigest: string | null }
+  >();
   private readonly finals = new Map<string, Plan6FinalEntry>();
   private readonly rewards = new Map<string, Plan6Reward>();
   private readonly communityValuePools = new Map<string, Plan6ValuePoolManifest>();
@@ -268,38 +325,112 @@ export class MemoryPlan6CompetitionStore implements Plan6CompetitionStore {
   }
 
   async submissionsForParticipant(id: string) {
-    return [...this.submissions.values()]
-      .filter(({ participantId: owner }) => owner === id)
-      .sort((left, right) => left.revision - right.revision);
+    return structuredClone(
+      [...this.submissions.values()]
+        .filter(({ participantId: owner }) => owner === id)
+        .sort((left, right) => left.revision - right.revision),
+    );
   }
 
   async submissionsForChallenge() {
-    return [...this.submissions.values()].sort((left, right) =>
-      left.submittedAt.localeCompare(right.submittedAt),
+    return structuredClone(
+      [...this.submissions.values()].sort((left, right) =>
+        left.submittedAt.localeCompare(right.submittedAt),
+      ),
     );
   }
 
-  async addSubmission(input: Omit<Plan6Submission, "submissionId" | "revision" | "submittedAt">) {
-    const participant = await this.participant(input.participantId);
-    if (!participant) throw new Error("Join this challenge before submitting");
-    const revisions = await this.submissionsForParticipant(input.participantId);
-    if (revisions.length >= 20) throw new Error("Submission revision limit reached");
-    const revision = revisions.length + 1;
-    const submissionId = keccak256(
-      stringToHex(`${input.participantId}:${revision}:${input.sourceHash}:${input.inputHash}`),
+  async commitSubmission(
+    input: Plan6SubmissionInput,
+    idempotencyKey: string | null,
+    bodyDigest: string,
+    expectedPreviousRevision?: number,
+  ): Promise<Plan6SubmissionCommit> {
+    // No await between reading the binding/revision and committing all state.
+    const bindingKey = idempotencyKey === null ? null : `${input.participantId}:${idempotencyKey}`;
+    const binding = bindingKey === null ? undefined : this.submissionIdempotency.get(bindingKey);
+    if (binding) {
+      const submission = this.submissions.get(binding.submissionId);
+      if (!submission || submission.participantId !== input.participantId) {
+        throw new Plan6StoreError(500, "STORE_INCONSISTENT", "Invalid submission binding");
+      }
+      if (
+        (binding.bodyDigest !== null && binding.bodyDigest !== bodyDigest) ||
+        submission.inputHash !== input.inputHash ||
+        submission.sourceHash !== input.sourceHash
+      ) {
+        throw new Plan6StoreError(
+          409,
+          "IDEMPOTENCY_CONFLICT",
+          "Idempotency key is bound to another body",
+        );
+      }
+      return { status: "existing", submission: structuredClone(submission) };
+    }
+    if (!this.participants.has(input.participantId)) {
+      throw new Plan6StoreError(
+        403,
+        "PARTICIPANT_REQUIRED",
+        "Join this challenge before submitting",
+      );
+    }
+    const previousRevision = Math.max(
+      0,
+      ...[...this.submissions.values()]
+        .filter(({ participantId }) => participantId === input.participantId)
+        .map(({ revision }) => revision),
     );
-    const record = { ...input, revision, submissionId, submittedAt: new Date().toISOString() };
-    this.submissions.set(submissionId, record);
-    return record;
+    if (previousRevision >= 20) {
+      throw new Plan6StoreError(409, "REVISION_LIMIT", "Submission revision limit reached");
+    }
+    if (expectedPreviousRevision !== undefined && expectedPreviousRevision !== previousRevision) {
+      throw new Plan6StoreError(
+        409,
+        "REVISION_CONFLICT",
+        "Submission revision changed; prepare again",
+      );
+    }
+    const record = structuredClone(createPlan6SubmissionRecord(input, previousRevision + 1));
+    this.submissions.set(record.submissionId, record);
+    if (bindingKey !== null) {
+      this.submissionIdempotency.set(bindingKey, { submissionId: record.submissionId, bodyDigest });
+    }
+    return { status: "saved", submission: structuredClone(record) };
+  }
+
+  async addSubmission(input: Plan6SubmissionInput) {
+    return (await this.commitSubmission(input, null, "")).submission;
+  }
+
+  async lookupSubmissionIdempotency(id: string, idempotencyKey: string) {
+    const binding = this.submissionIdempotency.get(`${id}:${idempotencyKey}`);
+    if (!binding) return null;
+    const submission = this.submissions.get(binding.submissionId);
+    if (!submission || submission.participantId !== id) {
+      throw new Plan6StoreError(500, "STORE_INCONSISTENT", "Invalid submission binding");
+    }
+    return { bodyDigest: binding.bodyDigest, submission: structuredClone(submission) };
   }
 
   async submissionForIdempotency(id: string, idempotencyKey: string) {
-    const submissionId = this.submissionIdempotency.get(`${id}:${idempotencyKey}`);
-    return submissionId ? (this.submissions.get(submissionId) ?? null) : null;
+    return (await this.lookupSubmissionIdempotency(id, idempotencyKey))?.submission ?? null;
   }
 
   async saveSubmissionIdempotency(id: string, idempotencyKey: string, submissionId: string) {
-    this.submissionIdempotency.set(`${id}:${idempotencyKey}`, submissionId);
+    const submission = this.submissions.get(submissionId);
+    if (!submission || submission.participantId !== id) {
+      throw new Plan6StoreError(
+        404,
+        "SUBMISSION_NOT_FOUND",
+        "Submission does not belong to this participant",
+      );
+    }
+    const bindingKey = `${id}:${idempotencyKey}`;
+    const existing = this.submissionIdempotency.get(bindingKey);
+    if (existing && existing.submissionId !== submissionId) {
+      throw new Plan6StoreError(409, "IDEMPOTENCY_CONFLICT", "Idempotency key is already bound");
+    }
+    if (!existing) this.submissionIdempotency.set(bindingKey, { submissionId, bodyDigest: null });
   }
 
   async finalEntry(id: string) {
@@ -309,7 +440,11 @@ export class MemoryPlan6CompetitionStore implements Plan6CompetitionStore {
   async selectFinal(id: string, submissionId: string) {
     const submission = this.submissions.get(submissionId);
     if (!submission || submission.participantId !== id)
-      throw new Error("Submission does not belong to this participant");
+      throw new Plan6StoreError(
+        404,
+        "SUBMISSION_NOT_FOUND",
+        "Submission does not belong to this participant",
+      );
     const entry = {
       participantId: id as Hex,
       challengeId: plan6ChallengeId,
@@ -346,6 +481,10 @@ export class MemoryPlan6CompetitionStore implements Plan6CompetitionStore {
   }
 }
 
+export function disasterResponseInputHash(strategy: DisasterResponseStrategy): Hex {
+  return keccak256(stringToHex(canonicalProtocolJson({ strategy })));
+}
+
 export function preparePlan6Submission(
   participant: Plan6Participant,
   raw: z.infer<typeof plan6SubmissionSchema>,
@@ -364,7 +503,7 @@ export function preparePlan6Submission(
     challengeId: plan6ChallengeId,
     sourceMethod: raw.sourceMethod,
     sourceHash: keccak256(stringToHex(canonicalProtocolJson(provenance))),
-    inputHash: keccak256(stringToHex(canonicalProtocolJson(artifact))),
+    inputHash: disasterResponseInputHash(strategy),
     repositoryUrl: raw.repositoryUrl,
     sourceCommit: raw.sourceCommit,
     agentEvidence: raw.agentEvidence,
@@ -950,5 +1089,5 @@ export function createPlan6StarterKitZip(): Uint8Array {
       ].join("\n"),
     ),
   };
-  return zipSync(files, { level: 6 });
+  return zipSync(files, { level: 6, mtime: new Date(2026, 0, 1) });
 }

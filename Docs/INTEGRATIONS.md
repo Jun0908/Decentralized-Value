@@ -51,6 +51,20 @@ The competition store persists participants, revisions, evaluations, Final Entri
 
 Secret Gate uses a separate `frontier:secret-gate:v1` namespace for trusted 30-minute group snapshots and one-day nullifier replay protection. Production enrollment and entry fail closed without durable Redis.
 
+## CLI authorization — local implementation, not deployed
+
+The TypeScript SDK and CLI are private monorepo workspaces at `packages/sdk` and `packages/cli`. Build them with `pnpm build:tooling`; the local CLI entry is available through `pnpm exec frontier`. The earlier `DV-ver2` and `SDK-Decentralized-Value` repositories are retained only as integration provenance.
+
+Set `FRONTIER_CLI_ORIGIN` to the exact trusted Web origin before enabling the CLI flow. HTTPS is required except on loopback. Do not derive this value from incoming Host or forwarded headers. Development defaults to `http://localhost:3000`; use this same origin in the browser and CLI, or configure an explicit loopback origin.
+
+The browser approval route reuses the existing Privy access-token and identity-token verifier. Sessions carry only `disaster:read`, `disaster:join`, `disaster:submit`, and `disaster:entry`; they cannot invoke payment or unrelated participant APIs. Device codes expire after 10 minutes and sessions after 8 hours. Tokens are hashed in server storage and retained through the operating-system credential vault on the CLI, without a plaintext fallback.
+
+CLI authorization uses the separate `frontier:{cli-auth}:v1` Redis namespace and atomic one-time exchange. Production requires durable Redis; in-memory storage is development-only. Disaster Response revision persistence now atomically binds idempotency keys to their original payload and preserves new keys without the former 24-hour expiry.
+
+Surviving legacy idempotency bindings are validated and made non-expiring when read or replayed. Bindings that expired under the old implementation cannot be reconstructed from saved submissions alone. Before deploying, audit legacy retries and existing storage; local verification is not a production data migration.
+
+No live Privy authorization, deployed Redis migration, account registration, submission, payment, npm publication, or deployment was performed for the SDK/CLI work. Public Practice works without these credentials; protected operations report unavailable when configuration is missing.
+
 ## Semaphore V4 — public offchain implementation active
 
 Secret Gate pins `@semaphore-protocol/identity`, `group`, and `proof` to 4.14.3. The depth-3 4.13.0 proof artifacts are checked into the web public assets with recorded SHA-256 hashes, so browser proof generation does not depend on a cross-origin artifact fetch.

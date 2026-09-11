@@ -14,9 +14,10 @@
     "smoke:rescue-room-agent": "tsx scripts/smoke-rescue-room-agent.ts",
     "verify:rescue-room-ui": "tsx scripts/verify-rescue-room-ui.ts",
     "benchmark:secret-gate": "tsx scripts/benchmark-secret-gate.ts",
-    "build": "pnpm build:contracts && pnpm --filter @frontier/web build",
+    "build": "pnpm build:tooling && pnpm build:contracts && pnpm --filter @frontier/web build",
+    "build:tooling": "pnpm --filter @frontier/shared build && pnpm --filter @frontier/sdk build && pnpm --filter @frontier/cli build",
     "build:contracts": "forge build --root packages/contracts",
-    "ci": "pnpm env:check && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm benchmark:orderbook && pnpm build",
+    "ci": "pnpm env:check && pnpm lint && pnpm format:check && pnpm contracts:cli:check && pnpm typecheck && pnpm test && pnpm benchmark:orderbook && pnpm build && pnpm verify:cli",
     "dev": "pnpm --filter @frontier/web dev",
     "deploy:sepolia": "pnpm --dir packages/contracts exec forge script script/Deploy.s.sol:Deploy --rpc-url sepolia --broadcast --verify",
     "deploy:secret-gate:sepolia": "pnpm --dir packages/contracts exec forge script script/DeploySecretGate.s.sol:DeploySecretGate --rpc-url sepolia --broadcast --verify",
@@ -37,9 +38,14 @@
     "test:ts": "vitest run",
     "test:watch": "vitest",
     "typecheck": "pnpm -r --if-present typecheck",
+    "contracts:cli": "tsx scripts/export-cli-contract.ts",
+    "contracts:cli:check": "pnpm contracts:cli && git diff --exit-code -- openapi/frontier-v1.yaml openapi/generated",
+    "verify:cli": "tsx scripts/verify-cli-stack.ts",
     "verify:secret-gate": "tsx scripts/verify-secret-gate.ts"
   },
   "devDependencies": {
+    "@frontier/cli": "workspace:*",
+    "@frontier/sdk": "workspace:*",
     "@types/node": "22.20.1",
     "dotenv": "17.4.2",
     "eslint": "9.39.5",
@@ -51,6 +57,7 @@
     "tsx": "4.23.13",
     "typescript": "6.0.3",
     "viem": "2.56.3",
-    "vitest": "5.0.0"
+    "vitest": "5.0.0",
+    "yaml": "2.9.0"
   }
 }

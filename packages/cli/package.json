@@ -1,0 +1,43 @@
+{
+  "name": "@frontier/cli",
+  "version": "0.3.0",
+  "private": true,
+  "description": "Frontier Protocol command-line client",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "frontier": "./dist/bin.js"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./commands": "./dist/commands.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:integration": "vitest run tests/integration.test.ts",
+    "test:vault": "node scripts/verify-vault.mjs",
+    "reference": "node scripts/export-reference.mjs"
+  },
+  "dependencies": {
+    "@frontier/sdk": "workspace:*",
+    "@frontier/shared": "workspace:*",
+    "@napi-rs/keyring": "2.0.0",
+    "ajv": "8.20.0",
+    "open": "11.0.2",
+    "yauzl": "3.4.0"
+  },
+  "devDependencies": {
+    "@types/yauzl": "2.10.3",
+    "esbuild": "0.28.2",
+    "fflate": "0.8.2"
+  }
+}

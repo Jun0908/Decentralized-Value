@@ -53,6 +53,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
                 Whitepaper
               </a>
               <Link href="/architecture">Architecture</Link>
+              <Link href="/docs/cli">SDK & CLI</Link>
               <a href="https://github.com/Jun0908/Decentralized-Value">GitHub</a>
             </div>
           </footer>

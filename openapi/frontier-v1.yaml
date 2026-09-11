@@ -12,12 +12,16 @@ paths:
   /v1/secret-gate:
     get:
       operationId: getSecretGateScenario
-      description: Returns the fixed offchain Gate policy, bounded practice strategy, workloads, artifact versions, context hash, and honest evidence boundary.
+      description:
+        Returns the fixed offchain Gate policy, bounded practice strategy, workloads, artifact
+        versions, context hash, and honest evidence boundary.
       responses: { "200": { description: Public Secret Gate scenario } }
   /v1/secret-gate/enroll:
     post:
       operationId: enrollSecretGateCommitment
-      description: Creates a short-lived synthetic eight-member group snapshot containing the submitted public commitment. No identity secret is accepted.
+      description:
+        Creates a short-lived synthetic eight-member group snapshot containing the submitted
+        public commitment. No identity secret is accepted.
       requestBody:
         {
           required: true,
@@ -33,7 +37,10 @@ paths:
   /v1/secret-gate/enter:
     post:
       operationId: verifySecretGateEntry
-      description: Verifies a real Semaphore proof against the trusted root, fixed message and scope, then atomically reserves its nullifier. The result is offchain and is not an Ethereum transaction.
+      description:
+        Verifies a real Semaphore proof against the trusted root, fixed message and scope, then
+        atomically reserves its nullifier. The result is offchain and is not an Ethereum
+        transaction.
       requestBody:
         {
           required: true,
@@ -59,7 +66,9 @@ paths:
   /v1/emergency-supply/evaluations:
     post:
       operationId: evaluateEmergencySupplyAllocation
-      description: Deterministically calculates cost, enumerates every single failure, and compares a user allocation with the baseline Pareto frontier.
+      description:
+        Deterministically calculates cost, enumerates every single failure, and compares a user
+        allocation with the baseline Pareto frontier.
       requestBody:
         {
           required: true,
@@ -76,7 +85,10 @@ paths:
   /v1/emergency-supply/replay:
     get:
       operationId: replayEmergencySupplyAgents
-      description: Recalculates three reference agent submissions with the public evaluator, derives the final participant frontier, and allocates 10,000 deterministic practice credits by exclusive contribution.
+      description:
+        Recalculates three reference agent submissions with the public evaluator, derives the
+        final participant frontier, and allocates 10,000 deterministic practice credits by exclusive
+        contribution.
       responses:
         {
           "200":
@@ -90,7 +102,9 @@ paths:
   /v1/challenges/emergency-supply/starter-kit:
     get:
       operationId: downloadEmergencySupplyStarterKit
-      description: Downloads the challenge manifest, vendors, failure scenarios, sample submission, and instructions as a ZIP archive.
+      description:
+        Downloads the challenge manifest, vendors, failure scenarios, sample submission, and
+        instructions as a ZIP archive.
       responses:
         "200":
           {
@@ -100,7 +114,9 @@ paths:
   /v1/challenges/emergency-supply/leaderboard:
     get:
       operationId: getEmergencySupplyLeaderboard
-      description: Recalculates the common frontier, dominated reasons, contribution, and reward preview from seed agents and latest participant revisions.
+      description:
+        Recalculates the common frontier, dominated reasons, contribution, and reward preview
+        from seed agents and latest participant revisions.
       responses: { "200": { description: Live frontier leaderboard } }
   /v1/challenges/emergency-supply/join:
     post:
@@ -158,12 +174,17 @@ paths:
   /v1/disaster-response:
     get:
       operationId: getDisasterResponseScenario
-      description: Returns the machine-readable Strategy v2 schema, evaluator and data versions, limits, metrics, constraints, 72-hour logistics network, public training scenarios, and committed final-scenario hash.
+      description:
+        Returns the machine-readable Strategy v2 schema, evaluator and data versions, limits,
+        metrics, constraints, 72-hour logistics network, public training scenarios, and committed
+        final-scenario hash.
       responses: { "200": { description: Public disaster-response scenario } }
   /v1/disaster-response/evaluations:
     post:
       operationId: practiceDisasterResponseStrategy
-      description: Runs the same deterministic evaluator and context used by Human UI and Agent submissions, without joining or persisting a revision. Display-only explanations are derived from measured outcomes and excluded from the compatible result hash.
+      description: Runs the same deterministic evaluator and context used by Human UI and Agent
+        submissions, without joining or persisting a revision. Display-only explanations are derived
+        from measured outcomes and excluded from the compatible result hash.
       requestBody:
         {
           required: true,
@@ -176,14 +197,70 @@ paths:
       responses:
         {
           "200":
-            { description: Strategy outcome, scenario replay, hashes, and frontier comparison },
-          "400": { $ref: "#/components/responses/BadRequest" },
-          "429": { description: Equal per-client practice request limit reached },
+            {
+              description: Validated response; independent metrics and evidence states are preserved,
+              content:
+                {
+                  application/json:
+                    { schema: { $ref: "#/components/schemas/CliDisasterPracticeResult" } },
+                },
+            },
+          "400":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "429":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "401":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "403":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "409":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "503":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
         }
+      parameters:
+        - in: header
+          name: X-Frontier-Context-Hash
+          required: false
+          schema:
+            $ref: "#/components/schemas/Bytes32"
+          description: Expected context; CLI always sends this precondition.
+        - in: header
+          name: X-Frontier-Runtime-Context-Hash
+          required: false
+          schema:
+            $ref: "#/components/schemas/Bytes32"
+          description: Required with a context precondition for Doctrine evaluations.
   /v1/challenges/disaster-response:
     get:
       operationId: getDisasterResponseCompetition
-      description: Returns the Plan 6 instant demo round, storage/authentication/settlement availability, rules, and scenario.
+      description:
+        Returns the Plan 6 instant demo round, storage/authentication/settlement availability,
+        rules, and scenario.
       responses: { "200": { description: Disaster-response competition lobby } }
   /v1/challenges/disaster-response/starter-kit:
     get:
@@ -205,13 +282,18 @@ paths:
   /v1/challenges/disaster-response/leaderboard:
     get:
       operationId: getDisasterResponseLeaderboard
-      description: Compares selected Final Entries with public benchmarks and allocates independent Value Pools without producing an overall rank. Every allocation includes a deterministic qualification reason and formula.
+      description:
+        Compares selected Final Entries with public benchmarks and allocates independent Value
+        Pools without producing an overall rank. Every allocation includes a deterministic
+        qualification reason and formula.
       responses:
         { "200": { description: Three-axis frontier, Value Pool allocations, and reward previews } }
   /v1/challenges/disaster-response/value-pools:
     post:
       operationId: publishDisasterResponseValuePool
-      description: Publishes one authenticated practice Protect a Region Value Pool. It allocates demo credits and does not fund or transfer Sepolia tokens.
+      description:
+        Publishes one authenticated practice Protect a Region Value Pool. It allocates demo
+        credits and does not fund or transfer Sepolia tokens.
       security: [{ PrivyAccessToken: [] }]
       requestBody:
         {
@@ -229,18 +311,83 @@ paths:
   /v1/challenges/disaster-response/join:
     post:
       operationId: joinDisasterResponseCompetition
-      security: [{ PrivyAccessToken: [] }]
+      security:
+        - PrivyAccessToken: []
+          PrivyIdentityToken: []
+        - CliSession: []
       responses:
         {
-          "201": { description: Authenticated participant created or restored },
-          "401": { description: Privy token missing or invalid },
-          "503": { description: Authentication or durable storage unavailable },
+          "201":
+            {
+              description: Validated response; independent metrics and evidence states are preserved,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliJoinResult" } } },
+            },
+          "401":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "503":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "400":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "403":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "409":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "429":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
         }
   /v1/challenges/disaster-response/submissions:
     post:
       operationId: submitDisasterResponseRevision
-      security: [{ PrivyAccessToken: [] }]
-      parameters: [{ name: Idempotency-Key, in: header, required: true, schema: { type: string } }]
+      security:
+        - PrivyAccessToken: []
+          PrivyIdentityToken: []
+        - CliSession: []
+      parameters:
+        - in: header
+          name: X-Frontier-Context-Hash
+          required: false
+          schema:
+            $ref: "#/components/schemas/Bytes32"
+          description: Expected context; CLI always sends this precondition.
+        - in: header
+          name: X-Frontier-Runtime-Context-Hash
+          required: false
+          schema:
+            $ref: "#/components/schemas/Bytes32"
+          description: Required with a context precondition for Doctrine evaluations.
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema:
+            type: string
+            minLength: 8
+            maxLength: 128
+          description: Bind one immutable body to one operation; reuse on retry.
       requestBody:
         {
           required: true,
@@ -251,21 +398,118 @@ paths:
         {
           "201":
             {
-              description: Persisted and evaluated Human or Agent strategy revision,
-              including Agent evidence and previous-revision differences when supplied,
+              description: Validated response; independent metrics and evidence states are preserved,
+              content:
+                {
+                  application/json:
+                    { schema: { $ref: "#/components/schemas/CliSubmissionResult" } },
+                },
             },
-          "400": { $ref: "#/components/responses/BadRequest" },
-          "401": { description: Privy token missing or invalid },
+          "400":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "401":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "403":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "409":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "429":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "503":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "200":
+            {
+              description: Existing submission returned for the identical idempotent operation,
+              content:
+                {
+                  application/json:
+                    { schema: { $ref: "#/components/schemas/CliSubmissionResult" } },
+                },
+            },
         }
   /v1/challenges/disaster-response/submissions/mine:
     get:
       operationId: getMyDisasterResponseSubmissions
-      security: [{ PrivyAccessToken: [] }]
-      responses: { "200": { description: Participant, revisions, and selected Final Entry } }
+      security:
+        - PrivyAccessToken: []
+          PrivyIdentityToken: []
+        - CliSession: []
+      responses:
+        {
+          "200":
+            {
+              description: Validated response; independent metrics and evidence states are preserved,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliMySubmissions" } } },
+            },
+          "400":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "401":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "403":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "409":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "429":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "503":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+        }
   /v1/challenges/disaster-response/final-entry:
     put:
       operationId: selectDisasterResponseFinalEntry
-      security: [{ PrivyAccessToken: [] }]
+      security:
+        - PrivyAccessToken: []
+          PrivyIdentityToken: []
+        - CliSession: []
       requestBody:
         {
           required: true,
@@ -283,7 +527,67 @@ paths:
                 },
             },
         }
-      responses: { "200": { description: Current Final Entry saved } }
+      responses:
+        {
+          "200":
+            {
+              description: Validated response; independent metrics and evidence states are preserved,
+              content:
+                {
+                  application/json:
+                    { schema: { $ref: "#/components/schemas/CliFinalEntryResult" } },
+                },
+            },
+          "400":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "401":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "403":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "409":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "429":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "503":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+        }
+      parameters:
+        - in: header
+          name: X-Frontier-Context-Hash
+          required: false
+          schema:
+            $ref: "#/components/schemas/Bytes32"
+          description: Expected context; CLI always sends this precondition.
+        - in: header
+          name: X-Frontier-Runtime-Context-Hash
+          required: false
+          schema:
+            $ref: "#/components/schemas/Bytes32"
+          description: Required with a context precondition for Doctrine evaluations.
   /v1/challenges/disaster-response/demo-settlement:
     post:
       operationId: settleDisasterResponseDemoReward
@@ -312,7 +616,8 @@ paths:
   /v1/calldata-compression:
     get:
       operationId: getCalldataCompressionScenario
-      description: Returns the fixed batches, compiler and Cancun EVM rules, reference codecs, and measured baseline points.
+      description: Returns the fixed batches, compiler and Cancun EVM rules, reference codecs, and
+        measured baseline points.
       parameters:
         - name: contextId
           in: query
@@ -321,7 +626,9 @@ paths:
   /v1/calldata-compression/evaluations:
     post:
       operationId: evaluateCalldataCodec
-      description: Encodes every public batch, applies exact EIP-2028 byte pricing, executes Solidity runtime bytecode in a Cancun EVM, and compares both gas axes.
+      description:
+        Encodes every public batch, applies exact EIP-2028 byte pricing, executes Solidity
+        runtime bytecode in a Cancun EVM, and compares both gas axes.
       requestBody:
         {
           required: true,
@@ -362,12 +669,18 @@ paths:
   /v1/rescue-room:
     get:
       operationId: getRescueRoomScenario
-      description: Returns the deterministic Practice pack, ambiguous public alerts, curated Service Agent catalog, Reference Commander outcomes, Pareto frontier, and four independent Value Pool previews. Hidden incident state and practice seeds are omitted.
+      description:
+        Returns the deterministic Practice pack, ambiguous public alerts, curated Service Agent
+        catalog, Reference Commander outcomes, Pareto frontier, and four independent Value Pool
+        previews. Hidden incident state and practice seeds are omitted.
       responses: { "200": { description: Public Rescue Room Practice context } }
   /v1/rescue-room/starter-kit:
     get:
       operationId: downloadRescueRoomStarterKit
-      description: Downloads the public alerts, Service Agent catalog, Doctrine and Commander Playbook schemas, deterministic and AI runtime contracts, starter Artifacts, and example requests. Hidden incident state is excluded.
+      description:
+        Downloads the public alerts, Service Agent catalog, Doctrine and Commander Playbook
+        schemas, deterministic and AI runtime contracts, starter Artifacts, and example requests.
+        Hidden incident state is excluded.
       responses:
         {
           "200":
@@ -379,7 +692,10 @@ paths:
   /v1/rescue-room/evaluations:
     post:
       operationId: evaluateRescueRoomPracticeEpisode
-      description: Runs one Reference Commander against one deterministic simulated incident and returns its Action, Service Receipt, game-credit Payment, Protocol State, and outcome Replay. The true incident is revealed after the run.
+      description:
+        Runs one Reference Commander against one deterministic simulated incident and returns
+        its Action, Service Receipt, game-credit Payment, Protocol State, and outcome Replay. The
+        true incident is revealed after the run.
       requestBody:
         {
           required: true,
@@ -397,7 +713,10 @@ paths:
   /v1/rescue-room/doctrine-evaluations:
     post:
       operationId: evaluateRescueRoomDoctrine
-      description: Runs one normalized deterministic Rescue Doctrine against one public Practice Episode. Returns reason-coded decisions, an Artifact hash, deterministic Action replay, and three independent outcomes.
+      description:
+        Runs one normalized deterministic Rescue Doctrine against one public Practice Episode.
+        Returns reason-coded decisions, an Artifact hash, deterministic Action replay, and three
+        independent outcomes.
       requestBody:
         {
           required: true,
@@ -409,13 +728,73 @@ paths:
         }
       responses:
         {
-          "200": { description: Simulated outcome with deterministic Doctrine replay evidence },
-          "400": { $ref: "#/components/responses/BadRequest" },
+          "200":
+            {
+              description: Validated response; independent metrics and evidence states are preserved,
+              content:
+                {
+                  application/json:
+                    { schema: { $ref: "#/components/schemas/CliRescuePracticeResult" } },
+                },
+            },
+          "400":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "401":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "403":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "409":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "429":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
+          "503":
+            {
+              description: Structured API error,
+              content:
+                { application/json: { schema: { $ref: "#/components/schemas/CliApiError" } } },
+            },
         }
+      parameters:
+        - in: header
+          name: X-Frontier-Context-Hash
+          required: false
+          schema:
+            $ref: "#/components/schemas/Bytes32"
+          description: Expected context; CLI always sends this precondition.
+        - in: header
+          name: X-Frontier-Runtime-Context-Hash
+          required: false
+          schema:
+            $ref: "#/components/schemas/Bytes32"
+          description: Required with a context precondition for Doctrine evaluations.
   /v1/rescue-room/commander-evaluations:
     post:
       operationId: evaluateRescueRoomAiCommander
-      description: Runs one participant-authored Commander Playbook through the fixed OpenAI Agents SDK runtime against one public Practice Episode. Returns model and token provenance plus hash-bound Action evidence whose deterministic replay must reproduce the outcome. This is Controlled Practice and is not reward-eligible.
+      description:
+        Runs one participant-authored Commander Playbook through the fixed OpenAI Agents SDK
+        runtime against one public Practice Episode. Returns model and token provenance plus
+        hash-bound Action evidence whose deterministic replay must reproduce the outcome. This is
+        Controlled Practice and is not reward-eligible.
       requestBody:
         {
           required: true,
@@ -437,7 +816,9 @@ paths:
   /v2/sandbox/participants/register:
     post:
       operationId: registerSandboxParticipant
-      description: Idempotently registers a wallet address in ephemeral demo memory. It does not prove ownership or personhood.
+      description:
+        Idempotently registers a wallet address in ephemeral demo memory. It does not prove
+        ownership or personhood.
       requestBody:
         {
           required: true,
@@ -448,7 +829,8 @@ paths:
   /v2/sandbox/submissions:
     post:
       operationId: createSandboxSubmission
-      description: Evaluates and records one ephemeral revision. Private source is rejected until encrypted storage exists.
+      description: Evaluates and records one ephemeral revision. Private source is rejected until
+        encrypted storage exists.
       requestBody: { required: true, content: { application/json: { schema: { type: object } } } }
       responses:
         {
@@ -545,7 +927,9 @@ paths:
       responses:
         "202":
           {
-            description: Evaluation accepted. Public demo deployments return a clearly labeled simulated terminal state without a signature or transaction.,
+            description:
+              Evaluation accepted. Public demo deployments return a clearly labeled simulated
+              terminal state without a signature or transaction.,
             headers: { Location: { schema: { type: string } } },
           }
         "400": { $ref: "#/components/responses/BadRequest" }
@@ -579,12 +963,531 @@ paths:
           "200": { description: ENS runner },
           "503": { description: ENS unavailable or unconfigured },
         }
+  /v1/cli/arenas:
+    get:
+      operationId: listCliArenas
+      responses:
+        "200":
+          description: Versioned capabilities for supported CLI arenas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliArenaList"
+  /v1/cli/arenas/{id}:
+    get:
+      operationId: getCliArena
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            enum:
+              - disaster-response
+              - rescue-room
+      responses:
+        "200":
+          description: Public input contract, fixed context, archive digest and live capabilities
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliArenaManifest"
+        "404":
+          description: Unsupported arena
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+  /v1/cli/auth/device:
+    post:
+      operationId: cliAuthDevice
+      description:
+        Short-lived, origin-bound CLI authorization. No wallet keys or Privy identity tokens
+        are exported to the CLI.
+      responses:
+        "200":
+          description: No-store authorization response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliAuthDeviceResult"
+        "400":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "401":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "403":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "409":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "415":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "429":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "503":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CliAuthDeviceInput"
+  /v1/cli/auth/inspect:
+    post:
+      operationId: cliAuthInspect
+      description:
+        Short-lived, origin-bound CLI authorization. No wallet keys or Privy identity tokens
+        are exported to the CLI.
+      responses:
+        "200":
+          description: No-store authorization response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliAuthInspection"
+        "400":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "401":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "403":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "409":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "415":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "429":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "503":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CliAuthCodeInput"
+      security:
+        - PrivyAccessToken: []
+          PrivyIdentityToken: []
+      parameters:
+        - in: header
+          name: Origin
+          required: true
+          schema:
+            type: string
+            format: uri
+          description: Must equal configured FRONTIER_CLI_ORIGIN
+        - in: header
+          name: X-Frontier-Cli-Csrf
+          required: true
+          schema:
+            type: string
+            const: "1"
+  /v1/cli/auth/approve:
+    post:
+      operationId: cliAuthApprove
+      description:
+        Short-lived, origin-bound CLI authorization. No wallet keys or Privy identity tokens
+        are exported to the CLI.
+      responses:
+        "200":
+          description: No-store authorization response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliAuthApprovalResult"
+        "400":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "401":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "403":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "409":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "415":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "429":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "503":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CliAuthApprovalInput"
+      security:
+        - PrivyAccessToken: []
+          PrivyIdentityToken: []
+      parameters:
+        - in: header
+          name: Origin
+          required: true
+          schema:
+            type: string
+            format: uri
+          description: Must equal configured FRONTIER_CLI_ORIGIN
+        - in: header
+          name: X-Frontier-Cli-Csrf
+          required: true
+          schema:
+            type: string
+            const: "1"
+  /v1/cli/auth/token:
+    post:
+      operationId: cliAuthToken
+      description:
+        Short-lived, origin-bound CLI authorization. No wallet keys or Privy identity tokens
+        are exported to the CLI.
+      responses:
+        "200":
+          description: No-store authorization response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliAuthTokenResult"
+        "400":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "401":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "403":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "409":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "415":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "429":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "503":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CliAuthTokenInput"
+  /v1/cli/auth/session:
+    get:
+      operationId: cliAuthSession
+      description:
+        Short-lived, origin-bound CLI authorization. No wallet keys or Privy identity tokens
+        are exported to the CLI.
+      responses:
+        "200":
+          description: No-store authorization response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliAuthSession"
+        "400":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "401":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "403":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "409":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "415":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "429":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "503":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+      security:
+        - CliSession: []
+  /v1/cli/auth/revoke:
+    post:
+      operationId: cliAuthRevoke
+      description:
+        Short-lived, origin-bound CLI authorization. No wallet keys or Privy identity tokens
+        are exported to the CLI.
+      responses:
+        "200":
+          description: No-store authorization response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliAuthRevoked"
+        "400":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "401":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "403":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "409":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "415":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "429":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+        "503":
+          description:
+            Authorization error; authorization_pending and slow_down are polling states, not new
+            login requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliApiError"
+      security:
+        - CliSession: []
 components:
   securitySchemes:
     PrivyAccessToken:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    PrivyIdentityToken:
+      type: apiKey
+      in: header
+      name: x-privy-identity-token
+    CliSession:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque frontier_cli_ session
   parameters:
     Id: { name: id, in: path, required: true, schema: { $ref: "#/components/schemas/Bytes32" } }
   schemas:
@@ -649,51 +1552,169 @@ components:
       additionalProperties: false
     DisasterResponseStrategy:
       type: object
-      required:
-        [
-          schemaVersion,
-          name,
-          primarySupplierOrder,
-          emergencySupplierOrder,
-          regionPolicy,
-          reserveKits,
-          emergencyBudgetUsd,
-        ]
       properties:
-        schemaVersion: { type: string, const: "2" }
-        name: { type: string, minLength: 1, maxLength: 80 }
+        schemaVersion:
+          type: string
+          const: "2"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
         primarySupplierOrder:
-          {
-            type: array,
-            minItems: 5,
-            maxItems: 5,
-            items: { $ref: "#/components/schemas/DisasterSupplierId" },
-          }
+          minItems: 5
+          maxItems: 5
+          type: array
+          items:
+            type: string
+            enum:
+              - harbor-aid
+              - northstar
+              - inland-works
+              - local-grid
+              - airbridge
         emergencySupplierOrder:
-          {
-            type: array,
-            minItems: 5,
-            maxItems: 5,
-            items: { $ref: "#/components/schemas/DisasterSupplierId" },
-          }
-        regionPolicy: { type: string, enum: [deadline-first, highest-need, equalize-coverage] }
-        reserveKits: { type: integer, minimum: 0, maximum: 300 }
-        emergencyBudgetUsd: { type: integer, minimum: 0, maximum: 25000 }
+          minItems: 5
+          maxItems: 5
+          type: array
+          items:
+            type: string
+            enum:
+              - harbor-aid
+              - northstar
+              - inland-works
+              - local-grid
+              - airbridge
+        regionPolicy:
+          type: string
+          enum:
+            - deadline-first
+            - highest-need
+            - equalize-coverage
+        reserveKits:
+          type: integer
+          minimum: 0
+          maximum: 300
+        emergencyBudgetUsd:
+          type: integer
+          minimum: 0
+          maximum: 25000
+      required:
+        - schemaVersion
+        - name
+        - primarySupplierOrder
+        - emergencySupplierOrder
+        - regionPolicy
+        - reserveKits
+        - emergencyBudgetUsd
       additionalProperties: false
     DisasterSupplierId:
       { type: string, enum: [harbor-aid, northstar, inland-works, local-grid, airbridge] }
     Plan6SubmissionInput:
       type: object
-      required: [strategy, sourceMethod]
       properties:
-        strategy: { $ref: "#/components/schemas/DisasterResponseStrategy" }
-        sourceMethod: { type: string, enum: [VISUAL, JSON, UPLOAD, AGENT_API] }
-        repositoryUrl: { type: [string, "null"], format: uri }
-        sourceCommit: { type: [string, "null"], pattern: "^[0-9a-f]{40}$" }
-        agentEvidence:
-          oneOf:
+        strategy:
+          type: object
+          properties:
+            schemaVersion:
+              type: string
+              const: "2"
+            name:
+              type: string
+              minLength: 1
+              maxLength: 80
+            primarySupplierOrder:
+              minItems: 5
+              maxItems: 5
+              type: array
+              items:
+                type: string
+                enum:
+                  - harbor-aid
+                  - northstar
+                  - inland-works
+                  - local-grid
+                  - airbridge
+            emergencySupplierOrder:
+              minItems: 5
+              maxItems: 5
+              type: array
+              items:
+                type: string
+                enum:
+                  - harbor-aid
+                  - northstar
+                  - inland-works
+                  - local-grid
+                  - airbridge
+            regionPolicy:
+              type: string
+              enum:
+                - deadline-first
+                - highest-need
+                - equalize-coverage
+            reserveKits:
+              type: integer
+              minimum: 0
+              maximum: 300
+            emergencyBudgetUsd:
+              type: integer
+              minimum: 0
+              maximum: 25000
+          required:
+            - schemaVersion
+            - name
+            - primarySupplierOrder
+            - emergencySupplierOrder
+            - regionPolicy
+            - reserveKits
+            - emergencyBudgetUsd
+          additionalProperties: false
+        sourceMethod:
+          type: string
+          enum:
+            - VISUAL
+            - JSON
+            - UPLOAD
+            - AGENT_API
+        repositoryUrl:
+          default: null
+          anyOf:
+            - type: string
+              format: uri
+              pattern: ^https:\/\/github\.com\/.*
             - type: "null"
-            - $ref: "#/components/schemas/Plan6AgentEvidence"
+        sourceCommit:
+          default: null
+          anyOf:
+            - type: string
+              pattern: ^[0-9a-f]{40}$
+            - type: "null"
+        agentEvidence:
+          default: null
+          anyOf:
+            - type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 80
+                version:
+                  type: string
+                  minLength: 1
+                  maxLength: 40
+                objective:
+                  type: string
+                  minLength: 3
+                  maxLength: 240
+              required:
+                - name
+                - version
+                - objective
+              additionalProperties: false
+            - type: "null"
+      required:
+        - strategy
+        - sourceMethod
       additionalProperties: false
     Plan6AgentEvidence:
       type: object
@@ -929,6 +1950,2524 @@ components:
           type: object
           required: [code, message]
           properties: { code: { type: string }, message: { type: string }, details: {} }
+    CliArenaManifest:
+      type: object
+      properties:
+        schemaVersion:
+          type: string
+          const: "1"
+        id:
+          type: string
+          enum:
+            - disaster-response
+            - rescue-room
+        challengeId:
+          type: string
+          minLength: 1
+        name:
+          type: string
+          minLength: 1
+        webPath:
+          type: string
+          pattern: ^\/.*
+        context:
+          type: object
+          properties:
+            contextHash:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            runtimeContextHash:
+              anyOf:
+                - type: string
+                  pattern: ^0x[0-9a-fA-F]{64}$
+                - type: "null"
+            manifestHash:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            evaluatorVersion:
+              type: string
+              minLength: 1
+            dataVersion:
+              type: string
+              minLength: 1
+            metrics:
+              minItems: 1
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    minLength: 1
+                  name:
+                    type: string
+                    minLength: 1
+                  direction:
+                    type: string
+                    enum:
+                      - MINIMIZE
+                      - MAXIMIZE
+                  unit:
+                    type: string
+                    minLength: 1
+                  lowerBound:
+                    type: number
+                  upperBound:
+                    type: number
+                required:
+                  - key
+                  - name
+                  - direction
+                  - unit
+                  - lowerBound
+                  - upperBound
+            evidenceState:
+              type: string
+              enum:
+                - measured
+                - simulated
+          required:
+            - contextHash
+            - runtimeContextHash
+            - manifestHash
+            - evaluatorVersion
+            - dataVersion
+            - metrics
+            - evidenceState
+          additionalProperties: false
+        artifact:
+          type: object
+          properties:
+            kind:
+              type: string
+              enum:
+                - strategy
+                - doctrine
+            filename:
+              type: string
+              enum:
+                - strategy.json
+                - doctrine.json
+            schema:
+              type: object
+              propertyNames:
+                type: string
+              additionalProperties: {}
+            schemaHash:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            sample:
+              type: object
+              propertyNames:
+                type: string
+              additionalProperties: {}
+          required:
+            - kind
+            - filename
+            - schema
+            - schemaHash
+            - sample
+          additionalProperties: false
+        starter:
+          type: object
+          properties:
+            path:
+              type: string
+              pattern: ^\/.*
+            sha256:
+              type: string
+              pattern: ^[a-f0-9]{64}$
+          required:
+            - path
+            - sha256
+          additionalProperties: false
+        episodes:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              headline:
+                type: string
+            required:
+              - id
+              - headline
+            additionalProperties: false
+        constraints:
+          type: array
+          items:
+            type: string
+        limits:
+          type: object
+          properties:
+            practiceRunsPerMinute:
+              type: integer
+              exclusiveMinimum: 0
+              maximum: 9007199254740991
+            maxRevisions:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+          required:
+            - practiceRunsPerMinute
+            - maxRevisions
+          additionalProperties: false
+        capabilities:
+          type: object
+          properties:
+            practice:
+              type: object
+              properties:
+                supported:
+                  type: boolean
+                available:
+                  type: boolean
+                reason:
+                  type:
+                    - string
+                    - "null"
+                authentication:
+                  type: string
+                  enum:
+                    - none
+                    - cli-session
+              required:
+                - supported
+                - available
+                - reason
+                - authentication
+              additionalProperties: false
+            submit:
+              type: object
+              properties:
+                supported:
+                  type: boolean
+                available:
+                  type: boolean
+                reason:
+                  type:
+                    - string
+                    - "null"
+                authentication:
+                  type: string
+                  enum:
+                    - none
+                    - cli-session
+              required:
+                - supported
+                - available
+                - reason
+                - authentication
+              additionalProperties: false
+            finalEntry:
+              type: object
+              properties:
+                supported:
+                  type: boolean
+                available:
+                  type: boolean
+                reason:
+                  type:
+                    - string
+                    - "null"
+                authentication:
+                  type: string
+                  enum:
+                    - none
+                    - cli-session
+              required:
+                - supported
+                - available
+                - reason
+                - authentication
+              additionalProperties: false
+            contextPrecondition:
+              type: boolean
+              const: true
+          required:
+            - practice
+            - submit
+            - finalEntry
+            - contextPrecondition
+          additionalProperties: false
+        storage:
+          type: string
+          enum:
+            - durable-redis
+            - ephemeral-memory
+            - unconfigured
+        paymentState:
+          type: string
+          enum:
+            - not-requested
+            - game-credits
+        rewardEligible:
+          type: boolean
+          const: false
+      required:
+        - schemaVersion
+        - id
+        - challengeId
+        - name
+        - webPath
+        - context
+        - artifact
+        - starter
+        - episodes
+        - constraints
+        - limits
+        - capabilities
+        - storage
+        - paymentState
+        - rewardEligible
+      additionalProperties: false
+    CliArenaList:
+      type: object
+      properties:
+        schemaVersion:
+          type: string
+          const: "1"
+        arenas:
+          type: array
+          items:
+            type: object
+            properties:
+              schemaVersion:
+                type: string
+                const: "1"
+              id:
+                type: string
+                enum:
+                  - disaster-response
+                  - rescue-room
+              challengeId:
+                type: string
+                minLength: 1
+              name:
+                type: string
+                minLength: 1
+              webPath:
+                type: string
+                pattern: ^\/.*
+              context:
+                type: object
+                properties:
+                  contextHash:
+                    type: string
+                    pattern: ^0x[0-9a-fA-F]{64}$
+                  runtimeContextHash:
+                    anyOf:
+                      - type: string
+                        pattern: ^0x[0-9a-fA-F]{64}$
+                      - type: "null"
+                  manifestHash:
+                    type: string
+                    pattern: ^0x[0-9a-fA-F]{64}$
+                  evaluatorVersion:
+                    type: string
+                    minLength: 1
+                  dataVersion:
+                    type: string
+                    minLength: 1
+                  metrics:
+                    minItems: 1
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        key:
+                          type: string
+                          minLength: 1
+                        name:
+                          type: string
+                          minLength: 1
+                        direction:
+                          type: string
+                          enum:
+                            - MINIMIZE
+                            - MAXIMIZE
+                        unit:
+                          type: string
+                          minLength: 1
+                        lowerBound:
+                          type: number
+                        upperBound:
+                          type: number
+                      required:
+                        - key
+                        - name
+                        - direction
+                        - unit
+                        - lowerBound
+                        - upperBound
+                  evidenceState:
+                    type: string
+                    enum:
+                      - measured
+                      - simulated
+                required:
+                  - contextHash
+                  - runtimeContextHash
+                  - manifestHash
+                  - evaluatorVersion
+                  - dataVersion
+                  - metrics
+                  - evidenceState
+                additionalProperties: false
+              artifact:
+                type: object
+                properties:
+                  kind:
+                    type: string
+                    enum:
+                      - strategy
+                      - doctrine
+                  filename:
+                    type: string
+                    enum:
+                      - strategy.json
+                      - doctrine.json
+                  schema:
+                    type: object
+                    propertyNames:
+                      type: string
+                    additionalProperties: {}
+                  schemaHash:
+                    type: string
+                    pattern: ^0x[0-9a-fA-F]{64}$
+                  sample:
+                    type: object
+                    propertyNames:
+                      type: string
+                    additionalProperties: {}
+                required:
+                  - kind
+                  - filename
+                  - schema
+                  - schemaHash
+                  - sample
+                additionalProperties: false
+              starter:
+                type: object
+                properties:
+                  path:
+                    type: string
+                    pattern: ^\/.*
+                  sha256:
+                    type: string
+                    pattern: ^[a-f0-9]{64}$
+                required:
+                  - path
+                  - sha256
+                additionalProperties: false
+              episodes:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    headline:
+                      type: string
+                  required:
+                    - id
+                    - headline
+                  additionalProperties: false
+              constraints:
+                type: array
+                items:
+                  type: string
+              limits:
+                type: object
+                properties:
+                  practiceRunsPerMinute:
+                    type: integer
+                    exclusiveMinimum: 0
+                    maximum: 9007199254740991
+                  maxRevisions:
+                    type: integer
+                    minimum: 0
+                    maximum: 9007199254740991
+                required:
+                  - practiceRunsPerMinute
+                  - maxRevisions
+                additionalProperties: false
+              capabilities:
+                type: object
+                properties:
+                  practice:
+                    type: object
+                    properties:
+                      supported:
+                        type: boolean
+                      available:
+                        type: boolean
+                      reason:
+                        type:
+                          - string
+                          - "null"
+                      authentication:
+                        type: string
+                        enum:
+                          - none
+                          - cli-session
+                    required:
+                      - supported
+                      - available
+                      - reason
+                      - authentication
+                    additionalProperties: false
+                  submit:
+                    type: object
+                    properties:
+                      supported:
+                        type: boolean
+                      available:
+                        type: boolean
+                      reason:
+                        type:
+                          - string
+                          - "null"
+                      authentication:
+                        type: string
+                        enum:
+                          - none
+                          - cli-session
+                    required:
+                      - supported
+                      - available
+                      - reason
+                      - authentication
+                    additionalProperties: false
+                  finalEntry:
+                    type: object
+                    properties:
+                      supported:
+                        type: boolean
+                      available:
+                        type: boolean
+                      reason:
+                        type:
+                          - string
+                          - "null"
+                      authentication:
+                        type: string
+                        enum:
+                          - none
+                          - cli-session
+                    required:
+                      - supported
+                      - available
+                      - reason
+                      - authentication
+                    additionalProperties: false
+                  contextPrecondition:
+                    type: boolean
+                    const: true
+                required:
+                  - practice
+                  - submit
+                  - finalEntry
+                  - contextPrecondition
+                additionalProperties: false
+              storage:
+                type: string
+                enum:
+                  - durable-redis
+                  - ephemeral-memory
+                  - unconfigured
+              paymentState:
+                type: string
+                enum:
+                  - not-requested
+                  - game-credits
+              rewardEligible:
+                type: boolean
+                const: false
+            required:
+              - schemaVersion
+              - id
+              - challengeId
+              - name
+              - webPath
+              - context
+              - artifact
+              - starter
+              - episodes
+              - constraints
+              - limits
+              - capabilities
+              - storage
+              - paymentState
+              - rewardEligible
+            additionalProperties: false
+      required:
+        - schemaVersion
+        - arenas
+    CliContext:
+      type: object
+      properties:
+        contextHash:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+        runtimeContextHash:
+          anyOf:
+            - type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            - type: "null"
+        manifestHash:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+        evaluatorVersion:
+          type: string
+          minLength: 1
+        dataVersion:
+          type: string
+          minLength: 1
+        metrics:
+          minItems: 1
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+                minLength: 1
+              name:
+                type: string
+                minLength: 1
+              direction:
+                type: string
+                enum:
+                  - MINIMIZE
+                  - MAXIMIZE
+              unit:
+                type: string
+                minLength: 1
+              lowerBound:
+                type: number
+              upperBound:
+                type: number
+            required:
+              - key
+              - name
+              - direction
+              - unit
+              - lowerBound
+              - upperBound
+        evidenceState:
+          type: string
+          enum:
+            - measured
+            - simulated
+      required:
+        - contextHash
+        - runtimeContextHash
+        - manifestHash
+        - evaluatorVersion
+        - dataVersion
+        - metrics
+        - evidenceState
+      additionalProperties: false
+    CliProject:
+      type: object
+      properties:
+        schemaVersion:
+          type: string
+          const: "1"
+        arenaId:
+          type: string
+          enum:
+            - disaster-response
+            - rescue-room
+        baseUrl:
+          type: string
+          format: uri
+        artifact:
+          type: string
+          enum:
+            - strategy.json
+            - doctrine.json
+        provenance:
+          type: object
+          properties:
+            kind:
+              type: string
+              enum:
+                - human
+                - agent
+            name:
+              type: string
+              minLength: 1
+              maxLength: 80
+            version:
+              type: string
+              minLength: 1
+              maxLength: 40
+            objective:
+              type: string
+              minLength: 3
+              maxLength: 240
+            repositoryUrl:
+              type: string
+              format: uri
+              pattern: ^https:\/\/github\.com\/.*
+            sourceCommit:
+              type: string
+              pattern: ^[0-9a-f]{40}$
+          required:
+            - kind
+          additionalProperties: false
+      required:
+        - schemaVersion
+        - arenaId
+        - baseUrl
+        - artifact
+        - provenance
+      additionalProperties: false
+    CliLock:
+      type: object
+      properties:
+        schemaVersion:
+          type: string
+          const: "1"
+        arenaId:
+          type: string
+          enum:
+            - disaster-response
+            - rescue-room
+        baseUrl:
+          type: string
+          format: uri
+        context:
+          type: object
+          properties:
+            contextHash:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            runtimeContextHash:
+              anyOf:
+                - type: string
+                  pattern: ^0x[0-9a-fA-F]{64}$
+                - type: "null"
+            manifestHash:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            evaluatorVersion:
+              type: string
+              minLength: 1
+            dataVersion:
+              type: string
+              minLength: 1
+            metrics:
+              minItems: 1
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    minLength: 1
+                  name:
+                    type: string
+                    minLength: 1
+                  direction:
+                    type: string
+                    enum:
+                      - MINIMIZE
+                      - MAXIMIZE
+                  unit:
+                    type: string
+                    minLength: 1
+                  lowerBound:
+                    type: number
+                  upperBound:
+                    type: number
+                required:
+                  - key
+                  - name
+                  - direction
+                  - unit
+                  - lowerBound
+                  - upperBound
+            evidenceState:
+              type: string
+              enum:
+                - measured
+                - simulated
+          required:
+            - contextHash
+            - runtimeContextHash
+            - manifestHash
+            - evaluatorVersion
+            - dataVersion
+            - metrics
+            - evidenceState
+          additionalProperties: false
+        schemaHash:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+        starterSha256:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        episodeId:
+          type:
+            - string
+            - "null"
+      required:
+        - schemaVersion
+        - arenaId
+        - baseUrl
+        - context
+        - schemaHash
+        - starterSha256
+        - episodeId
+      additionalProperties: false
+    CliRun:
+      type: object
+      properties:
+        schemaVersion:
+          type: string
+          const: "1"
+        runId:
+          type: string
+          pattern: ^run_[a-f0-9-]{36}$
+        arenaId:
+          type: string
+          enum:
+            - disaster-response
+            - rescue-room
+        baseUrl:
+          type: string
+          format: uri
+        createdAt:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+        context:
+          type: object
+          properties:
+            contextHash:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            runtimeContextHash:
+              anyOf:
+                - type: string
+                  pattern: ^0x[0-9a-fA-F]{64}$
+                - type: "null"
+            manifestHash:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            evaluatorVersion:
+              type: string
+              minLength: 1
+            dataVersion:
+              type: string
+              minLength: 1
+            metrics:
+              minItems: 1
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    minLength: 1
+                  name:
+                    type: string
+                    minLength: 1
+                  direction:
+                    type: string
+                    enum:
+                      - MINIMIZE
+                      - MAXIMIZE
+                  unit:
+                    type: string
+                    minLength: 1
+                  lowerBound:
+                    type: number
+                  upperBound:
+                    type: number
+                required:
+                  - key
+                  - name
+                  - direction
+                  - unit
+                  - lowerBound
+                  - upperBound
+            evidenceState:
+              type: string
+              enum:
+                - measured
+                - simulated
+          required:
+            - contextHash
+            - runtimeContextHash
+            - manifestHash
+            - evaluatorVersion
+            - dataVersion
+            - metrics
+            - evidenceState
+          additionalProperties: false
+        episodeId:
+          type:
+            - string
+            - "null"
+        artifact:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties: {}
+        artifactHash:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+        resultHash:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+        correctness:
+          type: boolean
+        values:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties:
+            type: number
+        raw:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties: {}
+      required:
+        - schemaVersion
+        - runId
+        - arenaId
+        - baseUrl
+        - createdAt
+        - context
+        - episodeId
+        - artifact
+        - artifactHash
+        - resultHash
+        - correctness
+        - values
+        - raw
+      additionalProperties: false
+    CliApiError:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details: {}
+          required:
+            - code
+            - message
+      required:
+        - error
+    CliDisasterPracticeResult:
+      type: object
+      properties:
+        schemaVersion:
+          type: string
+          const: "2"
+        arenaId:
+          type: string
+        dataVersion:
+          type: string
+        evaluatorVersion:
+          type: string
+        contextHash:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+        manifestHash:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+        resultHash:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+        finalScenarioCommitment:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+        strategy:
+          type: object
+          properties:
+            schemaVersion:
+              type: string
+              const: "2"
+            name:
+              type: string
+              minLength: 1
+              maxLength: 80
+            primarySupplierOrder:
+              minItems: 5
+              maxItems: 5
+              type: array
+              items:
+                type: string
+                enum:
+                  - harbor-aid
+                  - northstar
+                  - inland-works
+                  - local-grid
+                  - airbridge
+            emergencySupplierOrder:
+              minItems: 5
+              maxItems: 5
+              type: array
+              items:
+                type: string
+                enum:
+                  - harbor-aid
+                  - northstar
+                  - inland-works
+                  - local-grid
+                  - airbridge
+            regionPolicy:
+              type: string
+              enum:
+                - deadline-first
+                - highest-need
+                - equalize-coverage
+            reserveKits:
+              type: integer
+              minimum: 0
+              maximum: 300
+            emergencyBudgetUsd:
+              type: integer
+              minimum: 0
+              maximum: 25000
+          required:
+            - schemaVersion
+            - name
+            - primarySupplierOrder
+            - emergencySupplierOrder
+            - regionPolicy
+            - reserveKits
+            - emergencyBudgetUsd
+          additionalProperties: false
+        correctness:
+          type: boolean
+        constraintFailures:
+          type: array
+          items:
+            type: string
+        totalProcurementCost:
+          type: number
+        worstCaseDeliveredKits:
+          type: number
+        regionalFairnessPpm:
+          type: number
+        scenarioOutcomes:
+          type: array
+          items:
+            type: object
+            propertyNames:
+              type: string
+            additionalProperties: {}
+        pareto:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties: {}
+        contribution:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties: {}
+        state:
+          type: string
+          const: measured
+        inputHash:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+      required:
+        - schemaVersion
+        - arenaId
+        - dataVersion
+        - evaluatorVersion
+        - contextHash
+        - manifestHash
+        - resultHash
+        - finalScenarioCommitment
+        - strategy
+        - correctness
+        - constraintFailures
+        - totalProcurementCost
+        - worstCaseDeliveredKits
+        - regionalFairnessPpm
+        - scenarioOutcomes
+        - pareto
+        - contribution
+        - state
+        - inputHash
+      additionalProperties: {}
+    CliRescuePracticeInput:
+      type: object
+      properties:
+        episodeId:
+          type: string
+          minLength: 1
+        doctrine:
+          type: object
+          properties:
+            schemaVersion:
+              type: string
+              const: rescue-doctrine-v0
+            name:
+              type: string
+              minLength: 3
+              maxLength: 80
+            constraints:
+              type: object
+              properties:
+                investigationBudgetCredits:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                maxServicePriceCredits:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                allowedServiceIds:
+                  minItems: 1
+                  maxItems: 6
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - pulse-monitor
+                      - trace-audit
+                      - accounting-audit
+                      - second-opinion
+                      - patch-builder
+                      - patch-verifier
+                allowedProtocolActions:
+                  minItems: 1
+                  maxItems: 7
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - PAUSE_MODULE
+                      - PAUSE_PROTOCOL
+                      - APPLY_PATCH
+                      - RESUME_MODULE
+                      - RESUME_PROTOCOL
+                      - WAIT
+                      - CLOSE_INCIDENT
+              required:
+                - investigationBudgetCredits
+                - maxServicePriceCredits
+                - allowedServiceIds
+                - allowedProtocolActions
+              additionalProperties: false
+            rules:
+              type: object
+              properties:
+                minimumEvidenceCount:
+                  type: integer
+                  minimum: 1
+                  maximum: 3
+                minimumConfidencePpm:
+                  type: integer
+                  minimum: 500000
+                  maximum: 950000
+                disagreementAction:
+                  type: string
+                  enum:
+                    - second-opinion
+                    - wait
+                    - contain
+                containmentScope:
+                  type: string
+                  enum:
+                    - none
+                    - module
+                    - protocol
+                servicePriority:
+                  minItems: 1
+                  maxItems: 4
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - pulse-monitor
+                      - trace-audit
+                      - accounting-audit
+                      - second-opinion
+                requirePatchVerification:
+                  type: boolean
+                budgetExhaustedAction:
+                  type: string
+                  enum:
+                    - wait
+                    - close
+                    - contain
+              required:
+                - minimumEvidenceCount
+                - minimumConfidencePpm
+                - disagreementAction
+                - containmentScope
+                - servicePriority
+                - requirePatchVerification
+                - budgetExhaustedAction
+              additionalProperties: false
+          required:
+            - schemaVersion
+            - name
+            - constraints
+            - rules
+          additionalProperties: false
+      required:
+        - episodeId
+        - doctrine
+      additionalProperties: false
+    CliRescuePracticeResult:
+      type: object
+      properties:
+        schemaVersion:
+          type: string
+          const: rescue-doctrine-practice-evaluation-v0
+        arenaId:
+          type: string
+        contextId:
+          type: string
+        contextHash:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+        doctrineContextHash:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+        manifestHash:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+        doctrine:
+          type: object
+          properties:
+            schemaVersion:
+              type: string
+              const: rescue-doctrine-v0
+            name:
+              type: string
+              minLength: 3
+              maxLength: 80
+            constraints:
+              type: object
+              properties:
+                investigationBudgetCredits:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                maxServicePriceCredits:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                allowedServiceIds:
+                  minItems: 1
+                  maxItems: 6
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - pulse-monitor
+                      - trace-audit
+                      - accounting-audit
+                      - second-opinion
+                      - patch-builder
+                      - patch-verifier
+                allowedProtocolActions:
+                  minItems: 1
+                  maxItems: 7
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - PAUSE_MODULE
+                      - PAUSE_PROTOCOL
+                      - APPLY_PATCH
+                      - RESUME_MODULE
+                      - RESUME_PROTOCOL
+                      - WAIT
+                      - CLOSE_INCIDENT
+              required:
+                - investigationBudgetCredits
+                - maxServicePriceCredits
+                - allowedServiceIds
+                - allowedProtocolActions
+              additionalProperties: false
+            rules:
+              type: object
+              properties:
+                minimumEvidenceCount:
+                  type: integer
+                  minimum: 1
+                  maximum: 3
+                minimumConfidencePpm:
+                  type: integer
+                  minimum: 500000
+                  maximum: 950000
+                disagreementAction:
+                  type: string
+                  enum:
+                    - second-opinion
+                    - wait
+                    - contain
+                containmentScope:
+                  type: string
+                  enum:
+                    - none
+                    - module
+                    - protocol
+                servicePriority:
+                  minItems: 1
+                  maxItems: 4
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - pulse-monitor
+                      - trace-audit
+                      - accounting-audit
+                      - second-opinion
+                requirePatchVerification:
+                  type: boolean
+                budgetExhaustedAction:
+                  type: string
+                  enum:
+                    - wait
+                    - close
+                    - contain
+              required:
+                - minimumEvidenceCount
+                - minimumConfidencePpm
+                - disagreementAction
+                - containmentScope
+                - servicePriority
+                - requirePatchVerification
+                - budgetExhaustedAction
+              additionalProperties: false
+          required:
+            - schemaVersion
+            - name
+            - constraints
+            - rules
+          additionalProperties: false
+        doctrineHash:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+        interpreterVersion:
+          type: string
+        decisions:
+          type: array
+          items:
+            type: object
+            propertyNames:
+              type: string
+            additionalProperties: {}
+        episode:
+          type: object
+          properties:
+            id:
+              type: string
+            initialHeadline:
+              type: string
+            revealedAfterRun:
+              type: object
+              propertyNames:
+                type: string
+              additionalProperties: {}
+          required:
+            - id
+            - initialHeadline
+            - revealedAfterRun
+        outcome:
+          type: object
+          properties:
+            episodeId:
+              type: string
+            episodeHash:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            correctness:
+              type: boolean
+            invalidReason:
+              type:
+                - string
+                - "null"
+            userLossUsd:
+              type: number
+            servedProtocolDemandPpm:
+              type: number
+            netResponseSpendCredits:
+              type: number
+            transcript:
+              type: array
+              items:
+                type: object
+                propertyNames:
+                  type: string
+                additionalProperties: {}
+            transcriptHash:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            resultHash:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+          required:
+            - episodeId
+            - episodeHash
+            - correctness
+            - invalidReason
+            - userLossUsd
+            - servedProtocolDemandPpm
+            - netResponseSpendCredits
+            - transcript
+            - transcriptHash
+            - resultHash
+          additionalProperties: {}
+        replay:
+          type: object
+          properties:
+            deterministic:
+              type: boolean
+              const: true
+            actionCount:
+              type: number
+            resultHash:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            matchesRecordedOutcome:
+              type: boolean
+              const: true
+          required:
+            - deterministic
+            - actionCount
+            - resultHash
+            - matchesRecordedOutcome
+        evaluationHash:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+        state:
+          type: string
+          const: simulated
+        strategyState:
+          type: string
+          const: deterministic-rules
+        paymentState:
+          type: string
+          const: game-credits
+        rewardEligibility:
+          type: object
+          properties:
+            eligible:
+              type: boolean
+              const: false
+            reason:
+              type: string
+          required:
+            - eligible
+            - reason
+      required:
+        - schemaVersion
+        - arenaId
+        - contextId
+        - contextHash
+        - doctrineContextHash
+        - manifestHash
+        - doctrine
+        - doctrineHash
+        - interpreterVersion
+        - decisions
+        - episode
+        - outcome
+        - replay
+        - evaluationHash
+        - state
+        - strategyState
+        - paymentState
+        - rewardEligibility
+      additionalProperties: {}
+    CliSubmission:
+      type: object
+      properties:
+        submissionId:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+        participantId:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+        challengeId:
+          type: string
+        revision:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+        sourceMethod:
+          type: string
+          enum:
+            - VISUAL
+            - JSON
+            - UPLOAD
+            - AGENT_API
+        sourceHash:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+        inputHash:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+        repositoryUrl:
+          type:
+            - string
+            - "null"
+        sourceCommit:
+          type:
+            - string
+            - "null"
+        agentEvidence:
+          anyOf:
+            - type: object
+              properties:
+                name:
+                  type: string
+                version:
+                  type: string
+                objective:
+                  type: string
+              required:
+                - name
+                - version
+                - objective
+            - type: "null"
+        artifact:
+          type: object
+          properties:
+            strategy:
+              type: object
+              properties:
+                schemaVersion:
+                  type: string
+                  const: "2"
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 80
+                primarySupplierOrder:
+                  minItems: 5
+                  maxItems: 5
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - harbor-aid
+                      - northstar
+                      - inland-works
+                      - local-grid
+                      - airbridge
+                emergencySupplierOrder:
+                  minItems: 5
+                  maxItems: 5
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - harbor-aid
+                      - northstar
+                      - inland-works
+                      - local-grid
+                      - airbridge
+                regionPolicy:
+                  type: string
+                  enum:
+                    - deadline-first
+                    - highest-need
+                    - equalize-coverage
+                reserveKits:
+                  type: integer
+                  minimum: 0
+                  maximum: 300
+                emergencyBudgetUsd:
+                  type: integer
+                  minimum: 0
+                  maximum: 25000
+              required:
+                - schemaVersion
+                - name
+                - primarySupplierOrder
+                - emergencySupplierOrder
+                - regionPolicy
+                - reserveKits
+                - emergencyBudgetUsd
+              additionalProperties: false
+          required:
+            - strategy
+        evaluation:
+          type: object
+          properties:
+            schemaVersion:
+              type: string
+              const: "2"
+            arenaId:
+              type: string
+            dataVersion:
+              type: string
+            evaluatorVersion:
+              type: string
+            contextHash:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            manifestHash:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            resultHash:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            finalScenarioCommitment:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            strategy:
+              type: object
+              properties:
+                schemaVersion:
+                  type: string
+                  const: "2"
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 80
+                primarySupplierOrder:
+                  minItems: 5
+                  maxItems: 5
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - harbor-aid
+                      - northstar
+                      - inland-works
+                      - local-grid
+                      - airbridge
+                emergencySupplierOrder:
+                  minItems: 5
+                  maxItems: 5
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - harbor-aid
+                      - northstar
+                      - inland-works
+                      - local-grid
+                      - airbridge
+                regionPolicy:
+                  type: string
+                  enum:
+                    - deadline-first
+                    - highest-need
+                    - equalize-coverage
+                reserveKits:
+                  type: integer
+                  minimum: 0
+                  maximum: 300
+                emergencyBudgetUsd:
+                  type: integer
+                  minimum: 0
+                  maximum: 25000
+              required:
+                - schemaVersion
+                - name
+                - primarySupplierOrder
+                - emergencySupplierOrder
+                - regionPolicy
+                - reserveKits
+                - emergencyBudgetUsd
+              additionalProperties: false
+            correctness:
+              type: boolean
+            constraintFailures:
+              type: array
+              items:
+                type: string
+            totalProcurementCost:
+              type: number
+            worstCaseDeliveredKits:
+              type: number
+            regionalFairnessPpm:
+              type: number
+            scenarioOutcomes:
+              type: array
+              items:
+                type: object
+                propertyNames:
+                  type: string
+                additionalProperties: {}
+            pareto:
+              type: object
+              propertyNames:
+                type: string
+              additionalProperties: {}
+            contribution:
+              type: object
+              propertyNames:
+                type: string
+              additionalProperties: {}
+          required:
+            - schemaVersion
+            - arenaId
+            - dataVersion
+            - evaluatorVersion
+            - contextHash
+            - manifestHash
+            - resultHash
+            - finalScenarioCommitment
+            - strategy
+            - correctness
+            - constraintFailures
+            - totalProcurementCost
+            - worstCaseDeliveredKits
+            - regionalFairnessPpm
+            - scenarioOutcomes
+            - pareto
+            - contribution
+          additionalProperties: {}
+        submittedAt:
+          type: string
+      required:
+        - submissionId
+        - participantId
+        - challengeId
+        - revision
+        - sourceMethod
+        - sourceHash
+        - inputHash
+        - repositoryUrl
+        - sourceCommit
+        - agentEvidence
+        - artifact
+        - evaluation
+        - submittedAt
+    CliSubmissionResult:
+      type: object
+      properties:
+        storage:
+          type: string
+          enum:
+            - ephemeral-memory
+            - durable-redis
+        submission:
+          type: object
+          properties:
+            submissionId:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            participantId:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            challengeId:
+              type: string
+            revision:
+              type: integer
+              minimum: -9007199254740991
+              maximum: 9007199254740991
+            sourceMethod:
+              type: string
+              enum:
+                - VISUAL
+                - JSON
+                - UPLOAD
+                - AGENT_API
+            sourceHash:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            inputHash:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            repositoryUrl:
+              type:
+                - string
+                - "null"
+            sourceCommit:
+              type:
+                - string
+                - "null"
+            agentEvidence:
+              anyOf:
+                - type: object
+                  properties:
+                    name:
+                      type: string
+                    version:
+                      type: string
+                    objective:
+                      type: string
+                  required:
+                    - name
+                    - version
+                    - objective
+                - type: "null"
+            artifact:
+              type: object
+              properties:
+                strategy:
+                  type: object
+                  properties:
+                    schemaVersion:
+                      type: string
+                      const: "2"
+                    name:
+                      type: string
+                      minLength: 1
+                      maxLength: 80
+                    primarySupplierOrder:
+                      minItems: 5
+                      maxItems: 5
+                      type: array
+                      items:
+                        type: string
+                        enum:
+                          - harbor-aid
+                          - northstar
+                          - inland-works
+                          - local-grid
+                          - airbridge
+                    emergencySupplierOrder:
+                      minItems: 5
+                      maxItems: 5
+                      type: array
+                      items:
+                        type: string
+                        enum:
+                          - harbor-aid
+                          - northstar
+                          - inland-works
+                          - local-grid
+                          - airbridge
+                    regionPolicy:
+                      type: string
+                      enum:
+                        - deadline-first
+                        - highest-need
+                        - equalize-coverage
+                    reserveKits:
+                      type: integer
+                      minimum: 0
+                      maximum: 300
+                    emergencyBudgetUsd:
+                      type: integer
+                      minimum: 0
+                      maximum: 25000
+                  required:
+                    - schemaVersion
+                    - name
+                    - primarySupplierOrder
+                    - emergencySupplierOrder
+                    - regionPolicy
+                    - reserveKits
+                    - emergencyBudgetUsd
+                  additionalProperties: false
+              required:
+                - strategy
+            evaluation:
+              type: object
+              properties:
+                schemaVersion:
+                  type: string
+                  const: "2"
+                arenaId:
+                  type: string
+                dataVersion:
+                  type: string
+                evaluatorVersion:
+                  type: string
+                contextHash:
+                  type: string
+                  pattern: ^0x[0-9a-fA-F]{64}$
+                manifestHash:
+                  type: string
+                  pattern: ^0x[0-9a-fA-F]{64}$
+                resultHash:
+                  type: string
+                  pattern: ^0x[0-9a-fA-F]{64}$
+                finalScenarioCommitment:
+                  type: string
+                  pattern: ^0x[0-9a-fA-F]{64}$
+                strategy:
+                  type: object
+                  properties:
+                    schemaVersion:
+                      type: string
+                      const: "2"
+                    name:
+                      type: string
+                      minLength: 1
+                      maxLength: 80
+                    primarySupplierOrder:
+                      minItems: 5
+                      maxItems: 5
+                      type: array
+                      items:
+                        type: string
+                        enum:
+                          - harbor-aid
+                          - northstar
+                          - inland-works
+                          - local-grid
+                          - airbridge
+                    emergencySupplierOrder:
+                      minItems: 5
+                      maxItems: 5
+                      type: array
+                      items:
+                        type: string
+                        enum:
+                          - harbor-aid
+                          - northstar
+                          - inland-works
+                          - local-grid
+                          - airbridge
+                    regionPolicy:
+                      type: string
+                      enum:
+                        - deadline-first
+                        - highest-need
+                        - equalize-coverage
+                    reserveKits:
+                      type: integer
+                      minimum: 0
+                      maximum: 300
+                    emergencyBudgetUsd:
+                      type: integer
+                      minimum: 0
+                      maximum: 25000
+                  required:
+                    - schemaVersion
+                    - name
+                    - primarySupplierOrder
+                    - emergencySupplierOrder
+                    - regionPolicy
+                    - reserveKits
+                    - emergencyBudgetUsd
+                  additionalProperties: false
+                correctness:
+                  type: boolean
+                constraintFailures:
+                  type: array
+                  items:
+                    type: string
+                totalProcurementCost:
+                  type: number
+                worstCaseDeliveredKits:
+                  type: number
+                regionalFairnessPpm:
+                  type: number
+                scenarioOutcomes:
+                  type: array
+                  items:
+                    type: object
+                    propertyNames:
+                      type: string
+                    additionalProperties: {}
+                pareto:
+                  type: object
+                  propertyNames:
+                    type: string
+                  additionalProperties: {}
+                contribution:
+                  type: object
+                  propertyNames:
+                    type: string
+                  additionalProperties: {}
+              required:
+                - schemaVersion
+                - arenaId
+                - dataVersion
+                - evaluatorVersion
+                - contextHash
+                - manifestHash
+                - resultHash
+                - finalScenarioCommitment
+                - strategy
+                - correctness
+                - constraintFailures
+                - totalProcurementCost
+                - worstCaseDeliveredKits
+                - regionalFairnessPpm
+                - scenarioOutcomes
+                - pareto
+                - contribution
+              additionalProperties: {}
+            submittedAt:
+              type: string
+          required:
+            - submissionId
+            - participantId
+            - challengeId
+            - revision
+            - sourceMethod
+            - sourceHash
+            - inputHash
+            - repositoryUrl
+            - sourceCommit
+            - agentEvidence
+            - artifact
+            - evaluation
+            - submittedAt
+      required:
+        - storage
+        - submission
+    CliMySubmissions:
+      type: object
+      properties:
+        participant:
+          anyOf:
+            - type: object
+              properties:
+                participantId:
+                  type: string
+                  pattern: ^0x[0-9a-fA-F]{64}$
+                challengeId:
+                  type: string
+                userIdHash:
+                  type: string
+                  pattern: ^0x[0-9a-fA-F]{64}$
+                wallet:
+                  type: string
+                displayName:
+                  type: string
+                joinedAt:
+                  type: string
+              required:
+                - participantId
+                - challengeId
+                - userIdHash
+                - wallet
+                - displayName
+                - joinedAt
+            - type: "null"
+        submissions:
+          type: array
+          items:
+            type: object
+            properties:
+              submissionId:
+                type: string
+                pattern: ^0x[0-9a-fA-F]{64}$
+              participantId:
+                type: string
+                pattern: ^0x[0-9a-fA-F]{64}$
+              challengeId:
+                type: string
+              revision:
+                type: integer
+                minimum: -9007199254740991
+                maximum: 9007199254740991
+              sourceMethod:
+                type: string
+                enum:
+                  - VISUAL
+                  - JSON
+                  - UPLOAD
+                  - AGENT_API
+              sourceHash:
+                type: string
+                pattern: ^0x[0-9a-fA-F]{64}$
+              inputHash:
+                type: string
+                pattern: ^0x[0-9a-fA-F]{64}$
+              repositoryUrl:
+                type:
+                  - string
+                  - "null"
+              sourceCommit:
+                type:
+                  - string
+                  - "null"
+              agentEvidence:
+                anyOf:
+                  - type: object
+                    properties:
+                      name:
+                        type: string
+                      version:
+                        type: string
+                      objective:
+                        type: string
+                    required:
+                      - name
+                      - version
+                      - objective
+                  - type: "null"
+              artifact:
+                type: object
+                properties:
+                  strategy:
+                    type: object
+                    properties:
+                      schemaVersion:
+                        type: string
+                        const: "2"
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 80
+                      primarySupplierOrder:
+                        minItems: 5
+                        maxItems: 5
+                        type: array
+                        items:
+                          type: string
+                          enum:
+                            - harbor-aid
+                            - northstar
+                            - inland-works
+                            - local-grid
+                            - airbridge
+                      emergencySupplierOrder:
+                        minItems: 5
+                        maxItems: 5
+                        type: array
+                        items:
+                          type: string
+                          enum:
+                            - harbor-aid
+                            - northstar
+                            - inland-works
+                            - local-grid
+                            - airbridge
+                      regionPolicy:
+                        type: string
+                        enum:
+                          - deadline-first
+                          - highest-need
+                          - equalize-coverage
+                      reserveKits:
+                        type: integer
+                        minimum: 0
+                        maximum: 300
+                      emergencyBudgetUsd:
+                        type: integer
+                        minimum: 0
+                        maximum: 25000
+                    required:
+                      - schemaVersion
+                      - name
+                      - primarySupplierOrder
+                      - emergencySupplierOrder
+                      - regionPolicy
+                      - reserveKits
+                      - emergencyBudgetUsd
+                    additionalProperties: false
+                required:
+                  - strategy
+              evaluation:
+                type: object
+                properties:
+                  schemaVersion:
+                    type: string
+                    const: "2"
+                  arenaId:
+                    type: string
+                  dataVersion:
+                    type: string
+                  evaluatorVersion:
+                    type: string
+                  contextHash:
+                    type: string
+                    pattern: ^0x[0-9a-fA-F]{64}$
+                  manifestHash:
+                    type: string
+                    pattern: ^0x[0-9a-fA-F]{64}$
+                  resultHash:
+                    type: string
+                    pattern: ^0x[0-9a-fA-F]{64}$
+                  finalScenarioCommitment:
+                    type: string
+                    pattern: ^0x[0-9a-fA-F]{64}$
+                  strategy:
+                    type: object
+                    properties:
+                      schemaVersion:
+                        type: string
+                        const: "2"
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 80
+                      primarySupplierOrder:
+                        minItems: 5
+                        maxItems: 5
+                        type: array
+                        items:
+                          type: string
+                          enum:
+                            - harbor-aid
+                            - northstar
+                            - inland-works
+                            - local-grid
+                            - airbridge
+                      emergencySupplierOrder:
+                        minItems: 5
+                        maxItems: 5
+                        type: array
+                        items:
+                          type: string
+                          enum:
+                            - harbor-aid
+                            - northstar
+                            - inland-works
+                            - local-grid
+                            - airbridge
+                      regionPolicy:
+                        type: string
+                        enum:
+                          - deadline-first
+                          - highest-need
+                          - equalize-coverage
+                      reserveKits:
+                        type: integer
+                        minimum: 0
+                        maximum: 300
+                      emergencyBudgetUsd:
+                        type: integer
+                        minimum: 0
+                        maximum: 25000
+                    required:
+                      - schemaVersion
+                      - name
+                      - primarySupplierOrder
+                      - emergencySupplierOrder
+                      - regionPolicy
+                      - reserveKits
+                      - emergencyBudgetUsd
+                    additionalProperties: false
+                  correctness:
+                    type: boolean
+                  constraintFailures:
+                    type: array
+                    items:
+                      type: string
+                  totalProcurementCost:
+                    type: number
+                  worstCaseDeliveredKits:
+                    type: number
+                  regionalFairnessPpm:
+                    type: number
+                  scenarioOutcomes:
+                    type: array
+                    items:
+                      type: object
+                      propertyNames:
+                        type: string
+                      additionalProperties: {}
+                  pareto:
+                    type: object
+                    propertyNames:
+                      type: string
+                    additionalProperties: {}
+                  contribution:
+                    type: object
+                    propertyNames:
+                      type: string
+                    additionalProperties: {}
+                required:
+                  - schemaVersion
+                  - arenaId
+                  - dataVersion
+                  - evaluatorVersion
+                  - contextHash
+                  - manifestHash
+                  - resultHash
+                  - finalScenarioCommitment
+                  - strategy
+                  - correctness
+                  - constraintFailures
+                  - totalProcurementCost
+                  - worstCaseDeliveredKits
+                  - regionalFairnessPpm
+                  - scenarioOutcomes
+                  - pareto
+                  - contribution
+                additionalProperties: {}
+              submittedAt:
+                type: string
+            required:
+              - submissionId
+              - participantId
+              - challengeId
+              - revision
+              - sourceMethod
+              - sourceHash
+              - inputHash
+              - repositoryUrl
+              - sourceCommit
+              - agentEvidence
+              - artifact
+              - evaluation
+              - submittedAt
+        finalEntry:
+          anyOf:
+            - type: object
+              properties:
+                participantId:
+                  type: string
+                  pattern: ^0x[0-9a-fA-F]{64}$
+                challengeId:
+                  type: string
+                submissionId:
+                  type: string
+                  pattern: ^0x[0-9a-fA-F]{64}$
+                selectedAt:
+                  type: string
+              required:
+                - participantId
+                - challengeId
+                - submissionId
+                - selectedAt
+            - type: "null"
+      required:
+        - participant
+        - submissions
+        - finalEntry
+    CliJoinResult:
+      type: object
+      properties:
+        storage:
+          type: string
+          enum:
+            - ephemeral-memory
+            - durable-redis
+        participant:
+          type: object
+          properties:
+            participantId:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            challengeId:
+              type: string
+            userIdHash:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            wallet:
+              type: string
+            displayName:
+              type: string
+            joinedAt:
+              type: string
+          required:
+            - participantId
+            - challengeId
+            - userIdHash
+            - wallet
+            - displayName
+            - joinedAt
+      required:
+        - storage
+        - participant
+    CliFinalEntryInput:
+      type: object
+      properties:
+        submissionId:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{64}$
+      required:
+        - submissionId
+      additionalProperties: false
+    CliFinalEntryResult:
+      type: object
+      properties:
+        storage:
+          type: string
+          enum:
+            - ephemeral-memory
+            - durable-redis
+        finalEntry:
+          type: object
+          properties:
+            participantId:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            challengeId:
+              type: string
+            submissionId:
+              type: string
+              pattern: ^0x[0-9a-fA-F]{64}$
+            selectedAt:
+              type: string
+          required:
+            - participantId
+            - challengeId
+            - submissionId
+            - selectedAt
+      required:
+        - storage
+        - finalEntry
+    CliAuthDeviceInput:
+      type: object
+      properties:
+        scope:
+          type: string
+        scopes:
+          minItems: 1
+          type: array
+          items:
+            type: string
+            enum:
+              - disaster:read
+              - disaster:join
+              - disaster:submit
+              - disaster:entry
+      additionalProperties: false
+    CliAuthDeviceResult:
+      type: object
+      properties:
+        device_code:
+          type: string
+        user_code:
+          type: string
+        verification_uri:
+          type: string
+          format: uri
+        expires_in:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+        interval:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+      required:
+        - device_code
+        - user_code
+        - verification_uri
+        - expires_in
+        - interval
+    CliAuthCodeInput:
+      type: object
+      properties:
+        user_code:
+          type: string
+      required:
+        - user_code
+      additionalProperties: false
+    CliAuthApprovalInput:
+      type: object
+      properties:
+        user_code:
+          type: string
+        decision:
+          type: string
+          enum:
+            - approve
+            - deny
+      required:
+        - user_code
+        - decision
+      additionalProperties: false
+    CliAuthInspection:
+      type: object
+      properties:
+        origin:
+          type: string
+          format: uri
+        scopes:
+          type: array
+          items:
+            type: string
+            enum:
+              - disaster:read
+              - disaster:join
+              - disaster:submit
+              - disaster:entry
+        expiresAt:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+        session_expires_in:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+      required:
+        - origin
+        - scopes
+        - expiresAt
+        - session_expires_in
+    CliAuthApprovalResult:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - approved
+            - denied
+      required:
+        - status
+    CliAuthTokenInput:
+      type: object
+      properties:
+        device_code:
+          type: string
+      required:
+        - device_code
+      additionalProperties: false
+    CliAuthTokenResult:
+      type: object
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          const: Bearer
+        expires_in:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+      required:
+        - access_token
+        - token_type
+        - expires_in
+      additionalProperties: {}
+    CliAuthSession:
+      type: object
+      properties:
+        userId:
+          type: string
+        wallet:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: string
+            enum:
+              - disaster:read
+              - disaster:join
+              - disaster:submit
+              - disaster:entry
+        expiresAt:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+        revoked:
+          type: boolean
+          const: false
+      required:
+        - userId
+        - wallet
+        - scopes
+        - expiresAt
+        - revoked
+      additionalProperties: {}
+    CliAuthRevoked:
+      type: object
+      properties:
+        revoked:
+          type: boolean
+          const: true
+      required:
+        - revoked
   responses:
     BadRequest:
       {

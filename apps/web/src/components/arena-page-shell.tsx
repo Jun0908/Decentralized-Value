@@ -49,6 +49,11 @@ export function ArenaPageShell({
         </header>
       ) : null}
       {children}
+      {arena.challengeId === "disaster-response-v2" || arena.slug === "rescue-room" ? (
+        <p className="challenge-terms-link">
+          <Link href="/docs/cli">SDK & CLI guide</Link>
+        </p>
+      ) : null}
       <details className="protocol-details">
         <summary>Challenge lifecycle and immutable terms</summary>
         <ol className="arena-steps" aria-label="Challenge lifecycle">

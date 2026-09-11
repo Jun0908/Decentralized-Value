@@ -1,8 +1,4 @@
-import {
-  publicRescueRoomScenario,
-  rescueCommanderStarterPlaybook,
-  rescueDoctrinePresets,
-} from "@frontier/rescue-room";
+import { publicRescueRoomScenario, rescueCommanderStarterPlaybook } from "@frontier/rescue-room";
 import { strToU8, zipSync } from "fflate";
 
 export function createRescueRoomStarterKitZip(): Uint8Array {
@@ -37,7 +33,7 @@ This is Controlled Practice. The rUSD-DEMO and RescueServiceEscrow contracts are
   };
   const doctrineRequestExample = {
     episodeId: scenario.episodes[0]!.id,
-    doctrine: rescueDoctrinePresets[0]!.doctrine,
+    doctrine: scenario.doctrineRuntime.presets[0]!.doctrine,
   };
   const files = {
     "rescue-room-starter/challenge-manifest.json": strToU8(
@@ -92,5 +88,5 @@ This is Controlled Practice. The rUSD-DEMO and RescueServiceEscrow contracts are
     ),
     "rescue-room-starter/README.md": strToU8(readme),
   };
-  return zipSync(files, { level: 6 });
+  return zipSync(files, { level: 6, mtime: new Date(2026, 0, 1) });
 }

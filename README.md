@@ -100,13 +100,21 @@ The protocol does not choose society's values. Communities publish the axes, bou
 
 ## Current status
 
+### SDK and CLI (local preview)
+
+The monorepo now contains the TypeScript SDK in `packages/sdk` and the `frontier` CLI in `packages/cli`. They support context-locked Practice for Disaster Response and Rescue Room Doctrine, independent-metric comparison, and authenticated Disaster Response revisions, history, download, and Final Entry selection. The local usage page is `/docs/cli`; saved results use `/submissions/[id]?arena=disaster-response`.
+
+Run `pnpm build:tooling` and `pnpm exec frontier --help` from the repository root. The packages are private, are not on npm, and these API/Web changes have not been deployed. Public Practice needs no account; submission requires configured Privy and storage. `pnpm verify:cli` verifies complete workflows with isolated local fixture accounts, including safe resume after a lost response. It never submits to a live account.
+
+### Existing application evidence
+
 Working today:
 
 - compiled Solidity execution in a Cancun EVM;
 - deterministic correctness, metric and Pareto evaluation;
 - editable Disaster Response and Microgrid simulations;
 - independent Value Pool manifests, deterministic allocations, and a community Protect a Region practice pool;
-- `91` automated TypeScript tests in the local build evidence;
+- automated TypeScript suites covering evaluators, API, SDK, CLI, storage, and UI boundaries;
 - real client-side Semaphore proof generation and one-use offchain Gate verification;
 - a publicly inspectable Sepolia reward-path demonstration.
 
@@ -125,6 +133,7 @@ Requirements:
 ```bash
 corepack enable
 pnpm install --frozen-lockfile
+pnpm build:tooling
 pnpm dev
 ```
 

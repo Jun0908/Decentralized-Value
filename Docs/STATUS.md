@@ -8,6 +8,24 @@ This document records the current capability boundary. Product rules live in [`P
 
 ## Working now
 
+### Local SDK and CLI integration (not deployed)
+
+The SDK and CLI implementation is integrated into this monorepo under `packages/sdk` and `packages/cli`; shared evaluator schemas remain canonical in `packages/shared`. The local packages are versioned as `@frontier/sdk` and `@frontier/cli` 0.3.0 with `@frontier/shared` 0.2.0. They are private workspace packages and have not been published to npm. The former `DV-ver2` and `SDK-Decentralized-Value` repositories remain provenance snapshots, not separate active implementations.
+
+- Disaster Response: capability discovery, verified Starter Kit, offline input checks, context-locked Practice, independent-metric comparison, scoped CLI sessions, atomic idempotent revisions, history, exact artifact download, and Final Entry selection.
+- Rescue Room: deterministic single-Episode Doctrine Practice and same-context comparison only. Saved submissions and Final Entry remain unsupported; simulated game credits remain distinct from tokens.
+- Local Web routes: `/docs/cli`, `/cli/authorize`, and authenticated `/submissions/[id]?arena=disaster-response`. Results are loaded from the signed-in participant's saved history, not a client-provided score.
+- Device authorization uses one-time exchange, expiring scoped sessions, revocation, origin checks, and OS credential storage on the CLI. Missing Privy configuration or required production Redis remains unavailable, not a simulated login success.
+- `pnpm verify:cli` exercises the actual CLI against isolated local API/account fixtures, including a lost submission response and immutable resume. It does not register or submit to live accounts.
+
+Integrated verification on Windows with Node.js 22.22.1 covers `build:tooling`, the full workspace typecheck, 375 passing TypeScript tests with 11 opt-in Redis cases skipped, five complete local-only CLI workflows, the production Web build, global ESLint, and six desktop/mobile browser route checks without console errors, framework overlays, blank pages, or horizontal overflow. The generated CLI OpenAPI contract is reproducible. Contract tests still require Foundry, which is not installed on this machine.
+
+The final main TypeScript suite passes 290 tests with 11 opt-in Redis cases skipped. The first actual Redis submission run passed 6/7 and exposed a legacy hexadecimal-ID decoding bug. The decoder and surviving-key TTL upgrade are fixed and covered by regression tests, but the post-fix real-Redis rerun is pending because Docker cannot inspect/execute newly created containers. Do not treat this as completed real-Redis acceptance. Retry with `FRONTIER_VERIFY_REDIS=1 pnpm exec vitest run apps/web/src/lib/plan6-store.redis.test.ts` on a working isolated Docker host; do not point it at production Redis.
+
+Live Privy browser authorization, deployed Upstash behavior, npm publication, and non-Windows runtime validation are not established by these local checks. The existing public deployment described below has not been updated by this work.
+
+### Existing application
+
 | Area | Proven capability |
 | --- | --- |
 | Public web application | The Top page explains the protocol and routes users to four working arenas. The UI and `/v1/*` API share one Vercel origin. |
