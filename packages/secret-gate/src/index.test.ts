@@ -1,6 +1,7 @@
 import { Group } from "@semaphore-protocol/group";
 import { Identity } from "@semaphore-protocol/identity";
 import { generateProof } from "@semaphore-protocol/proof";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   aggregateSecretGateRun,
@@ -70,16 +71,21 @@ describe("Secret Gate contracts", () => {
 
   it("generates a real proof and enforces the expected root, message, and scope", async () => {
     const identity = new Identity("real-secret-gate-proof-test");
-    const snapshot = createSecretGateSnapshot(
-      identity.commitment.toString(),
-      "https://snark-artifacts.pse.dev/semaphore/4.13.0",
-    );
+    const snapshot = createSecretGateSnapshot(identity.commitment.toString());
     const proof = await generateProof(
       identity,
       new Group(snapshot.members),
       BigInt(secretGateMessage),
       BigInt(secretGateScope),
       snapshot.treeDepth,
+      {
+        wasm: fileURLToPath(
+          new URL("../../../apps/web/public/semaphore/4.13.0/semaphore-3.wasm", import.meta.url),
+        ),
+        zkey: fileURLToPath(
+          new URL("../../../apps/web/public/semaphore/4.13.0/semaphore-3.zkey", import.meta.url),
+        ),
+      },
     );
     const entry = secretGateEntrySchema.parse({
       gateId: snapshot.gateId,
@@ -94,5 +100,11 @@ describe("Secret Gate contracts", () => {
       valid: false,
       failures: ["UNTRUSTED_GROUP_ROOT"],
     });
+    await expect(
+      verifySecretGateEntry({ ...entry, proof: { ...entry.proof, message: "1" } }, snapshot.root),
+    ).resolves.toMatchObject({ valid: false, failures: ["WRONG_MESSAGE"] });
+    await expect(
+      verifySecretGateEntry({ ...entry, proof: { ...entry.proof, scope: "1" } }, snapshot.root),
+    ).resolves.toMatchObject({ valid: false, failures: ["WRONG_SCOPE"] });
   }, 120_000);
 });

@@ -7,6 +7,8 @@ import type {
 } from "@frontier/microgrid-dispatch";
 import { useState } from "react";
 import { ContributionPanel } from "@/components/contribution-panel";
+import { MicrogridDayPractice } from "@/components/microgrid-day-practice";
+import styles from "./microgrid-day-practice.module.css";
 
 type Metric = {
   key: "totalCost" | "worstCaseEnergy" | "carbonGrams";
@@ -107,6 +109,43 @@ function MultiAxisChart({
 }
 
 export function MicrogridDispatchDemo({ scenario }: { scenario: PublicScenario }) {
+  const [mode, setMode] = useState<"day" | "classic">("day");
+  return (
+    <div className={styles.workbench} data-testid="microgrid-workbench">
+      <div className={styles.modeSwitch} aria-label="Microgrid practice mode">
+        <button
+          type="button"
+          data-testid="microgrid-mode-day"
+          aria-pressed={mode === "day"}
+          onClick={() => setMode("day")}
+        >
+          Day strategy
+        </button>
+        <button
+          type="button"
+          data-testid="microgrid-mode-classic"
+          aria-pressed={mode === "classic"}
+          onClick={() => setMode("classic")}
+        >
+          Classic mix
+        </button>
+      </div>
+      {mode === "day" ? (
+        <MicrogridDayPractice />
+      ) : (
+        <>
+          <p className={styles.boundary}>
+            Classic v1 · Static 100 MWh allocation, worst-case source loss and lifecycle carbon.
+            This mode keeps its original evaluator and API context.
+          </p>
+          <MicrogridClassicDemo scenario={scenario} />
+        </>
+      )}
+    </div>
+  );
+}
+
+function MicrogridClassicDemo({ scenario }: { scenario: PublicScenario }) {
   const [allocation, setAllocation] = useState<DispatchAllocation>(initialAllocation);
   const [evaluation, setEvaluation] = useState<MeasuredEvaluation | null>(null);
   const [pending, setPending] = useState(false);

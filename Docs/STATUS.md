@@ -1,12 +1,33 @@
 # Current implementation status
 
-- **Last verified:** 2026-09-12（ENS実認可・CRE公式Simulation・Bazantic経由の実AI比較。過去の検証記録は各日付の範囲）
+- **Last verified:** 2026-09-12（下段3ArenaのPractice統合・実ブラウザー検証。スポンサー等の過去の検証記録は各項目の日付と範囲）
 - **Public application:** <https://web-rho-seven-d6te7t3f0y.vercel.app>
 - **Active plans:** [`Plan9.md`](Plan9.md) (Rescue Room), [`Plan11.md`](Plan11.md) (Sponsor integration), [`Plan12.md`](Plan12.md) (API / SDK / CLI). Parallel ownership and current batch: [`PARALLEL_IMPLEMENTATION.md`](PARALLEL_IMPLEMENTATION.md).
+- **Arena improvement plans:** [`Plan-Calldata.md`](Plan-Calldata.md), [`Plan-Microgrid.md`](Plan-Microgrid.md), [`Plan-SecretGate.md`](Plan-SecretGate.md)。各Arenaの今回完成範囲・画面検証・未完成の大会機能を別々に記録。
 
 This document records the current capability boundary. Product rules live in [`PRODUCT.md`](PRODUCT.md), the active Rescue Room work is scoped in [`Plan9.md`](Plan9.md), and completed or superseded plans live under [`archive/`](archive/).
 
 ## Working now
+
+### Three Arena introduction illustrations — 2026-09-13
+
+Calldata（梱包と復元）、Microgrid（再エネ・蓄電池・停電時の街）、Secret Gate（秘密を保持したMembership Proofと一度限りの入場）に、既存Arenaの絵柄に合わせた専用画像を追加。各ページ冒頭で画像＋短い3段階説明を表示し、Concept illustrationを実測Evidenceと区別する。Secret Gateの競技PIVOT・全Evaluatorは不変。[画像保存先と最終Prompt](ARENA_ILLUSTRATIONS.md)。
+
+Web build、Arena登録テスト3件、変更範囲ESLint、1440 / 390pxの全3ページの画像読み込み・縦横比・説明・Console error 0・横Overflowなしを確認。画像は切り抜かず、文字は暗い背景上のHTMLとして配置。検証: `pnpm exec tsx scripts/verify-arena-stories.ts http://127.0.0.1:3014`。既存の確認用3013だけ再起動し、3014へ反映。3000番・PC再起動・公開Deployment・Pushは対象外。
+
+### Three local Arena workbenches — 2026-09-12
+
+3担当でCalldata / Microgrid / Secret Gateを並行改善し、統合担当が最終画面と各日本語Planを照合した。共通CSS・既存Scratchpad・上段Arenaの評価処理は変更していない。OceanとCalldataの表示位置入替は先行依頼として保持。
+
+- **Calldata:** 最大4件のCodec選択RuleとFallbackを編集し、Batch別の梱包・Bytes・復元Digestを可視化。内部`POST /api/calldata-lab`で実Cancun EVM測定、独立2ガス軸、同ContextのReference／直前Revision比較、Evidence Download。Host側Rule選択は非計上、任意コード実行ではない。旧Public API・3Codec Result Hashは保持。
+- **Microgrid:** 別Versionの6ターンDay simulator、4つの蓄電Policy設定、天候・停電・SOC・電力フロー、Replay、費用／未供給／運用炭素の独立比較、再計算可能なJSON。旧100 MWh ClassicとAPI／Hashは保持。モバイル比較表の横切れを発見し、参照ごとの縦型カードへ修正した。
+- **Secret Gate:** 実Proofの4段階図解、設定説明、待ち行列、4Proof進捗、同一Proof再送拒否、秘密を含まないEvidence。競技は引き続き**PIVOT**。合成指標でGOを作っていない。
+
+最終検証: TypeScript **818成功／11skip**、全Workspace型検査、Web Production build、変更範囲ESLint／Prettier、SDK／CLI契約差分チェック。1440／390pxの3Arenaで設定変更・実行・比較・Download・Replay・Context切替を確認。Console error 0、横Overflow・禁止配色0。Secret Gateの意図したHTTP409は別に記録する。Proof受理・同一Proof拒否・4Proof生成は最終的に実HTTPで確認し、応答Mockは使用していない。
+
+確認用の <http://127.0.0.1:3014/arenas> はloopback限定の開発プレビュー。Web buildを背後の3013番で提供し、Gateの2POSTだけを既存の実Handler＋独立MemoryStoreへ接続する。本番Redis必須条件は維持し、AI／支払い等のPOSTは拒否。再起動で一度限り使用の履歴は失われる。[再起動手順](Plan-SecretGate.md#ローカルプレビューの再起動手順)。検証は`pnpm exec tsx scripts/verify-arena-labs.ts http://127.0.0.1:3014`、結果と画面は`.frontier/arena-labs-qa/`。
+
+これらは新しいローカルPracticeであり、Hidden Final、大会用永続Entry、報酬、実設備、公開Deploymentの完成ではない。今回のPush・送金・有料AI呼出しは0。既存3000番サーバーやPC再起動・ネットワーク設定には触れていない。
 
 ### Sponsor minimum working demonstrations — 2026-09-12 09:45 UTC以降
 

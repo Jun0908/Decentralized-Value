@@ -24,7 +24,7 @@ Sponsor integrations now have recorded ENSv2 Sepolia permission transactions, of
 
 This arena does not animate precomputed numbers. It **executes compiled Solidity decoder bytecode inside an EthereumJS Cancun EVM**.
 
-Current reproducible result for the preloaded Packed codec:
+Reference result for the Packed codec in the original public transfer-mix context:
 
 | Calldata gas | Decoder gas | Correctness | Frontier contribution |
 | -----------: | ----------: | :---------: | --------------------: |
@@ -190,6 +190,18 @@ The protocol reproduces what the agent actually did, not its hidden chain of tho
 | **Ocean Commons**                 | livelihood ↑ · restraint ↑ · cooperation ↑           | Practice                 |
 
 Each domain needs its own evaluator, but the protocol primitives remain shared: **Context, Hard Constraints, independent Outcomes, Pareto, Evidence, and Value Pools**.
+
+### New local Practice workbenches
+
+The local code includes three independently scoped improvements; this section does not claim that the public deployment has been updated:
+
+- **Calldata:** edit bounded codec-selection rules, inspect packing and decoding, measure real EVM gas, and download same-context evidence. Arbitrary participant code is not executed. [Japanese plan and completed scope](Docs/Plan-Calldata.md).
+- **Microgrid:** operate a six-turn modeled day with battery policy, weather, outage replay, and separate cost / unserved energy / operational carbon outcomes. This is a new context, not the classic 100 MWh challenge above. [Japanese plan and completed scope](Docs/Plan-Microgrid.md).
+- **Secret Gate:** follow a real proof from browser identity to one-use entry, resend the same proof, and inspect explained execution settings. Latency/memory remain personal observations; the competition remains `PIVOT`. [Japanese plan and completed scope](Docs/Plan-SecretGate.md).
+
+These changes do not complete hidden Final evaluation, persistent entries, or reward settlement. See each plan for verification evidence and exclusions.
+
+For a loopback-only preview of all three labs, including real Secret Gate verification with development-only memory storage, follow the [local preview instructions](Docs/Plan-SecretGate.md#ローカルプレビューの再起動手順). It does not use production Redis or enable AI/payment routes. Recheck with `pnpm exec tsx scripts/verify-arena-labs.ts http://127.0.0.1:3014`.
 
 ## Why Ethereum
 

@@ -55,11 +55,23 @@ The JavaScript identity, group, and proof packages are pinned to 4.14.3. The pro
 
 ## Personal-device practice
 
-The page can run four real proofs with bounded concurrency, artifact-loading, and Worker-lifecycle settings. It displays browser-observed p95 completion time and a memory estimate when the browser exposes one.
+The page can run four real proofs with bounded concurrency, artifact-loading, and Worker-lifecycle settings. Each setting has a plain-language explanation and a structural diagram showing immediately available proof slots versus queued requests. The diagram predicts neither latency nor memory and does not create simulated competition outcomes.
+
+The four proof cards show queued, proving, verified or failed state. The observed timer begins before optional eager artifact prefetch; nearest-rank p95 over four batch-completion observations is the last completion. The recorded result retains the settings actually used even after the controls change. The incomplete browser JS-heap estimate is explicitly not full Worker/WASM memory or OS process-tree RSS; unsupported browsers show unavailable. Cancellation and a two-minute per-proof Worker timeout do not create a completed result.
 
 These values are personal observations. They never enter an official leaderboard, Pareto frontier, Value Pool allocation, or settlement calculation.
 
 The Semaphore high-level API does not expose a safe engine-thread setting, so the field is fixed to `sdk-default` rather than presenting a non-functional competition knob.
+
+## Interactive walkthrough — 2026-09-12
+
+The UI now separates four stages: private browser identity, public synthetic group, real locally verified proof, and the one-use Gate. The server-side verification and storage rules are unchanged. After successful entry, **Resend same proof** submits the exact retained entry again, without generating another proof. Only HTTP 409 with `NULLIFIER_ALREADY_USED` and `gateOpen: false` is shown as confirmed duplicate protection; expired-root or storage errors are not.
+
+The expanded public Evidence view contains commitment, snapshot, proof entry, receipt, duplicate-attempt status and the personal benchmark's raw observations. It never contains the identity secret. Device persistence remains opt-in and is labeled unencrypted demo-only browser storage; the saved copy can be removed independently from the active in-memory identity. Local-memory receipt storage is explicitly labeled as resettable by server restart.
+
+This is not a production anonymity claim: the enrollment server receives the commitment and creates an individualized synthetic group root. No personhood, participant uniqueness, unlinkability against that server, or real-world access authorization is established. All 16 bounded execution settings are enumerable; this UI work does not establish a nontrivial AI competition or reopen the tournament.
+
+The Japanese implementation and acceptance plan is [`../Plan-SecretGate.md`](../Plan-SecretGate.md). The real-proof package test explicitly loads the checked-in WASM and zkey from the web public directory instead of downloading remote proof artifacts.
 
 ## Feasibility result
 

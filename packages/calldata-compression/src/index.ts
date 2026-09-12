@@ -394,7 +394,7 @@ const malformedByCodec: Record<CodecId, Hex> = {
   dictionary: "0x0100",
 };
 
-function expectedDigest(batch: CalldataBatch): Hex {
+export function expectedDigest(batch: CalldataBatch): Hex {
   let digest = `0x${"00".repeat(32)}` as Hex;
   for (const action of batch.actions) {
     digest = keccak256(
@@ -439,6 +439,15 @@ async function execute(runtime: Hex, encoded: Hex) {
     gasLimit: 10_000_000n,
     isStatic: true,
   });
+}
+
+/** Bounded rule practice uses the same checked-in encoders and decoder runtimes. */
+export function encodeCalldataBatch(codecId: CodecId, batch: CalldataBatch): Hex {
+  return encoders[codecId](batch);
+}
+
+export async function executeCalldataDecoder(codecId: CodecId, encoded: Hex) {
+  return execute(runtimeByCodec[codecId], encoded);
 }
 
 function dominatesCodec(left: CodecPoint, right: CodecPoint): boolean {

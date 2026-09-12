@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { ArenaDefinition } from "@/lib/arenas";
+import { ArenaIntroStory } from "./arena-intro-story";
 
 export function ArenaPageShell({
   arena,
@@ -11,6 +12,8 @@ export function ArenaPageShell({
 }) {
   const hasDemoSettlement = arena.challengeId === "disaster-response-v2";
   const hasCustomHero = arena.slug === "rescue-room";
+  const hasSeparateLab =
+    arena.slug === "microgrid-dispatch" || arena.slug === "calldata-compression";
   return (
     <main className="page-shell detail-page platform-arena-page">
       {!hasCustomHero ? (
@@ -33,7 +36,13 @@ export function ArenaPageShell({
               <p>{arena.summary}</p>
             </div>
             <aside>
-              <p className="eyebrow">{arena.metrics.length} independent axes</p>
+              <p className="eyebrow">
+                {arena.slug === "microgrid-dispatch"
+                  ? "Day strategy axes · simulated"
+                  : arena.slug === "secret-gate"
+                    ? "Personal observations · not competition scores"
+                    : `${arena.metrics.length} independent axes`}
+              </p>
               <dl>
                 {arena.metrics.map((metric) => (
                   <div key={metric.name}>
@@ -46,6 +55,7 @@ export function ArenaPageShell({
               </dl>
             </aside>
           </div>
+          <ArenaIntroStory slug={arena.slug} />
         </header>
       ) : null}
       {children}
@@ -55,7 +65,18 @@ export function ArenaPageShell({
         </p>
       ) : null}
       <details className="protocol-details">
-        <summary>Challenge lifecycle and immutable terms</summary>
+        <summary>
+          {hasSeparateLab
+            ? "Reference challenge lifecycle and immutable terms"
+            : "Challenge lifecycle and immutable terms"}
+        </summary>
+        {hasSeparateLab ? (
+          <p>
+            These terms describe the original reference challenge. The editable Practice lab above
+            uses its own versioned context and evidence; its results are not entries in this
+            challenge and do not earn rewards.
+          </p>
+        ) : null}
         <ol className="arena-steps" aria-label="Challenge lifecycle">
           <li>
             <span>01</span>

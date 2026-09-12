@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./rules": "./src/rules.ts",
+    "./lab": "./src/lab.ts"
   },
   "scripts": {
     "compile:codecs": "tsx scripts/compile-codecs.ts",
