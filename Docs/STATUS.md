@@ -8,6 +8,14 @@ This document records the current capability boundary. Product rules live in [`P
 
 ## Working now
 
+### External developer preflight and study preparation — 2026-09-12
+
+`pnpm exec tsx scripts/verify-rescue-practice-onboarding.ts http://localhost:3000`で、非課金RescueのManifest・Starter SHA・Practice・独立Hash・反復一致を一度に確認できる。失敗段階と安全なError Code / 次の対応を返し、認証要求・402・redirect・Context変更では停止する。API / SDK公開契約・評価ルールは変更していない。[初回利用手順](RESCUE_AGENT_QUICKSTART.md)。
+
+実API handlerへの注入21テストと、localhostへの6実HTTPを確認した。全体TypeScriptテスト742成功 / 11スキップ、追加コードのstrict型検査・ESLint / Prettier成功。公開環境・実参加者・Linux確認ではない。今回はUI / Contractを変更しておらず、その再ビルドやContractテストはこの確認に含めない。
+
+情報購入あり／分析非表示／購入なしの[対照実験設計](RESCUE_INFORMATION_STUDY.md)を全35公開Episodeで固定し、設計Hash生成と3テストを追加した。**設計のみ・実AI比較なし**。Masked input / Arm Runner、実行コード・Prompt固定、費用承認は未完了。[提出用変更一覧](SUBMISSION_CHANGE_INVENTORY.md)は直近区間と既存実装を分けるが、応募期間や資格を認定しない。追加モデル呼出し0、送金0、Push / 公開なし。
+
 ### English submission handoff — 2026-09-12
 
 `/rescue-room/submission/en`を追加し、日本語版との切替を用意した。225語の英語台本と、既存Evidenceを読む126.08秒・1440×900の無音MP4 / WebMを作成。PC / Mobile、章リンク、keyboard details、JSON Download、Console / Overflow / Contrastを確認し、動画は全編デコードとブラウザ再生を検査した。提出素材は[RESCUE_HANDOFF.md](RESCUE_HANDOFF.md)。映像作成による追加推論・送金はない。

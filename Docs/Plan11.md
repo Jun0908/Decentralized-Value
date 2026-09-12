@@ -414,3 +414,7 @@ NodeとBunの一致はCRE Phase 0の合格ではない。CRE CLI / Foundryはこ
 - [x] **S11-2 / ローカル実験準備:** Bazantic Recipeを実装済み非課金APIへ更新。同条件・Recipe有無だけを変える比較harness、全組の失敗・同等・悪化を保持する記録形式を追加。35テストと4組のローカル確認が成功。未完了Tool呼出し・不正HTTP Statusを拒否し、返却後もReport Hashが変わらないことを検証。注入Fixtureの成功を実Gateway / 実AI比較の証明としない。
 
 CRE公式Simulationは着手済み・認証待ち。本人ログインなしに完了できる項目へ数えない。ENSの実権限操作、Gateway / Recipe登録、有料Gateway呼出し、CRE Live / Receiver送信はこの無人準備に含めない。提出用素材と再現確認が終わってから下位項目へ進む案とする。
+
+## 18. 外出中の追加準備 — 提出claimの整理
+
+2026-09-12。[SUBMISSION_CHANGE_INVENTORY.md](SUBMISSION_CHANGE_INVENTORY.md)で、直近のRescue実装区間・基準時点の既存機能・別担当OceanのCommitを分離した。区間はイベント期間や応募資格の認定ではない。スポンサーの認証・実操作は進めず、ローカル準備を実接続成功へ読み替えない。

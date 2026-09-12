@@ -1557,3 +1557,14 @@ Strategy Studioには全10個の決定論的RuleとAI Playbookの主要3設定�
 - [x] **R9-2:** 既存Evidenceを読む無音動画を収録。MP4 / WebM、126.08秒、1440×900。全編デコード・ブラウザ再生・代表フレームを確認。新規推論・送金なし。本人の音声を載せる最終工程は未完了。
 
 人間不在でも上記のローカル作成・検証は可能。本人音声の収録、初見ユーザーテスト、Push / 公開 / 提出は別の確認待ち。永続Revision / Final、未知Final大会、実報酬、Open Market、完全自律Patch / Resumeはこの短い提出準備バッチへ含めない。
+
+## 34. 外出中の追加準備 — 情報購入の対照実験
+
+2026-09-12。比較設計は[RESCUE_INFORMATION_STUDY.md](RESCUE_INFORMATION_STUDY.md)。
+
+- [x] 同じ購入Prefixで分析あり／分析非表示を比較し、購入なしを別Armにする。SimulatorのService Evidenceからの診断漏洩を避ける条件を明記。
+- [x] 全35公開Episode・3 Arms・同じModel / Playbook・3判断上限・独立3軸・失敗保持を設計Hashへ固定。準備コマンドと3テストを追加。最大350呼出しは設計上限であり、実行許可ではない。
+- [ ] 情報投影・Arm Runnerの実装、漏洩・Action Replay確認、実行コードとPromptの固定。
+- [ ] 残予算確認後の実AI比較。未知Finalへの一般化、購入先選択の価値、完全自律対応は別Gate。
+
+今回の実AI呼出し0、送金0。既存動画・既存AIの敗北結果・ゲーム評価ルールは変更しない。

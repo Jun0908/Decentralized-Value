@@ -58,6 +58,8 @@ rUSD-DEMO has no monetary value. An open third-party service market, hidden Fina
 
 For the English recorded-run demo, open local `/rescue-room/submission/en`. The [handoff guide](Docs/RESCUE_HANDOFF.md) includes a two-minute English narration, a locally recorded silent video, and clean-room replay / SDK HTTP verification. The video and latest page are not published by these local checks.
 
+Developers can follow the [Rescue Practice quickstart](Docs/RESCUE_AGENT_QUICKSTART.md) and run `pnpm exec tsx scripts/verify-rescue-practice-onboarding.ts http://localhost:3000` to check the existing non-billable API, Starter digest, result integrity and repeatability. This does not enter a Final or make a payment.
+
 ---
 
 ## The core idea

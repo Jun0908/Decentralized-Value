@@ -2,6 +2,8 @@
 
 現在のモノレポを正本とする Node.js 22 以降向けの TypeScript SDK です。`@frontier/sdk` / `@frontier/cli` は private workspace package であり、npm 公開済みではありません。
 
+初めてRescue APIを使う場合は[外部AI開発者向け手順](../../Docs/RESCUE_AGENT_QUICKSTART.md)を参照。`pnpm exec tsx scripts/verify-rescue-practice-onboarding.ts http://localhost:3000`で接続・Starter・Practice・Hashを段階別に検査でき、認証要求や402では自動支払いせず停止します。リポジトリルートで実行する検証ツールであり、SDKの新しい公開メソッドではありません。
+
 ## 現在の対応範囲
 
 - Disaster Response: Arena 発見、Starter の SHA 検証、Context 固定 Practice、同じ Context の比較、認証付き提出・履歴・Final Entry 選択。

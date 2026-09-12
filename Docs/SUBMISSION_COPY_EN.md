@@ -38,7 +38,7 @@ ENS, Bazantic and official CRE execution must not be claimed as completed integr
 
 - Event track and eligibility: **owner to confirm**.
 - Event-period starting commit and final submission commit: **owner to confirm**.
-- Existing code versus eligible new work: **attach a checked diff; do not use this draft as proof of event timing**.
+- Existing code versus eligible new work: **attach a checked diff; do not use this draft as proof of event timing**. The [technical change inventory](SUBMISSION_CHANGE_INVENTORY.md) identifies a recent implementation interval, not the eligible event period.
 - AI assistance: AI coding assistants helped with implementation, tests, documentation, and preparation of demo materials. **Owner must confirm the actual scope and describe their own real contribution.**
 - Public repository, demo, and narrated video links: **insert verified URLs after publication**.
 - Selected sponsor prizes and matching evidence: **owner to confirm; omit unsupported claims**.

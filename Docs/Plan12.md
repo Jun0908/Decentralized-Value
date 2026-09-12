@@ -297,3 +297,14 @@ API入口やlockfileは別作業と競合しやすい。実装開始時に担当
 - [x] **A12-2:** SDKへ明示呼出しの`verifyRescueDoctrinePracticeIntegrity`を追加。元の要求に対しArtifact / Context / Episode、5層のHash、提供済みOrder / Receipt等の相互参照、表示値を照合する。11新規テスト、内部105ケース、SDK build、offline tarball consumerの実行・NodeNext strictを確認。既存APIの動作は変更せず、Evaluator Replay / 診断 / 署名 / 実支払い / 未提供のcommitment元データは未検証として返す。
 
 上記は非課金・ローカルで進められる。公開先の実HTTP検証はWeb公開後、実認証は本人準備後の別Gate。Ocean関連は別作業と競合するためこのバッチから外す。全Arena Registry、公開Job / Cancel / Events、本番DB、Final / Pool API、npm公開は後回しとする。
+
+## 14. 外出中の追加準備 — 外部AI開発者の初回接続
+
+2026-09-12。[RESCUE_AGENT_QUICKSTART.md](RESCUE_AGENT_QUICKSTART.md)へ起動・サンプル・各軸・異常時の対応を整理。
+
+- [x] `verify-rescue-practice-onboarding.ts`で、Manifest → Starter SHA → Practice → 独立Hash → 反復一致を一度に確認。段階・安全なError Code・次の対応を出力する。
+- [x] 同一Originの非課金3経路だけを許可。認証情報なし、redirect追跡なし、6リクエスト上限、自動リトライ・自動402支払いなし。
+- [x] 実API handlerへの注入テストで正常・認証／402／429／503・改ざん・Context変更・不正Starter・Timeoutなどを検証。localhostの6実HTTPがすべて200、Hash照合と反復一致を確認。
+- [ ] 公開後の同じコマンドによる実HTTP確認。実参加者・Linux・npm公開・Final APIの完成とは区別する。
+
+SDK公開契約・API・Ocean・共通CSSは変更しない。今回の道具はリポジトリ内の診断コマンドであり、新しい課金サービスではない。

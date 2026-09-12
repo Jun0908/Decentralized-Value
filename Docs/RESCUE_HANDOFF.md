@@ -90,6 +90,8 @@ pnpm exec tsx scripts/verify-bazantic-readiness.ts
 
 ## 人間側に残ること
 
+外出中の追加準備: [外部AI開発者向けの接続チェック](RESCUE_AGENT_QUICKSTART.md)、[情報購入の比較実験設計](RESCUE_INFORMATION_STUDY.md)、[提出用の変更一覧](SUBMISSION_CHANGE_INVENTORY.md)。比較実験は設計のみで、新しいAI呼出し・支払い・公開はしていない。
+
 1. 本人Dashboardの参加Track・締切・応募賞、審査対象の開始Commitを確認する。
 2. 動画へ本人の実録音声を載せ、完成動画を視聴する。
 3. CRE / Bazanticの既存アカウント認証。ENS操作を進めるならNamespace・Wallet・変更権限の範囲を確認する。
