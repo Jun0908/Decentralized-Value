@@ -1,0 +1,216 @@
+{
+  "schemaVersion": "frontier-bazantic-rescue-route-repair-v0",
+  "checkedAt": "2026-09-12T08:43:52.102Z",
+  "gatewayId": "5262972e-395c-41ac-8fe5-fd302b0327c0",
+  "gatewaySlug": "kjrjolrzlra2zd7f7uycwazhya",
+  "gatewayUrl": "https://kjrjolrzlra2zd7f7uycwazhya.bazgateway.com",
+  "cliVersionInspected": "0.10.0",
+  "state": "applied-and-verified",
+  "beforeMethods": [
+    {
+      "method": "GET",
+      "path": "/v1/health",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/arenas",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/arenas/{id}",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/arenas/{id}/frontier",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/challenges/{id}",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/challenges/{id}/frontier",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/challenges/{id}/artifacts",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/challenges/{id}/attestations",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "POST",
+      "path": "/v1/challenges/{id}/disputes",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "POST",
+      "path": "/v1/artifacts",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/artifacts/{id}",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "POST",
+      "path": "/v1/evaluations",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/evaluations/{jobId}",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/runners",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/runners/{ensName}",
+      "priceMillicents": 1000
+    }
+  ],
+  "addedMethods": [
+    {
+      "method": "GET",
+      "path": "/v1/cli/arenas/{id}",
+      "priceMillicents": 0
+    },
+    {
+      "method": "GET",
+      "path": "/v1/rescue-room/starter-kit",
+      "priceMillicents": 0
+    },
+    {
+      "method": "POST",
+      "path": "/v1/rescue-room/doctrine-evaluations",
+      "priceMillicents": 0
+    }
+  ],
+  "removedMethods": [],
+  "existingPricesChanged": false,
+  "paymentAuthorized": false,
+  "modelInferencePerformed": false,
+  "appliedAt": "2026-09-12 08:44:26 UTC",
+  "patchHttpStatus": 200,
+  "afterMethods": [
+    {
+      "method": "GET",
+      "path": "/v1/health",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/arenas",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/arenas/{id}",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/arenas/{id}/frontier",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/challenges/{id}",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/challenges/{id}/frontier",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/challenges/{id}/artifacts",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/challenges/{id}/attestations",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "POST",
+      "path": "/v1/challenges/{id}/disputes",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "POST",
+      "path": "/v1/artifacts",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/artifacts/{id}",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "POST",
+      "path": "/v1/evaluations",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/evaluations/{jobId}",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/runners",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/runners/{ensName}",
+      "priceMillicents": 1000
+    },
+    {
+      "method": "GET",
+      "path": "/v1/cli/arenas/{id}",
+      "priceMillicents": 0
+    },
+    {
+      "method": "GET",
+      "path": "/v1/rescue-room/starter-kit",
+      "priceMillicents": 0
+    },
+    {
+      "method": "POST",
+      "path": "/v1/rescue-room/doctrine-evaluations",
+      "priceMillicents": 0
+    }
+  ],
+  "exactMethodsMatch": true,
+  "readbackHttpStatus": 200,
+  "remainingSpecOnlyRouteCount": 45,
+  "remainingRoutesIntentionallyNotEnabled": true,
+  "httpPracticeVerification": {
+    "verified": true,
+    "requests": 6,
+    "allStatuses": 200,
+    "starterBytes": 12117,
+    "starterSha256Verified": true,
+    "repeatedHashMatch": true,
+    "sdkHashIntegrityVerified": true
+  },
+  "mcpVerificationEvidence": "bazantic-rescue-mcp-verification.json",
+  "recipeDraftEvidence": "bazantic-rescue-recipe-draft.json"
+}

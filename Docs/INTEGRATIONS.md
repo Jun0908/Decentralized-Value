@@ -2,6 +2,15 @@
 
 External services extend Frontier Protocol but do not define the product. The public evaluator must remain demonstrable without optional account credentials or hardware.
 
+## Latest sponsor execution — 2026-09-12
+
+最新の実行状態は[撮影手順](sponsors/SPONSOR_DEMO_RECORDING.md)と[STATUS](STATUS.md)を優先する。以下に残る未認証・未実行の記載は先行バッチの境界。
+
+- ENSv2 Sepolia: 所有済み`frontierdemo.eth`の`frontier.rescue.service`を実Service discoveryへ接続。単一Key grant / update / pause / restore / revokeを7取引で確認し、現在active・delegate revoked。[公開証跡](deployments/ensv2-rescue-demo.json)。従来Runner job protocolを置換せず、独立したRescue public-practice capability。
+- CRE CLI 1.33.0 / SDK 1.20.1: 通常・Confidential公式SimulationとNodeのEnvelope一致、秘密Pack入力・salt付きReceipt・明示Reveal Replayが成功。[公開証跡](deployments/chainlink-cre-private-pack.json)。Live TEE認証・ネットワークDeploy・onchain commitmentは未実施。
+- Bazantic MCP: 外部gpt-5-nano Agentが無料2 Toolを計3回使い、Baselineと候補を比較。実InferenceとAPI接続・独立再評価が成功。結果は同点。[公開証跡](deployments/bazantic-rescue-agent-demo.json)。Hosted Recipeはdraftのまま、未実行。Mainnet USDC決済・Recipe効果のA/Bは未実施。
+- 撮影ページ`/sponsors/demo`はローカル追加。表示は記録済み証跡であり、ブラウザに秘密鍵やAPI Keyを渡さない。未Push・未Deploy。
+
 ## Vercel — active
 
 The production UI, `/v1/*` API routes, and `/openapi.yaml` share this origin:
@@ -26,7 +35,7 @@ Classic Emergency Supply has a separate participant-addressed pool at `0x120160e
 
 The API source of truth is `openapi/frontier-v1.yaml`. The operation map is `bazantic/mcp-tools.json`, and agent instructions are in `bazantic/recipe.md`.
 
-A gateway and 16-tool MCP surface were activated in the external dashboard during project setup. Marketplace publication was pending verification. Because service and Recipe identifiers are not stored as repository evidence, the local readiness check must not invent them.
+A gateway and 16-tool MCP surface were activated during project setup. On 2026-09-12, the existing gateway exposed 64 MCP tools, but its old 15-route table lacked Rescue routes and returned 404. Three public Practice routes were added at zero price, preserving all existing routes and prices. Gateway HTTP onboarding now passes all six requests, Starter digest, SDK hash checks and repetition. MCP Manifest and two Doctrine evaluations also pass, with full local evaluator agreement. A two-tool `rescue-room-strategy-comparison` Recipe was saved and read back as a draft; it has not been run or published. See the [live integration scope and evidence](sponsors/BAZANTIC_RESCUE_LIVE.md). Other tools are not covered by this success.
 
 When maintaining the integration:
 
@@ -37,9 +46,9 @@ When maintaining the integration:
 5. use the provider's payment-aware client for paid operations;
 6. keep optional gateway failure outside the main demo path.
 
-## ENSv2 — optional and not configured
+## ENSv2 — existing name found; application discovery unverified
 
-The codebase has a chain-aware fail-closed boundary for runner discovery and authorization. No live parent name, subname hierarchy, delegated permission mutation, or current runtime evidence is configured. Do not describe ENS authorization as active until those transactions and resolved records exist.
+The codebase has a chain-aware fail-closed boundary for runner discovery and authorization. On 2026-09-12, Sepolia resolution found a resolver for the configured `frontierdemo.eth`, but the application's `frontier.runners` list on `runners.frontierdemo.eth` returned null at block 11687106, with CCIP Read disabled. A subsequent ENSv2 ETHRegistry read at block 11687758 confirmed that its owner matches the user's supplied address. Delegated permissions and working application discovery are still unverified; do not describe ENS authorization as active. See the [connection check](sponsors/EXISTING_CONNECTION_CHECK.md).
 
 ## Privy — account UX active
 

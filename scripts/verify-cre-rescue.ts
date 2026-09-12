@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
+import { parseEnv } from "node:util";
 import { build } from "esbuild";
 import { keccak256, stringToHex } from "viem";
 import { publicRescueRoomScenario, rescueDoctrinePresets } from "../packages/rescue-room/src/index";
@@ -105,6 +106,8 @@ const command = [
   "--non-interactive",
   "--trigger-index",
   confidential ? "1" : "0",
+  "--wasm",
+  "generated/workflow.wasm",
   "--env",
   join(generated, "public-fixture.env"),
 ];
@@ -120,6 +123,28 @@ let simulation: {
     "Run with --simulate to invoke the official CRE CLI; Node preparation is not CRE execution.",
 };
 if (args.includes("--simulate")) {
+  // Read only the RPC setting. Never forward the application's keys or wallet material.
+  const localEnv = await readFile(join(root, ".env"), "utf8").catch(() => "");
+  const rpcUrl = process.env.SEPOLIA_RPC_URL ?? parseEnv(localEnv).SEPOLIA_RPC_URL;
+  if (!rpcUrl || new URL(rpcUrl).protocol !== "https:")
+    throw new Error("CRE requires an HTTPS SEPOLIA_RPC_URL; its value is not logged.");
+  childEnv.SEPOLIA_RPC_URL = rpcUrl;
+  // Explicit argv preserves Windows paths containing spaces. CRE consumes the freshly
+  // compiled WASM via a short relative path (its --wasm flag has a length limit).
+  const compiled = spawnSync(
+    "bun",
+    ["node_modules/@chainlink/cre-sdk/bin/cre-compile.ts", "main.ts", "generated/workflow.wasm"],
+    {
+      cwd: workflow,
+      env: childEnv,
+      encoding: "utf8",
+      timeout: 120_000,
+      maxBuffer: 4_000_000,
+      windowsHide: true,
+    },
+  );
+  if (compiled.status !== 0)
+    throw new Error("Official SDK compilation failed; no cached WASM was executed.");
   const executed = spawnSync(cli, command, {
     cwd: project,
     env: childEnv,
@@ -130,16 +155,19 @@ if (args.includes("--simulate")) {
   });
   const output = `${executed.stdout ?? ""}\n${executed.stderr ?? ""}`;
   if (executed.status !== 0) {
-    const reason =
-      /not logged in|authentication required|failed to attach credentials|failed to load credentials/i.test(
-        output,
-      )
-        ? "CRE CLI authentication is missing. Human must authenticate; no login or account creation attempted."
-        : /private beta|not authorized|permission denied|access denied/i.test(output)
-          ? "CRE access denied; account or Confidential Workflows access must be confirmed by a human."
-          : (executed.error as NodeJS.ErrnoException | undefined)?.code === "ENOENT"
-            ? "Official CRE CLI executable is not installed at the configured path."
-            : "Official CRE CLI failed before a verified result. Inspect the bounded public-fixture run locally; not a CRE success.";
+    const reason = /no RPC URLs found|failed to.*RPC|RPC.*not configured/i.test(output)
+      ? "CRE RPC configuration is unavailable; this is not a missing login."
+      : /unable to retrieve organization info/i.test(output)
+        ? "CRE organization lookup failed; existing login may be valid."
+        : /not logged in|authentication required|failed to attach credentials|failed to load credentials/i.test(
+              output,
+            )
+          ? "CRE CLI authentication is missing. Human must authenticate; no login or account creation attempted."
+          : /private beta|not authorized|permission denied|access denied/i.test(output)
+            ? "CRE access denied; account or Confidential Workflows access must be confirmed by a human."
+            : (executed.error as NodeJS.ErrnoException | undefined)?.code === "ENOENT"
+              ? "Official CRE CLI executable is not installed at the configured path."
+              : "Official CRE CLI failed before a verified result. Inspect the bounded public-fixture run locally; not a CRE success.";
     simulation = { state: "blocked", exitCode: executed.status, reason };
     // Never persist raw CLI stderr: authenticated failures can contain account/credential data.
     await writeFile(
@@ -164,10 +192,15 @@ if (args.includes("--simulate")) {
     }
     assert(actual && typeof actual === "object", "CRE returned no parseable object");
     const result = actual as Record<string, unknown>;
-    assert.equal(result.schemaVersion, "frontier-rescue-cre-compatibility-result-v0");
+    assert.equal(result.schemaVersion, "frontier-rescue-cre-compatibility-result-v1");
     assert.equal(result.handlerKind, confidential ? "confidential" : "ordinary");
     assert.equal(result.evaluatorBundleHash, codeHash);
-    assert.deepEqual(result.evaluation, expected, "Official CRE result differs from native Node");
+    assert.equal(typeof result.evaluationJson, "string");
+    assert.deepEqual(
+      JSON.parse(result.evaluationJson as string),
+      expected,
+      "Official CRE result differs from native Node",
+    );
     assert.equal(result.liveTeeAttestationVerified, false);
     assert.equal(result.onchainWrites, false);
     simulation = { state: "passed", exitCode: 0, reason: null, result };

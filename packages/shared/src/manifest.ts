@@ -2,6 +2,7 @@ import { keccak256, stringToHex, type Hex } from "viem";
 import { z } from "zod";
 import { addressSchema, bytes32Schema } from "./schemas";
 import { outcomeMetricSchema } from "./multiobjective";
+import { compareProtocolKeys } from "./protocol-key-order";
 
 export const evidenceLevelSchema = z.union([
   z.literal(0),
@@ -139,7 +140,7 @@ export function canonicalProtocolJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonicalProtocolJson).join(",")}]`;
   if (value !== null && typeof value === "object") {
     const entries = Object.entries(value as Record<string, unknown>).sort(([left], [right]) =>
-      left.localeCompare(right),
+      compareProtocolKeys(left, right),
     );
     return `{${entries
       .map(([key, item]) => `${JSON.stringify(key)}:${canonicalProtocolJson(item)}`)

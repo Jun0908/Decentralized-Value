@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "frontier-bazantic-rescue-mcp-verification-v0",
+  "checkedAt": "2026-09-12T08:48:01.268Z",
+  "verified": true,
+  "gatewayUrl": "https://kjrjolrzlra2zd7f7uycwazhya.bazgateway.com",
+  "toolCount": 64,
+  "calls": [
+    {
+      "tool": "getCliArena",
+      "upstreamStatus": 200
+    },
+    {
+      "tool": "evaluateRescueRoomDoctrine",
+      "upstreamStatus": 200
+    },
+    {
+      "tool": "evaluateRescueRoomDoctrine",
+      "upstreamStatus": 200
+    }
+  ],
+  "episodeId": "episode-fabafc1906b4",
+  "context": {
+    "contextHash": "0x536c175a7fb35593181bfb0b4d096ce3ca522236b9b5cd40fb6a7df5e475011a",
+    "runtimeContextHash": "0x50046dde557b2ac0835ffb30db514ed0ee0668f6fa73fb9100a022c9667e560e",
+    "manifestHash": "0x82d64a6c64847aa97ff4cb043d7897d02c66fbce9da02bf3802e27294f1b5edf",
+    "evaluatorVersion": "rescue-doctrine-interpreter-v0",
+    "dataVersion": "rescue-practice-pack-2026-09-v0",
+    "metrics": [
+      {
+        "key": "totalUserLossUsd",
+        "name": "Total user loss",
+        "direction": "MINIMIZE",
+        "unit": "USD",
+        "lowerBound": 0,
+        "upperBound": 250000
+      },
+      {
+        "key": "servedProtocolDemandPpm",
+        "name": "Served protocol demand",
+        "direction": "MAXIMIZE",
+        "unit": "ppm",
+        "lowerBound": 0,
+        "upperBound": 1000000
+      },
+      {
+        "key": "netResponseSpendCredits",
+        "name": "Net response spend",
+        "direction": "MINIMIZE",
+        "unit": "Rescue Credits",
+        "lowerBound": 0,
+        "upperBound": 100
+      }
+    ],
+    "evidenceState": "simulated"
+  },
+  "artifactHash": "0x5d3abd7577d011ea745636de07dfc4383e41609d7e0b1eaf0f87bab9a0d3199c",
+  "resultHash": "0x144c9a882f88b116019f963cf7c3d868527b27ea642ef7784cff4b10fc914df4",
+  "values": {
+    "totalUserLossUsd": 0,
+    "servedProtocolDemandPpm": 845915,
+    "netResponseSpendCredits": 46
+  },
+  "integrityVerified": true,
+  "fullLocalEvaluatorMatch": true,
+  "repeatedFullResponseMatch": true,
+  "credentialsSent": false,
+  "paymentAttempted": false,
+  "modelInferencePerformed": false,
+  "conversationIdsRetained": false,
+  "rawSessionOutputRetained": false,
+  "boundary": "Public deterministic Doctrine Practice, not autonomous-model competition, real payments, or Hidden Final."
+}

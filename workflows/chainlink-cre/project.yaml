@@ -1,2 +1,4 @@
 local-simulation:
-  rpcs: []
+  rpcs:
+    - chain-name: ethereum-testnet-sepolia
+      url: ${SEPOLIA_RPC_URL}

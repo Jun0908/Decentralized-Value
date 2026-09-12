@@ -9,7 +9,7 @@ import {
 import {
   evaluateRescueDoctrinePracticeEpisode,
   normalizeRescueDoctrine,
-  publicRescueRoomScenario,
+  rescuePublicPracticeEpisodeIds,
   rescueDoctrineContextHash,
   rescueDoctrineHash,
   rescueDoctrineInterpreterVersion,
@@ -31,7 +31,7 @@ export function createRescueEnvelopeRequest(
 ): EvaluationRequestV2 {
   const episodeId = artifact.episodeId;
   const doctrine = normalizeRescueDoctrine(artifact.doctrine);
-  if (!publicRescueRoomScenario().episodes.some(({ id }) => id === episodeId)) {
+  if (!rescuePublicPracticeEpisodeIds().includes(episodeId)) {
     throw new Error("Only published Rescue Practice episodes are supported");
   }
   const contextHash = keccak256(

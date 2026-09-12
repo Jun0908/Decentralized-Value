@@ -2,6 +2,8 @@
 
 [日本語](README_JA.md)
 
+**[Presentation on Canva](https://canva.link/r63xqej7g7c78d3)**
+
 **Decentralize how progress is defined—not just how value is transferred.**
 
 **Shared evidence. Independent values. Verifiable settlement.**
@@ -13,6 +15,8 @@ Value Decentralization is an open evaluation protocol for **sharing evidence wit
 [Live Product](https://web-rho-seven-d6te7t3f0y.vercel.app) · [Architecture](https://web-rho-seven-d6te7t3f0y.vercel.app/architecture) · [Sepolia Reward](https://sepolia.etherscan.io/tx/0xd976a968aefeb66d7e60fba7a9cf64c8711195fc3652aeccc20c7448069ad708) · [Whitepaper](https://github.com/Jun0908/Decentralized-Value-Whitepaper)
 
 ## Judges: see the protocol in 60 seconds
+
+Sponsor integrations now have recorded ENSv2 Sepolia permission transactions, official CRE local simulation with private-input/reveal replay, and a real external AI using Bazantic MCP. [Recording guide, evidence, and representative source](Docs/sponsors/SPONSOR_DEMO_RECORDING.md). The new `/sponsors/demo` page is local until deployed. These are separate demonstrations, not a completed hidden Final tournament or a Bazantic-hosted Recipe execution.
 
 ### 1. Run a real EVM evaluation
 
@@ -59,6 +63,8 @@ rUSD-DEMO has no monetary value. An open third-party service market, hidden Fina
 For the English recorded-run demo, open local `/rescue-room/submission/en`. The [handoff guide](Docs/RESCUE_HANDOFF.md) includes a two-minute English narration, a locally recorded silent video, and clean-room replay / SDK HTTP verification. The video and latest page are not published by these local checks.
 
 Developers can follow the [Rescue Practice quickstart](Docs/RESCUE_AGENT_QUICKSTART.md) and run `pnpm exec tsx scripts/verify-rescue-practice-onboarding.ts http://localhost:3000` to check the existing non-billable API, Starter digest, result integrity and repeatability. This does not enter a Final or make a payment.
+
+[Bazantic Gateway / MCP Practice](Docs/sponsors/BAZANTIC_RESCUE_LIVE.md) was verified on 2026-09-12: public Manifest and Doctrine evaluations work through the existing gateway, with repeated results matching the local evaluator. The strategy-comparison Recipe is a saved, unexecuted draft—not a published autonomous-agent run or paid tournament.
 
 ---
 

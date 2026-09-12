@@ -26,13 +26,15 @@ function evaluate(config: Config, inputJson: string, handlerKind: "ordinary" | "
   if (inputJson !== config.publicFixtureJson)
     throw new Error("Public compatibility fixture mismatch");
   const evaluationJson = evaluateFixture(inputJson);
-  if (evaluationJson !== config.expectedEvaluationJson)
-    throw new Error("CRE evaluator differs from Node fixture");
+  // Compare the complete returned object in the host verifier, not JSON property
+  // insertion order across runtimes. A successful CLI exit alone is insufficient.
   return {
-    schemaVersion: "frontier-rescue-cre-compatibility-result-v0",
+    schemaVersion: "frontier-rescue-cre-compatibility-result-v1",
     handlerKind,
     evaluatorBundleHash: config.evaluatorBundleHash,
-    evaluation: JSON.parse(evaluationJson),
+    // CRE's protobuf Value cannot wrap null. Preserve the original Envelope
+    // losslessly as JSON text, including null round/snapshot/artifact URI fields.
+    evaluationJson,
     scope: config.scope,
     confidentialDataUsed: false,
     liveTeeAttestationVerified: false,

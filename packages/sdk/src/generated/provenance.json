@@ -11,6 +11,6 @@
     "packages/shared/src/cli.ts": "b1b33d1df244695ad10f0b2e74e5a7f1b9a69a7591fc5eabcd217ee68cc05cd9",
     "packages/shared/src/multiobjective.ts": "ba7058e580d92659712e52e59174a5ac02ce4934d38a21929426b011299a0c20",
     "packages/disaster-response/src/index.ts": "68e38458e4d283084d4d2b627efb39c5b5904ec6df2d5453a6db34e28a27383f",
-    "packages/rescue-room/src/index.ts": "ae579bbeeec294879f962ce410b769573ad943d99df5eb5e3c0b96feb06e289f"
+    "packages/rescue-room/src/index.ts": "0958ec694bd8072772a1b79f3541548c2c32a6f30b586903a5d19faeaa2138c8"
   }
 }

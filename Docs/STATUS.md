@@ -1,12 +1,44 @@
 # Current implementation status
 
-- **Last verified:** 2026-09-12（Rescue購入後判断デモ・公開Replay・CRE認証Gateを追加。過去の検証記録は各日付の範囲）
+- **Last verified:** 2026-09-12（ENS実認可・CRE公式Simulation・Bazantic経由の実AI比較。過去の検証記録は各日付の範囲）
 - **Public application:** <https://web-rho-seven-d6te7t3f0y.vercel.app>
 - **Active plans:** [`Plan9.md`](Plan9.md) (Rescue Room), [`Plan11.md`](Plan11.md) (Sponsor integration), [`Plan12.md`](Plan12.md) (API / SDK / CLI). Parallel ownership and current batch: [`PARALLEL_IMPLEMENTATION.md`](PARALLEL_IMPLEMENTATION.md).
 
 This document records the current capability boundary. Product rules live in [`PRODUCT.md`](PRODUCT.md), the active Rescue Room work is scoped in [`Plan9.md`](Plan9.md), and completed or superseded plans live under [`archive/`](archive/).
 
 ## Working now
+
+### Sponsor minimum working demonstrations — 2026-09-12 09:45 UTC以降
+
+撮影用の英語ページはローカル`/sponsors/demo`。[撮影手順・英語台本・代表コード](sponsors/SPONSOR_DEMO_RECORDING.md)。ページは実行済みEvidenceを表示し、閲覧で追加推論・送金は発生しない。今回のページの公開Deploymentは未確認（GitHubへのコードPushとは別）。
+
+- **ENSv2:** `frontierdemo.eth`の専用Text keyからRescue APIを発見し、実HTTP評価を検証。単一Keyのgrant→delegateによる更新／pause／restore→revokeの**7取引**がSepoliaで確認済み。paused discovery拒否とrevoke後の`eth_call`拒否も確認。現在Serviceはactive、delegate権限はrevoked。他のRecordは変更していない。[Evidence](deployments/ensv2-rescue-demo.json)。撮影時は`pnpm exec tsx scripts/verify-ens-rescue.ts`で追加送金なしに再確認できる。
+- **Chainlink CRE:** 公式CLI 1.33.0 / SDK 1.20.1で通常・Confidential両方の公開Fixtureを実行し、Nodeと全Envelope・既存Hashが一致。さらに新規秘密Scenario Packを`handlerInTee`のsecret inputで評価し、Receipt一致→明示Reveal→Replay成功。[Evidence](deployments/chainlink-cre-private-pack.json)。**local simulationであり、live TEE attestation・onchain commitment・本番Final完了ではない。**
+- **Bazantic:** 外部OpenAI Agent（gpt-5-nano）がBazantic MCPからManifest取得→Baseline評価→候補評価を実行。3 Toolの内部HTTPすべて200、SDK Integrityとローカル再評価が一致。[Evidence](deployments/bazantic-rescue-agent-demo.json)。予算90→60 Creditsの候補は、この公開Episodeで3軸とも同値。AI改善・Recipe有無A/Bを主張しない。**Bazantic-hosted Recipe実行／公開・Gateway課金は未実施。**
+
+CRE対応ではPractice概要の重い初期計算を遅延化し、Protocol JSONのASCIIキー順をV8とQuickJSで一致させた。既存Node Hashは保持。無制限Unicodeキーの全Runtime一致を保証する変更ではない。
+
+遠隔操作中のためPC再起動・スリープ・ネットワーク変更・既存dev server停止は禁止。今回これらは行っていない。下記の「認証停止」「実AI未実行」は先行バッチの履歴であり、上記の最新結果を優先する。
+
+検証: `vitest run --maxWorkers=2 --testTimeout=15000`で**766成功／11スキップ**、全Workspace型検査、Web production build、変更範囲ESLint／Prettier、CLI／SDK生成契約チェックが成功。SDK provenanceはRescueのsource変更に合わせ再生成し、API型・Fixtureは不変。初回の高並列検査では時間切れと既存Durable JobのWindows `EPERM`競合が出たため、これは通常並列CIの安定性改善が不要という主張ではない。
+
+Browser: Desktop 1440／Mobile 390、章移動、keyboard details、3 JSON Download／不正ID 404、Home、console error 0／horizontal overflowなし。追加証跡のoffline Replayと改ざん拒否も成功。今回変更47ファイルに設定済み秘密値の一致なし。既存`security:scan`は未変更の`scripts/settle-ocean-match.sh:23`（.envを読むsed式）を検出して非zeroのため、全体Secret scan成功とは記録しない。Contract変更・Contractテスト・Deploy・Pushは今回の検証に含めない。
+
+### Bazantic Rescue Gateway repaired — 2026-09-12
+
+既存Gatewayの404はSpecとルート表の不一致だった。旧15ルート・料金を保存して、公開Manifest・Starter・Doctrine評価の3ルートのみ無料追加。Gateway HTTPの6要求すべて200、Starter SHA・SDK Hash・反復一致が成功。MCPのManifest取得と2回のDoctrine評価も成功し、返却JSON全体が反復・ローカルEvaluatorと一致した。[実接続Evidenceと再現手順](sponsors/BAZANTIC_RESCUE_LIVE.md)。
+
+既存Recipe一覧0件を確認後、`rescue-room-strategy-comparison`を下書き作成し、定義全フィールドの読戻し一致を確認。無料で動いた2 Toolのみを束ね、総合点を作らずBaselineと変更案を比較する。**Recipe公開・実AI試行・A/B比較は未実施**。今回の追加送金・推論0、Web公開・Pushなし。旧ログイン／404記録は以前の状態として残す。
+
+関連3ファイル・67テスト成功。Evidence JSON・ルート保持・料金0・Recipe定義Hashも検査した。今回の変更は外部Gateway設定・Recipe draft・文書／定義JSONで、Web / Evaluator / Contract実装や全体Buildは対象外。
+
+直前の別確認ではCREの停止理由がOrganization取得から`local-simulation`のRPC未設定へ変化。ENSv2 ETHRegistryのBlock 11687758で、`frontierdemo.eth`の所有者が本人提示の`0x5A6A8964B044fdf18920ac4af64c18e88792261D`と一致した。両方とも本体連携の完了ではないが、再ログイン・名前の作り直しを依頼する必要はない。
+
+### Existing sponsor connection check — 2026-09-12
+
+既存アカウントの読取再確認で、CRE / BazanticのCLIログインは成功。CRE通常SimulationはOrganization情報取得で停止し、未ログインとは区別する。Bazanticは既存active Gateway・64個のMCP Toolを確認したが、Rescue ManifestのTool呼出しは404（公開APIへの直接GETは200）。ENSはSepoliaの`frontierdemo.eth`でResolverを取得したが、アプリが使うRunner一覧は取得できていない。以前の未認証／未設定記載を、この再確認の成功範囲へ読み替える。実接続全体の完成ではない。
+
+詳細・Snapshot・次の対応は[既存接続確認](sponsors/EXISTING_CONNECTION_CHECK.md)。登録・設定変更・推論・支払い・デプロイは行っていない。
 
 ### External developer preflight and study preparation — 2026-09-12
 

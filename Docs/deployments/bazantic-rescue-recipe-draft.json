@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "frontier-bazantic-rescue-recipe-setup-v0",
+  "checkedAt": "2026-09-12T08:50:08.082Z",
+  "handle": "rescue-room-strategy-comparison",
+  "name": "Rescue Room Strategy Comparison",
+  "status": "draft",
+  "model": "anthropic/claude-haiku-4.5",
+  "toolBindings": [
+    {
+      "gateway_slug": "kjrjolrzlra2zd7f7uycwazhya",
+      "tool_name": "getCliArena"
+    },
+    {
+      "gateway_slug": "kjrjolrzlra2zd7f7uycwazhya",
+      "tool_name": "evaluateRescueRoomDoctrine"
+    }
+  ],
+  "updatedAt": "2026-09-12T08:49:37.098908+00:00",
+  "definitionSha256": "c508b1864626549fefcbe1c51761c452711ed698aee3a1e0e655b6ec26cb6858",
+  "definitionFieldsMatch": true,
+  "mismatchedFields": [],
+  "published": false,
+  "modelInferencePerformed": false,
+  "paymentAttempted": false
+}

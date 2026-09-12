@@ -1,6 +1,11 @@
 import { getAddress, type Address, type PublicClient } from "viem";
 import { normalize } from "viem/ens";
 import { z } from "zod";
+export {
+  EnsRescueServiceDirectory,
+  rescueEnsServiceSchema,
+  rescueServiceRecordKey,
+} from "./rescue";
 
 export const RUNNER_RECORDS = {
   capability: "frontier.capabilities",

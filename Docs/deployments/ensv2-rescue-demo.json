@@ -1,0 +1,182 @@
+{
+  "schemaVersion": "frontier-ensv2-rescue-demo-v1",
+  "parent": "frontierdemo.eth",
+  "owner": "0x5A6A8964B044fdf18920ac4af64c18e88792261D",
+  "resolver": "0xbc7300c2f72C8CFEd5066626A9De082B4695FE3e",
+  "delegate": "0x5A7a91bed4419A305eDf81B097Bb5A31CB4eCD28",
+  "recordKey": "frontier.rescue.service",
+  "beforeRecord": "",
+  "finalRecord": {
+    "schemaVersion": "frontier-rescue-service-v1",
+    "capability": "rescue-doctrine-public-practice",
+    "apiOrigin": "https://web-rho-seven-d6te7t3f0y.vercel.app",
+    "status": "active"
+  },
+  "blockBefore": "11688077",
+  "discovery": {
+    "ensName": "frontierdemo.eth",
+    "recordKey": "frontier.rescue.service",
+    "schemaVersion": "frontier-rescue-service-v1",
+    "capability": "rescue-doctrine-public-practice",
+    "apiOrigin": "https://web-rho-seven-d6te7t3f0y.vercel.app",
+    "status": "active"
+  },
+  "onboarding": {
+    "schemaVersion": "rescue-practice-onboarding-v1",
+    "verified": true,
+    "origin": "https://web-rho-seven-d6te7t3f0y.vercel.app",
+    "requests": [
+      {
+        "method": "GET",
+        "path": "/v1/cli/arenas/rescue-room",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/v1/rescue-room/starter-kit",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/v1/cli/arenas/rescue-room",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/v1/rescue-room/doctrine-evaluations",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/v1/cli/arenas/rescue-room",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/v1/rescue-room/doctrine-evaluations",
+        "status": 200
+      }
+    ],
+    "starterBytes": 12117,
+    "episodeId": "episode-fabafc1906b4",
+    "context": {
+      "contextHash": "0x536c175a7fb35593181bfb0b4d096ce3ca522236b9b5cd40fb6a7df5e475011a",
+      "runtimeContextHash": "0x50046dde557b2ac0835ffb30db514ed0ee0668f6fa73fb9100a022c9667e560e",
+      "manifestHash": "0x82d64a6c64847aa97ff4cb043d7897d02c66fbce9da02bf3802e27294f1b5edf",
+      "evaluatorVersion": "rescue-doctrine-interpreter-v0",
+      "dataVersion": "rescue-practice-pack-2026-09-v0",
+      "metrics": [
+        {
+          "key": "totalUserLossUsd",
+          "name": "Total user loss",
+          "direction": "MINIMIZE",
+          "unit": "USD",
+          "lowerBound": 0,
+          "upperBound": 250000
+        },
+        {
+          "key": "servedProtocolDemandPpm",
+          "name": "Served protocol demand",
+          "direction": "MAXIMIZE",
+          "unit": "ppm",
+          "lowerBound": 0,
+          "upperBound": 1000000
+        },
+        {
+          "key": "netResponseSpendCredits",
+          "name": "Net response spend",
+          "direction": "MINIMIZE",
+          "unit": "Rescue Credits",
+          "lowerBound": 0,
+          "upperBound": 100
+        }
+      ],
+      "evidenceState": "simulated"
+    },
+    "artifactHash": "0x5d3abd7577d011ea745636de07dfc4383e41609d7e0b1eaf0f87bab9a0d3199c",
+    "resultHash": "0x144c9a882f88b116019f963cf7c3d868527b27ea642ef7784cff4b10fc914df4",
+    "correctness": true,
+    "values": {
+      "totalUserLossUsd": 0,
+      "servedProtocolDemandPpm": 845915,
+      "netResponseSpendCredits": 46
+    },
+    "integrity": {
+      "schemaVersion": "rescue-doctrine-integrity-v0",
+      "verification": "hash-consistency",
+      "integrityVerified": true,
+      "evaluatorReplay": false,
+      "correctnessVerified": false,
+      "signatureVerified": false,
+      "paymentVerified": false,
+      "commitmentPreimagesVerified": false,
+      "episodeId": "episode-fabafc1906b4",
+      "hashes": {
+        "artifact": "0x5d3abd7577d011ea745636de07dfc4383e41609d7e0b1eaf0f87bab9a0d3199c",
+        "evaluation": "0x144c9a882f88b116019f963cf7c3d868527b27ea642ef7784cff4b10fc914df4",
+        "outcome": "0x83efdf5c97c935cc8dd37a50492622b436ca88c68f92ec71daf5a10b12ee97a7",
+        "transcript": "0xaadc620983f3c1f7633c37152ed80367b2f67458b3f9c41e7cf18c01b578c602",
+        "paymentEvidence": "0xd61f458e824e96c37437d3f0c9726ff039ab9b28a004c530142c8d839776d450"
+      },
+      "checkedOrders": 4,
+      "checkedReceipts": 3
+    },
+    "repeatedHashMatch": true,
+    "automaticRetries": 0,
+    "credentialsSent": false,
+    "paymentAttempted": false,
+    "boundary": "Simulated single-Episode Practice. Hash consistency, not authenticated evaluator execution, real payment or Final entry."
+  },
+  "pausedServiceRejected": true,
+  "otherRecordsChanged": false,
+  "independentThirdPartyProvider": false,
+  "paymentsRequested": false,
+  "checkedAt": "2026-09-12T09:38:26.212Z",
+  "transactions": [
+    {
+      "label": "owner-initializes-paused-service",
+      "hash": "0x46902a8c6b780f47dc4c1edb503f4e440bded3faa3a537dfcfd6f2b565ebc2c9",
+      "block": "11688078",
+      "gasUsed": "201924"
+    },
+    {
+      "label": "fund-delegate-test-gas",
+      "hash": "0x69e53b5d39d2a37aac737427f013e5fdd82c2daf1f423499823b0d0fd19c1944",
+      "block": "11688079",
+      "gasUsed": "21000"
+    },
+    {
+      "label": "grant-one-text-key",
+      "hash": "0xb23ef6b1f1508a3075bcc36670f6f2faa794d36093dd190cfcb32fb4962cad5f",
+      "block": "11688080",
+      "gasUsed": "89628"
+    },
+    {
+      "label": "delegate-activates-service",
+      "hash": "0x0d7becbd3b659bc382e543a347e5c1347adc31f790e6e77ce002099c29050855",
+      "block": "11688081",
+      "gasUsed": "65562"
+    },
+    {
+      "label": "delegate-pauses-service",
+      "hash": "0xffa2c79c6c589574fe36b6442ef724c41c9423d9efc208a6b99275741f710ae4",
+      "block": "11688083",
+      "gasUsed": "65562"
+    },
+    {
+      "label": "delegate-restores-active-service",
+      "hash": "0x78ba2aa6b7f8c29a2fb89a85513b08f6a3c79977252b06e8c3034be75db35517",
+      "block": "11688084",
+      "gasUsed": "65562"
+    },
+    {
+      "label": "revoke-one-text-key",
+      "hash": "0x25c3cf2cc46532b787dba11d9f41c34fd4604156a00d93ba2a40a7e221eb8bb3",
+      "block": "11688085",
+      "gasUsed": "41970"
+    }
+  ],
+  "revokedWriteRejected": true,
+  "rejectionMethod": "eth_call",
+  "finalDelegatePermission": "revoked"
+}

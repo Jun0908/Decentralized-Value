@@ -2722,37 +2722,50 @@ function allocateProportionally(
   return provisional.map(({ policyId, credits }) => ({ policyId, credits }));
 }
 
-const rescuePracticeEvaluations = rescuePracticePolicyIds.map((policyId) =>
-  evaluateRescuePolicy(policyId, rescuePracticeSeeds),
-);
-const rescuePracticePoints = rescuePracticeEvaluations.map(rescueEvaluationPoint);
-const rescuePracticeFrontier = computeOutcomeFrontier(rescuePracticePoints, rescuePracticeMetrics);
-
-function dominates(left: OutcomePoint, right: OutcomePoint): boolean {
-  return (
-    computeOutcomeFrontier([left, right], rescuePracticeMetrics).length === 1 &&
-    computeOutcomeFrontier([left, right], rescuePracticeMetrics)[0]!.id === left.id
-  );
+// Single-episode evaluators must not run all 280 reference episodes on import.
+// The overview is still computed by the same evaluator when a caller asks for it.
+let practiceOverview: ReturnType<typeof computePracticeOverview> | undefined;
+function getPracticeOverview() {
+  return (practiceOverview ??= computePracticeOverview());
 }
 
-const rescuePracticePolicyResults: readonly RescuePracticePolicyResult[] =
-  rescuePracticeEvaluations.map((evaluation) => {
-    const point = rescueEvaluationPoint(evaluation);
-    return {
-      ...evaluation,
-      pareto: {
-        frontier: rescuePracticeFrontier.some(({ id }) => id === evaluation.policyId),
-        dominatedBy: rescuePracticePoints
-          .filter((other) => other.id !== point.id && dominates(other, point))
-          .map(({ id }) => id as RescuePracticePolicyId),
-      },
-      contribution: computeContributionEvidence(
-        rescuePracticePoints.filter(({ id }) => id !== point.id),
-        point,
-        rescuePracticeMetrics,
-      ),
-    };
-  });
+function computePracticeOverview() {
+  const rescuePracticeEvaluations = rescuePracticePolicyIds.map((policyId) =>
+    evaluateRescuePolicy(policyId, rescuePracticeSeeds),
+  );
+  const rescuePracticePoints = rescuePracticeEvaluations.map(rescueEvaluationPoint);
+  const rescuePracticeFrontier = computeOutcomeFrontier(
+    rescuePracticePoints,
+    rescuePracticeMetrics,
+  );
+
+  function dominates(left: OutcomePoint, right: OutcomePoint): boolean {
+    return (
+      computeOutcomeFrontier([left, right], rescuePracticeMetrics).length === 1 &&
+      computeOutcomeFrontier([left, right], rescuePracticeMetrics)[0]!.id === left.id
+    );
+  }
+
+  const rescuePracticePolicyResults: readonly RescuePracticePolicyResult[] =
+    rescuePracticeEvaluations.map((evaluation) => {
+      const point = rescueEvaluationPoint(evaluation);
+      return {
+        ...evaluation,
+        pareto: {
+          frontier: rescuePracticeFrontier.some(({ id }) => id === evaluation.policyId),
+          dominatedBy: rescuePracticePoints
+            .filter((other) => other.id !== point.id && dominates(other, point))
+            .map(({ id }) => id as RescuePracticePolicyId),
+        },
+        contribution: computeContributionEvidence(
+          rescuePracticePoints.filter(({ id }) => id !== point.id),
+          point,
+          rescuePracticeMetrics,
+        ),
+      };
+    });
+  return { rescuePracticePolicyResults, rescuePracticeFrontier };
+}
 
 function bestPolicyIds(
   eligible: readonly RescuePracticePolicyResult[],
@@ -2776,15 +2789,17 @@ export const rescuePracticeValuePools: readonly RescueValuePoolAllocation[] = [
     valueStatement: "Support Commanders that minimize user loss without broadly freezing use.",
     rule: "Lowest total user loss among entries serving at least 80% of demand.",
     budgetCredits: 2_500,
-    allocations: allocateEvenly(
-      bestPolicyIds(
-        rescuePracticePolicyResults.filter(
-          ({ servedProtocolDemandPpm }) => servedProtocolDemandPpm >= 800_000,
+    get allocations() {
+      return allocateEvenly(
+        bestPolicyIds(
+          getPracticeOverview().rescuePracticePolicyResults.filter(
+            ({ servedProtocolDemandPpm }) => servedProtocolDemandPpm >= 800_000,
+          ),
+          "totalUserLossUsd",
+          "MINIMIZE",
         ),
-        "totalUserLossUsd",
-        "MINIMIZE",
-      ),
-    ),
+      );
+    },
   },
   {
     poolId: "availability",
@@ -2792,15 +2807,17 @@ export const rescuePracticeValuePools: readonly RescueValuePoolAllocation[] = [
     valueStatement: "Support Commanders that preserve protocol access within a safety budget.",
     rule: "Highest served demand among entries losing no more than 20,000 USD per Episode.",
     budgetCredits: 2_500,
-    allocations: allocateEvenly(
-      bestPolicyIds(
-        rescuePracticePolicyResults.filter(
-          ({ totalUserLossUsd, episodeCount }) => totalUserLossUsd <= 20_000 * episodeCount,
+    get allocations() {
+      return allocateEvenly(
+        bestPolicyIds(
+          getPracticeOverview().rescuePracticePolicyResults.filter(
+            ({ totalUserLossUsd, episodeCount }) => totalUserLossUsd <= 20_000 * episodeCount,
+          ),
+          "servedProtocolDemandPpm",
+          "MAXIMIZE",
         ),
-        "servedProtocolDemandPpm",
-        "MAXIMIZE",
-      ),
-    ),
+      );
+    },
   },
   {
     poolId: "treasury-stewardship",
@@ -2808,16 +2825,18 @@ export const rescuePracticeValuePools: readonly RescueValuePoolAllocation[] = [
     valueStatement: "Support efficient response spending after safety and availability gates pass.",
     rule: "Lowest spend among entries losing no more than 15,000 USD per Episode and serving at least 80% of demand.",
     budgetCredits: 2_500,
-    allocations: allocateEvenly(
-      bestPolicyIds(
-        rescuePracticePolicyResults.filter(
-          ({ totalUserLossUsd, episodeCount, servedProtocolDemandPpm }) =>
-            totalUserLossUsd <= 15_000 * episodeCount && servedProtocolDemandPpm >= 800_000,
+    get allocations() {
+      return allocateEvenly(
+        bestPolicyIds(
+          getPracticeOverview().rescuePracticePolicyResults.filter(
+            ({ totalUserLossUsd, episodeCount, servedProtocolDemandPpm }) =>
+              totalUserLossUsd <= 15_000 * episodeCount && servedProtocolDemandPpm >= 800_000,
+          ),
+          "netResponseSpendCredits",
+          "MINIMIZE",
         ),
-        "netResponseSpendCredits",
-        "MINIMIZE",
-      ),
-    ),
+      );
+    },
   },
   {
     poolId: "frontier-expansion",
@@ -2825,21 +2844,24 @@ export const rescuePracticeValuePools: readonly RescueValuePoolAllocation[] = [
     valueStatement: "Support independently useful tradeoffs added to the three-axis frontier.",
     rule: "Among entries losing no more than 20,000 USD per Episode and serving at least 75% of demand, split by positive exclusive three-axis hypervolume contribution.",
     budgetCredits: 2_500,
-    allocations: allocateProportionally(
-      rescuePracticePolicyResults
-        .filter(
-          ({ totalUserLossUsd, episodeCount, servedProtocolDemandPpm }) =>
-            totalUserLossUsd <= 20_000 * episodeCount && servedProtocolDemandPpm >= 750_000,
-        )
-        .map(({ policyId, contribution }) => ({
-          policyId: policyId as RescuePracticePolicyId,
-          weight: contribution.exclusiveContributionPpm,
-        })),
-    ),
+    get allocations() {
+      return allocateProportionally(
+        getPracticeOverview()
+          .rescuePracticePolicyResults.filter(
+            ({ totalUserLossUsd, episodeCount, servedProtocolDemandPpm }) =>
+              totalUserLossUsd <= 20_000 * episodeCount && servedProtocolDemandPpm >= 750_000,
+          )
+          .map(({ policyId, contribution }) => ({
+            policyId: policyId as RescuePracticePolicyId,
+            weight: contribution.exclusiveContributionPpm,
+          })),
+      );
+    },
   },
 ];
 
 export function publicRescueRoomScenario() {
+  const { rescuePracticePolicyResults, rescuePracticeFrontier } = getPracticeOverview();
   return {
     arenaId: rescueRoomChallengeId,
     name: "Rescue Room",
@@ -2927,7 +2949,9 @@ export function evaluateRescuePracticeEpisode(policyId: RescuePracticePolicyId, 
   const episode = rescuePracticeEpisodes[episodeIndex]!;
   const policy = createRescueBaselinePolicy(policyId, episode);
   const outcome = runRescuePolicy(episode, policy);
-  const aggregate = rescuePracticePolicyResults.find((entry) => entry.policyId === policyId)!;
+  const aggregate = getPracticeOverview().rescuePracticePolicyResults.find(
+    (entry) => entry.policyId === policyId,
+  )!;
   const resultWithoutHash = {
     schemaVersion: "rescue-practice-evaluation-v0" as const,
     arenaId: rescueRoomChallengeId,
@@ -2962,6 +2986,11 @@ function rescuePracticeEpisode(episodeId: string): RescueEpisodeDefinition {
   const episode = rescuePracticeEpisodes.find(({ publicId }) => publicId === episodeId);
   if (!episode) throw new Error("Unknown Rescue Room practice Episode");
   return episode;
+}
+
+/** Public identifiers only; no hidden state and no full leaderboard computation. */
+export function rescuePublicPracticeEpisodeIds(): string[] {
+  return rescuePracticeEpisodes.map(({ publicId }) => publicId);
 }
 
 function runRescueDoctrineEpisode(

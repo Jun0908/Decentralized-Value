@@ -2,7 +2,11 @@
 
 確認日: 2026-09-12（日本時間）。公式公開資料とローカル設定の読取監査。アカウント登録、名前取得、Gateway登録、送金、Push、Web公開、提出はこの監査では実行していない。
 
+**同日再確認:** 本人から参加手続は完了済み、ENS作成済み・Bazantic設定済みとの連絡あり。CRE / BazanticのCLIログインは成功。CREは現在RPC設定不足で停止。ENS親所有者も本人提示アドレスと一致。Bazanticの404は修復し、無料HTTP / MCP評価成功・Recipe draft作成まで完了した。[最新の接続範囲](BAZANTIC_RESCUE_LIVE.md)。以下の初回監査表は過去Snapshotであり、再ログイン・再登録・Gateway URLの再提出を依頼する根拠にしない。本人は動画・提出操作の追加案内を不要と指定しているため、下記の一般チェックリストを繰り返し依頼しない。参加Trackや応募資格をAgentが独立確認したという意味ではない。
+
 ## 1. 最優先: 締切と参加資格
+
+**最新実行更新:** CRE公式Simulation・秘密Pack Replay、ENSの実Key認可／取消、外部AIからBazantic MCPへの実評価が成功済み。[撮影手順](SPONSOR_DEMO_RECORDING.md)。この最低Demoに再ログイン・ENS再取得は不要。Hosted Recipe・live TEE・本番Finalの完了とは区別する。遠隔PCを再起動しない。
 
 **提出締切は2026-09-14（月）01:00 JST。** 公式表記は2026-09-13（日）12:00 EDT、UTCでは同日16:00。イベント全体の終了日と提出締切を混同しない。遅延提出は受理されない。最終的な本人Dashboard・運営告知も確認する。[公式開始案内](https://ethglobal.com/events/ethonline2026/info/start)
 

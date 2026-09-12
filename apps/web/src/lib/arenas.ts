@@ -31,6 +31,29 @@ export type ArenaDefinition = {
 
 export const arenaRegistry = [
   {
+    slug: "emergency-supply",
+    challengeId: "disaster-response-v2",
+    kind: "supply",
+    name: "72-Hour Disaster Response",
+    category: "Humanitarian logistics",
+    status: "Demo competition",
+    funding: { state: "none" },
+    headline: "Routes will fail. Keep every region supplied for 72 hours.",
+    summary:
+      "Build a response strategy, survive committed disaster scenarios, and earn support for efficiency, resilience, fairness, or frontier contribution.",
+    audience: "Operations researchers, developers, and logistics problem-solvers",
+    evidenceLevel: 0,
+    metrics: [
+      { name: "72-hour cost", direction: "Minimize", unit: "USD" },
+      { name: "Worst-case delivery", direction: "Maximize", unit: "kits" },
+      { name: "Worst-region coverage", direction: "Maximize", unit: "%" },
+    ],
+    participation: "Open demo round",
+    deadline: "No deadline",
+    reward: "10,000 FDT demo credits",
+    actionLabel: "Build a response",
+  },
+  {
     slug: "rescue-room",
     challengeId: "rescue-room-v0",
     kind: "rescue-room",
@@ -53,29 +76,6 @@ export const arenaRegistry = [
     deadline: "No deadline",
     reward: "No practice reward",
     actionLabel: "Enter the Incident Room",
-  },
-  {
-    slug: "emergency-supply",
-    challengeId: "disaster-response-v2",
-    kind: "supply",
-    name: "72-Hour Disaster Response",
-    category: "Humanitarian logistics",
-    status: "Demo competition",
-    funding: { state: "none" },
-    headline: "Routes will fail. Keep every region supplied for 72 hours.",
-    summary:
-      "Build a response strategy, survive committed disaster scenarios, and earn support for efficiency, resilience, fairness, or frontier contribution.",
-    audience: "Operations researchers, developers, and logistics problem-solvers",
-    evidenceLevel: 0,
-    metrics: [
-      { name: "72-hour cost", direction: "Minimize", unit: "USD" },
-      { name: "Worst-case delivery", direction: "Maximize", unit: "kits" },
-      { name: "Worst-region coverage", direction: "Maximize", unit: "%" },
-    ],
-    participation: "Open demo round",
-    deadline: "No deadline",
-    reward: "10,000 FDT demo credits",
-    actionLabel: "Build a response",
   },
   {
     slug: "calldata-compression",

@@ -1,6 +1,12 @@
 # Chainlink CRE — Rescue Evaluator互換性検証
 
-最終確認: 2026-09-12 JST。**通常・Confidentialとも公式CLIの認証で停止。CRE実行成功ではない。**
+最終確認: 2026-09-12 09:33 UTC以降。**通常・Confidentialの公式Simulationが成功し、Nodeと全Envelope・既存Hashが一致した。秘密Packもsecret input経由で実行し、Receipt一致とReveal Replayが成功。**
+
+[最新Evidence](../deployments/chainlink-cre-private-pack.json)・[撮影手順](SPONSOR_DEMO_RECORDING.md)。これはLocal simulationであり、live TEE attestation・ネットワークDeploy・onchain commitment・本番Finalではない。
+
+修正点: Sepolia RPC設定、Windowsの空白を含むパスでのSDK直接コンパイル、短い相対WASM path、280 Episodeの初期計算遅延化、protobufが扱えないnullをJSON境界へ移動、V8 / QuickJSでのASCII key collation一致。公開Fixtureの旧Node Hashは保持した。
+
+以下は成功前の準備・認証停止の履歴。現在のローカルSimulationを撮影するために人間が再ログインする必要はない。
 
 ## 今できたこと
 
@@ -12,7 +18,7 @@
 
 [検証状態JSON](../../workflows/chainlink-cre/evidence/compatibility-status.json)にVersion、checksum、Node結果Hash、両Simulationの失敗状態を記録した。個別の再実行レポートは`workflows/chainlink-cre/rescue-envelope/generated/`へ生成し、Gitには入れない。
 
-## 人間に必要な操作 — 最優先
+## 以前の認証準備（履歴）
 
 1. Chainlink CRE accountがなければ人間が作成する。
 2. Repository rootで次を実行し、ブラウザでログインを完了する。

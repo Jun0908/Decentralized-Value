@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "frontier-cre-private-pack-evidence-v1",
+  "checkedAt": "2026-09-12T10:00:11.992Z",
+  "scope": "nonproduction-secret-pack-simulation",
+  "cliVersion": "1.33.0",
+  "sdkVersion": "1.20.1",
+  "simulation": "passed",
+  "handlerKind": "confidential",
+  "privateInputUsed": true,
+  "publicConfigContainsSecrets": false,
+  "receiptContainsSecrets": false,
+  "nodeReceiptMatches": true,
+  "explicitRevealReplayMatches": true,
+  "evaluatorBundleHash": "0xbdd972c13b0cf5ad4b3ab5df96601d3749de403e597e8200de4e8b63f64da30b",
+  "wasmSha256": "78c5c34769393f571fc4e3bc603dacaa8ba3d603113216ab84e188111ba394db",
+  "commitment": "0xc3b28600fb6e645a99a76b40b8a6db6a8d7c98edb7476304c85de6f63bd6b0c8",
+  "receipt": {
+    "schemaVersion": "rescue-secret-pack-receipt-local-v1",
+    "boundary": {
+      "scope": "nonproduction-local-preparation",
+      "executionMode": "local",
+      "evaluationState": "simulated",
+      "creVerified": false,
+      "teeVerified": false,
+      "finalComplete": false,
+      "rewardEligible": false,
+      "paymentState": "not-requested"
+    },
+    "commitment": "0xc3b28600fb6e645a99a76b40b8a6db6a8d7c98edb7476304c85de6f63bd6b0c8",
+    "evaluationCommitment": "0x685893f38669ad99683dded63ed090bf095b7a011cef780734276b50fbef5f7e"
+  },
+  "revealedPack": "{\"evaluation\":{\"contextHash\":\"0x26ba7d94ef481c8dae1ed59ff4f0df7cbb21683701d31296fcdbed17e668f8ac\",\"correctness\":true,\"episodeCount\":1,\"episodeResultHashes\":[\"0x575827f801757598ad2d2bbb8134a785f288b39117bda96154074b2e5bbb8114\"],\"netResponseSpendCredits\":56,\"policyId\":\"simple-adaptive\",\"policyName\":\"Simple Adaptive\",\"resolvedEpisodeCount\":1,\"resultHash\":\"0x3f33d279d6c3c71f41e14c65359952da9a43f83bedf650eaf2816d36b479136e\",\"servedProtocolDemandPpm\":808611,\"servicePurchaseCount\":3,\"totalUserLossUsd\":3906,\"worstEpisodeUserLossUsd\":3906},\"pack\":{\"artifact\":{\"policyId\":\"simple-adaptive\",\"schemaVersion\":\"rescue-baseline-artifact-v1\"},\"context\":{\"aggregationVersion\":\"existing-rescue-policy-evaluation-v1\",\"arenaId\":\"rescue-room-v0\",\"evaluatorCodeHash\":\"0xbdd972c13b0cf5ad4b3ab5df96601d3749de403e597e8200de4e8b63f64da30b\",\"evaluatorVersion\":\"rescue-room-evaluator-v2\",\"horizonMinutes\":60,\"initialBudgetCredits\":100,\"maximumDecisions\":12,\"metrics\":[{\"direction\":\"MINIMIZE\",\"key\":\"totalUserLossUsd\",\"lowerBound\":0,\"name\":\"Total user loss\",\"unit\":\"USD\",\"upperBound\":250000},{\"direction\":\"MAXIMIZE\",\"key\":\"servedProtocolDemandPpm\",\"lowerBound\":0,\"name\":\"Served protocol demand\",\"unit\":\"ppm\",\"upperBound\":1000000},{\"direction\":\"MINIMIZE\",\"key\":\"netResponseSpendCredits\",\"lowerBound\":0,\"name\":\"Net response spend\",\"unit\":\"Rescue Credits\",\"upperBound\":100}],\"serviceCatalog\":[{\"deliveryMinutes\":2,\"description\":\"Fast activity classification with broad coverage and limited precision.\",\"id\":\"pulse-monitor\",\"name\":\"Pulse Monitor\",\"priceCredits\":5,\"task\":\"SCAN_ACTIVITY\"},{\"deliveryMinutes\":6,\"description\":\"Execution-trace specialist for exploits, keys, and external calls.\",\"id\":\"trace-audit\",\"name\":\"Trace Audit\",\"priceCredits\":16,\"task\":\"TRACE_EXECUTION\"},{\"deliveryMinutes\":7,\"description\":\"Invariant specialist for accounting, oracle, and liquidity failures.\",\"id\":\"accounting-audit\",\"name\":\"Accounting Audit\",\"priceCredits\":18,\"task\":\"CHECK_ACCOUNTING\"},{\"deliveryMinutes\":4,\"description\":\"Independent classification that can confirm or challenge an earlier finding.\",\"id\":\"second-opinion\",\"name\":\"Second Opinion\",\"priceCredits\":12,\"task\":\"SECOND_OPINION\"},{\"deliveryMinutes\":8,\"description\":\"Produces a typed patch artifact for the most likely root cause.\",\"id\":\"patch-builder\",\"name\":\"Patch Builder\",\"priceCredits\":28,\"task\":\"BUILD_PATCH\"},{\"deliveryMinutes\":4,\"description\":\"Checks whether a purchased patch matches the active failure.\",\"id\":\"patch-verifier\",\"name\":\"Patch Verifier\",\"priceCredits\":10,\"task\":\"VERIFY_PATCH\"}]},\"episodes\":[{\"affectedModule\":\"borrowing\",\"demandMultiplierPpm\":1197308,\"generatorVersion\":\"rescue-room-generator-v0\",\"incidentFamily\":\"oracle-manipulation\",\"initialHeadline\":\"Elevated price divergence detected\",\"initialSignal\":\"price-anomaly\",\"lossRateUsdPerMinute\":558,\"publicId\":\"episode-bb8cfd5e7160\",\"schemaVersion\":\"rescue-episode-v0\",\"seed\":\"2e459d9948a2ca33673e25895a2794038d5fd6c6f203a676c7ce58cf12880398\",\"severity\":2,\"validPatchId\":\"restore-oracle\"}],\"generator\":{\"orderedSeeds\":[\"2e459d9948a2ca33673e25895a2794038d5fd6c6f203a676c7ce58cf12880398\"],\"version\":\"rescue-room-generator-v0\"},\"salt\":\"0x2c21f075d9749220bbe475a2e4a75a0c209532b51857613244e2c88972baa73d\",\"schemaVersion\":\"rescue-secret-pack-local-v1\"},\"schemaVersion\":\"rescue-secret-pack-reveal-local-v1\"}",
+  "replay": {
+    "verified": true,
+    "evaluation": {
+      "policyId": "simple-adaptive",
+      "policyName": "Simple Adaptive",
+      "correctness": true,
+      "episodeCount": 1,
+      "totalUserLossUsd": 3906,
+      "worstEpisodeUserLossUsd": 3906,
+      "servedProtocolDemandPpm": 808611,
+      "netResponseSpendCredits": 56,
+      "resolvedEpisodeCount": 1,
+      "servicePurchaseCount": 3,
+      "episodeResultHashes": [
+        "0x575827f801757598ad2d2bbb8134a785f288b39117bda96154074b2e5bbb8114"
+      ],
+      "contextHash": "0x26ba7d94ef481c8dae1ed59ff4f0df7cbb21683701d31296fcdbed17e668f8ac",
+      "resultHash": "0x3f33d279d6c3c71f41e14c65359952da9a43f83bedf650eaf2816d36b479136e"
+    },
+    "boundary": {
+      "scope": "nonproduction-local-preparation",
+      "executionMode": "local",
+      "evaluationState": "simulated",
+      "creVerified": false,
+      "teeVerified": false,
+      "finalComplete": false,
+      "rewardEligible": false,
+      "paymentState": "not-requested"
+    }
+  },
+  "liveTeeAttestationVerified": false,
+  "onchainCommitment": false,
+  "finalTournamentComplete": false,
+  "rewardEligible": false
+}

@@ -48,6 +48,8 @@ DictionaryはCalldataが小さく、PackedはDecoderが安い。どちらも他�
 
 Sepoliaのデモでは、Allocation Commitmentから`RewardPaid`までを実行し、Recipient balanceが`10,000 FDT`増加したことを記録しています。FDTは金銭価値を主張しないDemo Tokenです。
 
+[Bazantic経由のRescue Practice](Docs/sponsors/BAZANTIC_RESCUE_LIVE.md)は2026-09-12に実接続を確認しました。既存Gateway / MCPから無料の参加情報取得・戦略評価が動き、反復結果がローカルEvaluatorと一致しています。戦略比較Recipeは保存済みの未実行draftであり、自律AI実行や有料大会の完成ではありません。
+
 ---
 
 ## 核となる考え方

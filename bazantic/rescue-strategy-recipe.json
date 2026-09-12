@@ -1,0 +1,49 @@
+{
+  "name": "Rescue Room Strategy Comparison",
+  "description": "Compare a baseline and one revised Rescue Doctrine on the same public Practice Episode. Preserve user protection, availability, and spending as independent outcomes. Simulated practice only; no payments or Final entry.",
+  "input_schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "objective": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600,
+        "description": "Desired strategy tradeoff, not a weighted score; for example protect users without pausing unnecessarily."
+      },
+      "episode_id": {
+        "type": "string",
+        "maxLength": 100,
+        "description": "Optional exact public Episode ID from the manifest. Omit to use the first public Episode."
+      }
+    },
+    "required": ["objective"],
+    "additionalProperties": false
+  },
+  "input_example": {
+    "objective": "Compare the baseline with a strategy that buys less investigation while retaining patch verification."
+  },
+  "output_example": {
+    "status": "illustrative-format-not-an-executed-result",
+    "episode_id": null,
+    "context_hash": null,
+    "baseline": null,
+    "candidate": null,
+    "relation": null,
+    "limitations": [
+      "Public deterministic simulation only. No measured AI advantage, token payment, or reward."
+    ]
+  },
+  "prompt_template": "Compare Rescue Room strategies using only the two bound tools. Inputs: {{inputs}}\n\nAuthority: public deterministic Doctrine Practice only. Do not invoke any model, wallet, payment, registration, Final entry, Operator, or unbound tool. Bound gateway methods have been set to zero price; on any authentication request, payment challenge, 401/402/403, unexpected redirect, malformed response, context mismatch, or tool error, stop and report the failure. Never add credentials or pay. At most five tool calls total; no retries of failed evaluations.\n\n1. Call getCliArena with id rescue-room. Require paymentState game-credits, rewardEligible false, context.evidenceState simulated, unauthenticated available Practice, and Doctrine artifact schema/sample. Lock contextHash, runtimeContextHash, manifestHash, metric definitions and one exact public Episode ID. Use the requested episode_id only if listed; otherwise use the first listed Episode when no ID was supplied. Unknown IDs must be rejected. No hidden state is available.\n2. Use artifact.sample unchanged as the baseline. Make one candidate by changing only fields allowed by artifact.schema to reflect objective. Keep requirePatchVerification true if the objective requests it. Explain the change in a short observable-policy rationale, not private chain of thought. Do not invent action names, services or schema fields.\n3. Call evaluateRescueRoomDoctrine once for each Doctrine, with requestBody {episodeId, doctrine}, X-Frontier-Context-Hash equal to locked contextHash, and X-Frontier-Runtime-Context-Hash equal to locked runtimeContextHash. Each result must match locked context, manifest, episode and runtime. Echo the gateway conversation_id only after the server supplies it; never invent it.\n4. Report each Doctrine, correctness, evaluationHash, doctrineHash, outcome.resultHash, and the three outcomes separately: outcome.userLossUsd (USD, minimize), outcome.servedProtocolDemandPpm (ppm, maximize), outcome.netResponseSpendCredits (Rescue Credits, minimize). Correctness is a hard gate. Do not invent a weighted score or force multiple winners.\n5. Compare only matching contexts and Episodes. A correct strategy dominates another correct strategy only when no worse in every outcome and strictly better in at least one. Otherwise report equal or tradeoff. If either fails correctness, report ineligible rather than a Pareto win. Keep baseline, candidate and failures even when the candidate is worse.\n6. Label the result simulated / public Controlled Practice / not reward eligible. Reported hashes are not independent verification by the Recipe. Do not claim replay, signature, payment, committed Final or AI superiority without separate evidence. The deterministic verification scripts are separate from this Recipe. Service purchases here spend simulated Rescue Credits, not tokens.",
+  "model": "anthropic/claude-haiku-4.5",
+  "tool_bindings": [
+    {
+      "gateway_slug": "kjrjolrzlra2zd7f7uycwazhya",
+      "tool_name": "getCliArena"
+    },
+    {
+      "gateway_slug": "kjrjolrzlra2zd7f7uycwazhya",
+      "tool_name": "evaluateRescueRoomDoctrine"
+    }
+  ]
+}

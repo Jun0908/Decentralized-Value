@@ -418,3 +418,51 @@ CRE公式Simulationは着手済み・認証待ち。本人ログインなしに�
 ## 18. 外出中の追加準備 — 提出claimの整理
 
 2026-09-12。[SUBMISSION_CHANGE_INVENTORY.md](SUBMISSION_CHANGE_INVENTORY.md)で、直近のRescue実装区間・基準時点の既存機能・別担当OceanのCommitを分離した。区間はイベント期間や応募資格の認定ではない。スポンサーの認証・実操作は進めず、ローカル準備を実接続成功へ読み替えない。
+
+## 19. 既存アカウント・Namespaceの再確認
+
+2026-09-12。本人のENS作成済み／Bazantic設定済み連絡を受け、[既存接続確認](sponsors/EXISTING_CONNECTION_CHECK.md)を実施。§16〜18の認証待ちは当時の状態として残し、現在は以下を優先する。
+
+- [x] CRE / BazanticのCLIログイン成功を確認。新規登録・再ログインは実行しない。
+- [x] CRE通常Simulationの停止段階をOrganization情報取得と特定。既存検証スクリプトの「未認証」分類は今回の原因を正確に表していない。
+- [x] Bazantic既存active Gateway、設定URL / slugとの一致、MCP接続、64 Toolsを確認。
+- [x] 非課金`getCliArena`の実呼出しで404を確認。直接公開APIは200で、転送設定の点検が必要。
+- [x] ENS親名・Resolver・同一BlockでのRunner一覧読取を確認。必要な一覧はnull。
+- [ ] CRE DashboardでOrganization状態の確認後、公式通常／Confidential Simulationの完走を検証。
+- [ ] Bazantic既存Gatewayの転送設定と既存Recipeを確認。必要な変更範囲を合意した後、非課金Practiceまで接続。
+- [ ] ENSの所有・権限・実Runner接続先を確認し、許可された範囲のRecord設定／Grant・Revoke検証。
+
+登録や権限の変更、Gatewayの上書き、送金はこの確認では行わない。設定の存在・MCP接続だけでスポンサー要件完了とはしない。
+
+## 20. Bazantic実接続の修復 — 本人依頼後の実行
+
+2026-09-12。§19は読取時点。今回は本人の修復依頼を受け、既存Gatewayの限定更新まで実施。[詳細とEvidence](sponsors/BAZANTIC_RESCUE_LIVE.md)。
+
+- [x] CLI 0.10.0の公式Source・管理APIから、MCP Spec更新に対しルート表が旧15件のままだったと特定。
+- [x] 旧ルート・料金のSnapshotを保存し、Manifest・Starter・Doctrine評価の3ルートだけを無料追加。PATCH 200と18ルートの完全読戻し一致。
+- [x] Gateway HTTPの6要求、Starter SHA、SDK独立Hash、反復一致を確認。
+- [x] MCPのManifest取得と2回の戦略評価が成功。返却JSON全体が反復とローカルEvaluatorの双方で一致。
+- [x] 既存Recipeが0件と確認。無料2 Toolだけの`rescue-room-strategy-comparison`をdraft作成し、全定義の読戻し一致。
+- [ ] Recipeの実AI試行と出力検証。Model設定だけでは実行成功にしない。
+- [ ] Recipe公開、同条件の有無比較、対象賞に必要な外部Agentの実演。
+
+残り45のSpec-onlyルートは意図的に未追加。無関係なArena・認証・Final・Settlementを有効化せず、既存GatewayのURL・IDは維持。追加課金・推論・送金0。今回は新規Gateway・Web公開・Git Pushを実行しない。
+
+別途確認済み：ENSv2親所有者は本人の提示アドレスと一致。CREはログイン成功、最新の停止理由はRPC設定不足。次の作業でこれらを未登録・未ログインへ戻して扱わない。
+
+## 追加実行: 2026-09-12 Sponsor最低動作と撮影導線
+
+上の接続確認後に本人承認の範囲で実施。遠隔操作中のPC再起動・スリープ・ネットワーク変更・既存サーバー停止はしない。
+
+- [x] CREのRPC・Windows空白path・WASM path制約・QuickJS初期計算・JSON null境界・キー順差を修正。通常／Confidentialとも公式Simulationの全EnvelopeがNodeと一致。
+- [x] 既存Rescue evaluatorを使う秘密Scenario Packを新規生成し、事前commit→secret input→confidential handler→salt付きreceipt→明示Reveal→独立Replayを公式CLIで実行。
+- [x] ENSv2の既存所有名に専用Rescue capabilityを登録。許可済みHTTPS Originへの実API discoveryと、単一Text key grant→delegate更新→pause拒否→restore→revokeを確認。7取引、取消後はeth_call拒否。
+- [x] ENS撮影用のread-only再確認commandを追加。追加送金・秘密鍵不使用。
+- [x] 外部実AIがBazantic MCPを利用してManifest取得・Baseline・候補評価。SDK Integrity＋ローカル再評価＋独立3軸比較。予算90→60だが結果同点を保持。
+- [x] 英語`/sponsors/demo`、実取引リンク、3証跡Download、1〜2分英語台本・日本語撮影手順を追加。
+- [ ] Bazantic-hosted Recipeの実行／公開、Recipe有無の事前固定A/B。今回の外部OpenAI author実行と区別する。
+- [ ] Live CRE TEE attestation、ネットワークDeploy、onchain Final commitment。Local official simulationの成功と区別する。
+- [ ] 第三者Service Market、未知Final大会全体・報酬。今回の最低Sponsor実演の範囲外。
+- [ ] 今回の変更のPush・Web公開・スポンサー提出。許可と公開確認後に行う。
+
+[実行結果](STATUS.md)、[撮影手順と代表GitHubリンク](sponsors/SPONSOR_DEMO_RECORDING.md)。Gateway無料接続と実AIは成功したが、賞の応募要件全体への適合や入賞を保証しない。
