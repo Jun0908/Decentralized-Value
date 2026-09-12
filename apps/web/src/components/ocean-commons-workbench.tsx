@@ -195,6 +195,50 @@ const MISSION_SEASONS = 3;
 /** The settlement deployed for this Arena. Verified on Sepolia. */
 const SETTLEMENT_ADDRESS = "0x0ee2EBa0AFF886De530AB8b51B96bd6297DbD7D6";
 
+/**
+ * The reference match this Arena has actually settled.
+ *
+ * Recorded and funded on Sepolia rather than described: the four published
+ * reference entries sailed the twelve scored seeds, the contract computed the
+ * frontier itself from the outcomes it was given, and each of the three pools
+ * paid its 10,000 FDT to whoever served its own axis. The interesting part is
+ * that they did not agree — which is the only claim this Arena makes that a
+ * ranking could not have made for it.
+ *
+ * Reproduced by `scripts/ocean-reference-match.ts`; sent by
+ * `scripts/settle-ocean-match.sh`.
+ */
+const SETTLED_MATCH = {
+  matchId: "0x0890e7fea9b7864c0f2991da29dba73c808d4d2ca788bb3a9769c3d542cbe443",
+  sealTx: "0x378af3be818d896fb6ac1fcd82be3479e5bd1fe9b6913df16a146bbb9b7fad9c",
+  seasons: 12,
+  recorded: 4,
+  onFrontier: ["Work the season", "Fill the hold"],
+  pools: [
+    {
+      axis: "Crew livelihood",
+      backed: "Fill the hold",
+      amount: 10_000,
+      note: "Landed the most fish, and gave up nothing to do it.",
+      tx: "0x1ad10a1df302ac17bd7854bd564037b5a7c8b051c47a11b17148aaba38a7efdc",
+    },
+    {
+      axis: "Restraint efficacy",
+      backed: "Work the season",
+      amount: 10_000,
+      note: "Left fish in the water and they were still there at the end.",
+      tx: "0x40d69c91b3c23e9842cf644ac0427a491b2871d6aaed9ff4e7f2a5d3879ed0d7",
+    },
+    {
+      axis: "Cooperation efficacy",
+      backed: "Work the season",
+      amount: 10_000,
+      note: "Its agreements changed the season; the closed wallet's could not.",
+      tx: "0x639d79dbac62512b4df755a49b4dd50a417b1dad380a9806ce0ff07645c83c87",
+    },
+  ],
+} as const;
+
 function medianOf(values: number[]): number {
   const sorted = [...values].sort((left, right) => left - right);
   const middle = sorted.length >> 1;
@@ -1395,6 +1439,54 @@ export function OceanCommonsWorkbench({
             <small>Verified · records a match and its frontier</small>
           </article>
         </div>
+        <div className="ocean-settled">
+          <div className="section-title">
+            <div>
+              <h3>The three pools have paid, and they disagreed.</h3>
+              <p>
+                Four reference entries sailed the {SETTLED_MATCH.seasons} scored seeds. The contract
+                was told what each one scored, worked out the frontier itself, and kept{" "}
+                {SETTLED_MATCH.onFrontier.length} of {SETTLED_MATCH.recorded} — nothing beats either
+                on all three at once. Then each pool paid its own axis.
+              </p>
+            </div>
+            <a
+              className="mono"
+              href={`https://sepolia.etherscan.io/tx/${SETTLED_MATCH.sealTx}`}
+              rel="noreferrer"
+              target="_blank"
+            >
+              seal tx ↗
+            </a>
+          </div>
+          <div className="ocean-pools">
+            {SETTLED_MATCH.pools.map((pool) => (
+              <article key={pool.axis}>
+                <h3>{pool.axis}</h3>
+                <p className="ocean-pool-backed">
+                  <strong>{pool.backed}</strong>
+                  <span className="mono">{cash(pool.amount)} FDT</span>
+                </p>
+                <p>{pool.note}</p>
+                <a
+                  className="mono"
+                  href={`https://sepolia.etherscan.io/tx/${pool.tx}`}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {pool.tx.slice(0, 12)}… ↗
+                </a>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <p className="lever-explanation">
+          Two pools backed the same entry and one did not, which is the whole point: the boat that
+          landed the most fish gave up nothing and signed nothing, so it served one axis and no
+          other. Had the contract been able to rank, that disagreement would have been averaged away
+          into a single winner and the result would have said less than it does.
+        </p>
         <p className="lever-explanation">
           The settlement contract has no function that ranks entries and none that adds the three
           outcomes together. It records what each entry scored, marks everything nothing beats on

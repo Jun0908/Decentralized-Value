@@ -8253,6 +8253,19 @@ a.table-row:hover {
 }
 p.ocean-entry-errors { padding-left: 0.9rem; }
 
+/* The settled match. Given a lime edge because it is the one block on the page
+   backed by a transaction rather than by a replay. */
+.ocean-settled { border-left: 2px solid var(--lime); padding-left: 1.1rem; display: grid; gap: 1rem; }
+.ocean-settled h3 { margin: 0 0 0.3rem; font-size: 1.05rem; }
+.ocean-settled .section-title p { margin: 0; color: var(--muted); max-width: 68ch; }
+.ocean-settled a { color: var(--lime); font-size: 0.8rem; text-decoration: none; }
+.ocean-settled a:hover { text-decoration: underline; }
+.ocean-pool-backed {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: baseline; justify-content: space-between;
+  margin: 0 0 0.35rem;
+}
+.ocean-pool-backed .mono { color: var(--lime); font-family: ui-monospace, monospace; font-size: 0.85rem; }
+
 .ocean-approaches { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.7rem; }
 .ocean-approaches button {
   display: grid; gap: 0.3rem; text-align: left; padding: 0.85rem;
