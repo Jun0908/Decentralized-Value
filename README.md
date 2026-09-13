@@ -6,15 +6,15 @@
 
 Most systems hide that decision inside a weighted score. **Value Decentralization makes it plural.**
 
-An evaluation protocol prototype for communities funding better strategies: measure results once, preserve their tradeoffs, and let independent **Value Pools** decide what to support.
+An evaluation protocol for plural definitions of progress: measure results once, preserve their tradeoffs, and let independent **Value Pools** decide what to support.
 
 **Measure once. Preserve the tradeoffs. Let values diverge.**
 
-**[Try the demo](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/emergency-supply)** · [Recorded AI + payment demo](https://web-rho-seven-d6te7t3f0y.vercel.app/rescue-room/submission/en) · [Sponsor evidence](https://web-rho-seven-d6te7t3f0y.vercel.app/sponsors/demo)
+**[Try the demo](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/emergency-supply)**
 
 ![Concept illustration: one weighted score collapses alternatives; an open frontier preserves different kinds of progress.](apps/web/public/images/weighted-score-vs-open-frontier.png)
 
-_Concept: preserve useful alternatives rather than force one overall score. A single strategy can still excel on every axis._
+_Concept: preserve useful alternatives rather than forcing every result into one overall score._
 
 ## See the difference in 60 seconds
 
@@ -56,15 +56,13 @@ The pilot combines **recorded real model calls and Sepolia service payments** wi
 | **Chainlink CRE**   | Confidential handler evaluates a private scenario pack; official CRE CLI local simulation produces a salted receipt, followed by reveal and independent replay. | [Handler](workflows/chainlink-cre/rescue-envelope/secret-pack/main.ts) · [Evidence](Docs/evidence/deployments/chainlink-cre-private-pack.json)                 |
 | **Bazantic**        | An external AI uses MCP to discover the API and evaluate two strategies in the same context, with results independently reproduced by the local evaluator.      | [Agent integration](apps/api/src/bazantic-rescue-agent.ts) · [Evidence](Docs/evidence/deployments/bazantic-rescue-agent-demo.json)                             |
 
-Each integration has its own execution evidence. [Sponsor walkthrough](Docs/hackathon/sponsors/SPONSOR_DEMO.md).
-
 ## Six Arenas, one protocol
 
-Six Arenas explore one protocol: **Disaster Response, Calldata Compression, Microgrid, Secret Gate, Rescue Room and Ocean Commons**. [Explore the product](https://web-rho-seven-d6te7t3f0y.vercel.app).
+Six Arenas explore one protocol: **Disaster Response, Calldata Compression, Microgrid, Secret Gate, Rescue Room and Ocean Commons**. [Explore the six Arenas](https://web-rho-seven-d6te7t3f0y.vercel.app/#arenas).
 
 Explore editable strategies, deterministic practice and result replay, alongside recorded AI/service-payment evidence and a separate Sepolia reward demonstration.
 
-[Implementation status and evaluation findings](Docs/STATUS.md) · [Architecture and trust boundaries](Docs/ARCHITECTURE.md).
+[Architecture and trust boundaries](Docs/ARCHITECTURE.md).
 
 ## Run locally and reproduce a result
 
@@ -82,7 +80,7 @@ Replay the recorded Rescue outcome and Pool comparison **without API keys, new i
 pnpm verify:rescue:submission-replay
 ```
 
-Optional AI, storage and chain operations use the [environment configuration guide](Docs/development/guides/ENVIRONMENT.md). Run the full check suite with `pnpm run ci` (Foundry 1.8.1 required). [Verification reports](Docs/evidence/verification/README.md).
+Optional AI, storage and chain operations use the [environment configuration guide](Docs/development/guides/ENVIRONMENT.md). Run the full check suite with `pnpm run ci` (Foundry 1.8.1 required).
 
 ## Reference
 

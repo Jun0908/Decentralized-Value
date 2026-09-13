@@ -6,15 +6,15 @@
 
 多くの仕組みは、その判断を一つの重み付きスコアに埋め込んでいます。**Value Decentralizationは、価値判断を複数の主体に開きます。**
 
-より良い戦略に資金を付けたいコミュニティのための評価プロトコルの試作です。一度測定した結果からトレードオフを残し、独立した **Value Pool（支援資金の配分主体）** が、それぞれ何を支援するか決めます。
+複数の「進歩の定義」を共存させるEvaluation Protocol。結果を共通条件で測定し、Tradeoffを残し、独立した **Value Pool** が何を支援するかを決めます。
 
 **測定は一度。トレードオフは残す。価値判断は、それぞれに。**
 
-**[デモを試す](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/emergency-supply)** · [記録済みAI・支払いデモ](https://web-rho-seven-d6te7t3f0y.vercel.app/rescue-room/submission) · [スポンサー証跡](https://web-rho-seven-d6te7t3f0y.vercel.app/sponsors/demo)
+**[デモを試す](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/emergency-supply)**
 
 ![概念図：一つの総合点に候補を集約する方式と、異なる種類の進歩を残す方式の比較。](apps/web/public/images/weighted-score-vs-open-frontier.png)
 
-_概念図：総合点を一つに決める代わりに、有効な選択肢を残します。一つの戦略がすべての軸で優れることも認めます。_
+_概念図：すべての結果を一つの総合点に押し込めず、有効な選択肢を残します。_
 
 ## 60秒で違いを体験する
 
@@ -56,15 +56,13 @@ FDTはSepolia上のデモ用トークンであり、金銭価値は主張して�
 | **Chainlink CRE**   | 機密ハンドラで非公開シナリオを評価。公式CRE CLIのローカルシミュレーションで、salt付きレシート、明示的な開示、独立Replayを確認。 | [ハンドラ](workflows/chainlink-cre/rescue-envelope/secret-pack/main.ts) · [証跡](Docs/evidence/deployments/chainlink-cre-private-pack.json)            |
 | **Bazantic**        | 外部AIがMCPでAPIを発見し、同じ条件で2つの戦略を評価。ローカル評価器による独立した結果の再現も確認。                             | [Agent連携](apps/api/src/bazantic-rescue-agent.ts) · [証跡](Docs/evidence/deployments/bazantic-rescue-agent-demo.json)                                 |
 
-各連携には個別の実行証跡があります。[スポンサー向け実演ガイド](Docs/hackathon/sponsors/SPONSOR_DEMO.md)。
-
 ## 6つのArena、1つのプロトコル
 
-**Disaster Response、Calldata Compression、Microgrid、Secret Gate、Rescue Room、Ocean Commons** の6つのArenaで、一つのプロトコルを検証しています。[プロダクトを見る](https://web-rho-seven-d6te7t3f0y.vercel.app)。
+**Disaster Response、Calldata Compression、Microgrid、Secret Gate、Rescue Room、Ocean Commons** の6つのArenaで、一つのプロトコルを検証しています。[6つのArenaを見る](https://web-rho-seven-d6te7t3f0y.vercel.app/#arenas)。
 
 戦略の編集、決定論的なPractice、結果のReplayに加え、記録済みAI・サービス支払い証跡と、独立したSepolia報酬デモを確認できます。
 
-[実装状況・評価結果の詳細](Docs/STATUS.md) · [Architectureと信頼境界](Docs/ARCHITECTURE.md)。
+[Architectureと信頼境界](Docs/ARCHITECTURE.md)。
 
 ## ローカル起動と結果の再現
 
@@ -82,7 +80,7 @@ pnpm dev
 pnpm verify:rescue:submission-replay
 ```
 
-任意のAI・ストレージ・チェーン操作には[環境設定ガイド](Docs/development/guides/ENVIRONMENT.md)を利用してください。全体チェックは `pnpm run ci`（Foundry 1.8.1が必要）。[検証レポート](Docs/evidence/verification/README.md)。
+任意のAI・ストレージ・チェーン操作には[環境設定ガイド](Docs/development/guides/ENVIRONMENT.md)を利用してください。全体チェックは `pnpm run ci`（Foundry 1.8.1が必要）。
 
 ## 参照資料
 
