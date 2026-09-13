@@ -85,7 +85,6 @@ const APPROACHES: readonly Approach[] = [
   },
 ];
 
-
 const SEEDS = Array.from({ length: 8 }, (_, index) => `ocean-practice-v1:${index}`);
 
 /**
@@ -383,11 +382,21 @@ export function OceanCommonsWorkbench({
       // Arena's own yardstick, not somebody else's submission.
       const matchSeeds = SEEDS.slice(0, MATCH_SEASONS);
       const runners = [
-        { id: "mine", label: entry.name || "Your entry", note: "Your entry", mine: true,
-          params: entry.sailing, wallet },
+        {
+          id: "mine",
+          label: entry.name || "Your entry",
+          note: "Your entry",
+          mine: true,
+          params: entry.sailing,
+          wallet,
+        },
         ...APPROACHES.map((one) => ({
-          id: one.id, label: one.label, note: one.note, mine: false,
-          params: one.params, wallet: walletPolicyFor(defaultOceanEntry),
+          id: one.id,
+          label: one.label,
+          note: one.note,
+          mine: false,
+          params: one.params,
+          wallet: walletPolicyFor(defaultOceanEntry),
         })),
       ];
       const perSeason = await Promise.all(
@@ -425,7 +434,8 @@ export function OceanCommonsWorkbench({
         matchSeeds.filter((_, season) =>
           summarised.every(
             (other, rival) =>
-              rival === index || summarised[index]!.seasons[season]![key] >= other.seasons[season]![key],
+              rival === index ||
+              summarised[index]!.seasons[season]![key] >= other.seasons[season]![key],
           ),
         ).length;
 
@@ -926,10 +936,10 @@ export function OceanCommonsWorkbench({
               ))}
             </ol>
             <p className="lever-explanation">
-              The figures above the list are the median of the match; the rows are the seasons it
-              is made of, and how far they sit apart is how much of this was the draw. The model
-              answered{" "}
-              {missionRun.seasons.reduce((sum, season) => sum + season.usage.calls, 0)} times
+              The figures above the list are the median of the match; the rows are the seasons it is
+              made of, and how far they sit apart is how much of this was the draw. The model
+              answered {missionRun.seasons.reduce((sum, season) => sum + season.usage.calls, 0)}{" "}
+              times
               {missionRun.seasons.reduce((sum, season) => sum + season.usage.failures, 0) > 0
                 ? `, and ${missionRun.seasons.reduce((sum, season) => sum + season.usage.failures, 0)} of those could not be used — a boat whose agent fails stays in port that round.`
                 : "."}{" "}
@@ -938,8 +948,8 @@ export function OceanCommonsWorkbench({
           </div>
         ) : (
           <p className="lever-explanation">
-            The scripted preview below is instant and costs nothing, so it shows the world
-            reacting. Sailing your mission shows your words being interpreted.
+            The scripted preview below is instant and costs nothing, so it shows the world reacting.
+            Sailing your mission shows your words being interpreted.
           </p>
         )}
 
@@ -977,15 +987,27 @@ export function OceanCommonsWorkbench({
         <div className="strategy-sliders">
           {(
             [
-              ["maxPaymentPerTransaction", "Ceiling on one contract", OCEAN_ENTRY_LIMITS.maxPaymentPerTransaction,
+              [
+                "maxPaymentPerTransaction",
+                "Ceiling on one contract",
+                OCEAN_ENTRY_LIMITS.maxPaymentPerTransaction,
                 OCEAN_WALLET_STEPS.maxPaymentPerTransaction,
-                "The heaviest boat is also the dearest to stop. Set this low and only the small ones are affordable."],
-              ["maxAutonomousSpendPerMatch", "Ceiling for the season", OCEAN_ENTRY_LIMITS.maxAutonomousSpendPerMatch,
+                "The heaviest boat is also the dearest to stop. Set this low and only the small ones are affordable.",
+              ],
+              [
+                "maxAutonomousSpendPerMatch",
+                "Ceiling for the season",
+                OCEAN_ENTRY_LIMITS.maxAutonomousSpendPerMatch,
                 OCEAN_WALLET_STEPS.maxAutonomousSpendPerMatch,
-                "How many times the skipper can intervene before the wallet is closed for the rest of the season."],
-              ["startingBudget", "Starting budget", OCEAN_ENTRY_LIMITS.startingBudget,
+                "How many times the skipper can intervene before the wallet is closed for the rest of the season.",
+              ],
+              [
+                "startingBudget",
+                "Starting budget",
+                OCEAN_ENTRY_LIMITS.startingBudget,
                 OCEAN_WALLET_STEPS.startingBudget,
-                "Cash in hand at the first round, before anything is landed or paid."],
+                "Cash in hand at the first round, before anything is landed or paid.",
+              ],
             ] as const
           ).map(([key, title, bounds, step, note]) => (
             <label key={key}>
@@ -1216,9 +1238,9 @@ export function OceanCommonsWorkbench({
           Each approach sails the same {MATCH_SEASONS} seasons; the figure is its median and the
           line beneath counts the seasons it took that axis. An approach stays on the frontier
           unless another beats it on all three at once, and more than one usually survives — there
-          is no single best season, only seasons that are good at different things. Watch the
-          season counts rather than the medians: a lead held in one season out of seven is the
-          draw, and a lead held in five is a habit.
+          is no single best season, only seasons that are good at different things. Watch the season
+          counts rather than the medians: a lead held in one season out of seven is the draw, and a
+          lead held in five is a habit.
         </p>
       </section>
 
@@ -1234,11 +1256,7 @@ export function OceanCommonsWorkbench({
           {(
             [
               ["Crew livelihood", "livelihood", "Fishing families and the crews they employ."],
-              [
-                "Restraint efficacy",
-                "restraint",
-                "Everyone who will fish this water next season.",
-              ],
+              ["Restraint efficacy", "restraint", "Everyone who will fish this water next season."],
               [
                 "Cooperation efficacy",
                 "cooperation",
@@ -1246,7 +1264,9 @@ export function OceanCommonsWorkbench({
               ],
             ] as const
           ).map(([name, key, statement]) => {
-            const best = result?.board.reduce((top, entry) => (entry[key] > top[key] ? entry : top));
+            const best = result?.board.reduce((top, entry) =>
+              entry[key] > top[key] ? entry : top,
+            );
             return (
               <article key={key} className={best?.mine ? "my-award" : ""}>
                 <header>
@@ -1279,9 +1299,9 @@ export function OceanCommonsWorkbench({
           No pool is funded, because one season decides very little. Measured across 7,200 scripted
           seasons, the draw accounts for 20–38% of an outcome and a fixed policy for only 3–8%; the
           rest — 54–77% — is which policy suited which season, and that is the part only a skipper
-          who reads the water can reach. Picking the right approach per season, with hindsight, beats
-          the best single approach by 36% to 286%. So a single result here is closer to one hand of
-          poker than to a race, and nothing is ranked on one.
+          who reads the water can reach. Picking the right approach per season, with hindsight,
+          beats the best single approach by 36% to 286%. So a single result here is closer to one
+          hand of poker than to a race, and nothing is ranked on one.
         </p>
       </section>
 

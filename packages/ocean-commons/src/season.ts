@@ -125,7 +125,8 @@ export async function sailSeasonWithMission(options: SailSeasonOptions): Promise
   // The counterfactuals stand in a scripted boat with the closest settings to
   // what the model actually did, so the comparison is against this season's
   // behaviour rather than against a policy nobody played.
-  const landed = log.rounds.flatMap((round) => round.entries)
+  const landed = log.rounds
+    .flatMap((round) => round.entries)
     .filter((entry) => entry.boatId === seat.id);
   const effortUsed = landed.reduce((sum, entry) => sum + entry.appliedEffort, 0);
   const effortAvailable = landed.length * seat.effortCapacity;

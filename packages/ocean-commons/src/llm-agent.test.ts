@@ -151,7 +151,10 @@ describe("llm agent", () => {
     }));
     const agent = llmAgent(scenario.boats[0]!.id, "Kaiyo", scenario, { mission: MISSION, backend });
 
-    const log = await runMatch(scenario, [agent, greedyAgent(scenario.boats[1]!.id, "b", scenario)]);
+    const log = await runMatch(scenario, [
+      agent,
+      greedyAgent(scenario.boats[1]!.id, "b", scenario),
+    ]);
 
     expect(log.acceptedProposals).toHaveLength(0);
   });

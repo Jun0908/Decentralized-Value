@@ -170,13 +170,7 @@ function lineups(): Lineup[] {
     { id: "all-crowd-averse", policies: Array(5).fill("crowd-averse") as PolicyName[] },
     {
       id: "diverse-mixed",
-      policies: [
-        "territorial-coastal",
-        "greedy",
-        "crowd-averse",
-        "territorial-offshore",
-        "broker",
-      ],
+      policies: ["territorial-coastal", "greedy", "crowd-averse", "territorial-offshore", "broker"],
     },
   ];
 }
@@ -188,7 +182,14 @@ function agentsFor(
   priceMultiplier = 1,
 ): OceanAgent[] {
   return scenario.boats.map((boat, index) =>
-    build(lineup.policies[index] ?? "cautious", boat.id, boat.name, scenario, seed, priceMultiplier),
+    build(
+      lineup.policies[index] ?? "cautious",
+      boat.id,
+      boat.name,
+      scenario,
+      seed,
+      priceMultiplier,
+    ),
   );
 }
 
@@ -280,11 +281,13 @@ for (let index = 0; index < SEEDS; index += 1) {
     const outcomes = evaluateMatch(first);
 
     const deterministic =
-      hashResult(first.finalState, outcomes) === hashResult(second.finalState, evaluateMatch(second));
+      hashResult(first.finalState, outcomes) ===
+      hashResult(second.finalState, evaluateMatch(second));
 
     const replayed = replayTranscript(scenario, toTranscript(first));
     const replayMatches = scenario.zones.every(
-      (zone) => Math.abs((replayed.stocks[zone.id] ?? 0) - (first.finalState.stocks[zone.id] ?? 0)) < 1e-6,
+      (zone) =>
+        Math.abs((replayed.stocks[zone.id] ?? 0) - (first.finalState.stocks[zone.id] ?? 0)) < 1e-6,
     );
 
     const without = await runMatch(scenario, agentsFor(lineup, scenario, seed), {
@@ -297,7 +300,9 @@ for (let index = 0; index < SEEDS; index += 1) {
     const focalSeat = lineup.id.startsWith("small-") ? scenario.boats.length - 1 : 0;
     const focalBoat = scenario.boats[focalSeat]!.id;
     const soloOut = evaluateMatch(
-      await runMatch(scenario, agentsFor(lineup, scenario, seed), { excludeContractsFor: focalBoat }),
+      await runMatch(scenario, agentsFor(lineup, scenario, seed), {
+        excludeContractsFor: focalBoat,
+      }),
     );
     const cooperation = scoreCooperation(outcomes, soloOut, focalBoat).efficacy;
     // The restraint axis needs its own counterfactual: the same seed with this
@@ -350,7 +355,11 @@ const elapsedMs = Date.now() - started;
 // the same question with a denominator — of the fish you gave up, how many were
 // still there at the end — and holds an interior optimum.
 const axisValue = (row: Row, key: "livelihood" | "restraint" | "cooperation"): number =>
-  key === "cooperation" ? row.cooperation : key === "restraint" ? row.restraint : row.withContracts[key];
+  key === "cooperation"
+    ? row.cooperation
+    : key === "restraint"
+      ? row.restraint
+      : row.withContracts[key];
 
 // --- criteria -------------------------------------------------------------
 
@@ -366,11 +375,7 @@ for (const seed of seeds) {
   const here = focalRows.filter((row) => row.seed === seed);
   const bestOn = (key: "livelihood" | "stewardship" | "cooperation") =>
     here.reduce((best, row) => (axisValue(row, key) > axisValue(best, key) ? row : best)).lineup;
-  const winners = new Set([
-    bestOn("livelihood"),
-    bestOn("restraint"),
-    bestOn("cooperation"),
-  ]);
+  const winners = new Set([bestOn("livelihood"), bestOn("restraint"), bestOn("cooperation")]);
   if (winners.size === 1) dominatedSeeds += 1;
 }
 const dominanceShare = dominatedSeeds / seeds.length;
@@ -452,20 +457,76 @@ const topZoneShare = zoneSum === 0 ? 1 : Math.max(...Object.values(zoneTotals)) 
 // --- report ---------------------------------------------------------------
 
 const checks = [
-  { id: 1, name: "決定論 / Replay一致", pass: determinism, actual: determinism ? "200/200" : "不一致あり", threshold: "全一致" },
-  { id: 2, name: "単一Policyが3軸支配", pass: dominanceShare < 0.2, actual: `${(dominanceShare * 100).toFixed(1)}%`, threshold: "< 20%" },
-  { id: 3, name: "Frontierに2つ以上残る", pass: diversityShare >= 0.6, actual: `${(diversityShare * 100).toFixed(1)}%`, threshold: ">= 60%" },
-  { id: 4, name: "協定がStewardshipを改善", pass: Math.abs(stewardshipLift) >= 0.05, actual: `${(stewardshipLift * 100).toFixed(1)}%`, threshold: "|差| >= 5%" },
-  { id: 5, name: "協定がLivelihoodを犠牲にする局面", pass: livelihoodCostShare >= 0.2, actual: `${(livelihoodCostShare * 100).toFixed(1)}%`, threshold: ">= 20%" },
-  { id: 6, name: "Escrow倍増で違反減少", pass: breachReduction >= 0.3, actual: `${(breachReduction * 100).toFixed(1)}%`, threshold: ">= 30%" },
-  { id: 7, name: "3軸の独立性", pass: maxCorrelation < 0.8, actual: `max|ρ|=${maxCorrelation.toFixed(3)}`, threshold: "< 0.8" },
-  { id: 8, name: "Zone選択の非自明性", pass: topZoneShare < 0.7, actual: `${(topZoneShare * 100).toFixed(1)}%`, threshold: "< 70%" },
+  {
+    id: 1,
+    name: "決定論 / Replay一致",
+    pass: determinism,
+    actual: determinism ? "200/200" : "不一致あり",
+    threshold: "全一致",
+  },
+  {
+    id: 2,
+    name: "単一Policyが3軸支配",
+    pass: dominanceShare < 0.2,
+    actual: `${(dominanceShare * 100).toFixed(1)}%`,
+    threshold: "< 20%",
+  },
+  {
+    id: 3,
+    name: "Frontierに2つ以上残る",
+    pass: diversityShare >= 0.6,
+    actual: `${(diversityShare * 100).toFixed(1)}%`,
+    threshold: ">= 60%",
+  },
+  {
+    id: 4,
+    name: "協定がStewardshipを改善",
+    pass: Math.abs(stewardshipLift) >= 0.05,
+    actual: `${(stewardshipLift * 100).toFixed(1)}%`,
+    threshold: "|差| >= 5%",
+  },
+  {
+    id: 5,
+    name: "協定がLivelihoodを犠牲にする局面",
+    pass: livelihoodCostShare >= 0.2,
+    actual: `${(livelihoodCostShare * 100).toFixed(1)}%`,
+    threshold: ">= 20%",
+  },
+  {
+    id: 6,
+    name: "Escrow倍増で違反減少",
+    pass: breachReduction >= 0.3,
+    actual: `${(breachReduction * 100).toFixed(1)}%`,
+    threshold: ">= 30%",
+  },
+  {
+    id: 7,
+    name: "3軸の独立性",
+    pass: maxCorrelation < 0.8,
+    actual: `max|ρ|=${maxCorrelation.toFixed(3)}`,
+    threshold: "< 0.8",
+  },
+  {
+    id: 8,
+    name: "Zone選択の非自明性",
+    pass: topZoneShare < 0.7,
+    actual: `${(topZoneShare * 100).toFixed(1)}%`,
+    threshold: "< 70%",
+  },
   { id: 9, name: "情報漏洩なし", pass: true, actual: "test suite", threshold: "テストで担保" },
-  { id: 10, name: "実行コスト", pass: elapsedMs < 120_000, actual: `${(elapsedMs / 1000).toFixed(1)}s`, threshold: "< 120s" },
+  {
+    id: 10,
+    name: "実行コスト",
+    pass: elapsedMs < 120_000,
+    actual: `${(elapsedMs / 1000).toFixed(1)}s`,
+    threshold: "< 120s",
+  },
 ];
 
 console.log(`\nOcean Commons — Plan 10 Phase 0`);
-console.log(`seeds=${seeds.length}  matches=${rows.length * 4}  elapsed=${(elapsedMs / 1000).toFixed(1)}s\n`);
+console.log(
+  `seeds=${seeds.length}  matches=${rows.length * 4}  elapsed=${(elapsedMs / 1000).toFixed(1)}s\n`,
+);
 
 console.log("| # | 判定項目 | 閾値 | 実測 | 結果 |");
 console.log("| --- | --- | --- | --- | --- |");
@@ -476,20 +537,33 @@ for (const check of checks) {
 }
 
 console.log(`\n--- 補足統計 ---`);
-console.log(`Stewardship 中央値   契約あり ${stewardshipWith.toFixed(3)} / 契約なし ${stewardshipWithout.toFixed(3)}  (制約付き契約が成立した ${treated.length}/${rows.length} 件で比較)`);
+console.log(
+  `Stewardship 中央値   契約あり ${stewardshipWith.toFixed(3)} / 契約なし ${stewardshipWithout.toFixed(3)}  (制約付き契約が成立した ${treated.length}/${rows.length} 件で比較)`,
+);
 console.log(
   `Escrow-違反率曲線    0.5x ${(half.rate * 100).toFixed(1)}% (${half.breached}/${half.binding})` +
     `  ->  1x ${(rateBase * 100).toFixed(1)}% (${breachesBase}/${bindingBase})` +
     `  ->  2x ${(rateDoubled * 100).toFixed(1)}% (${breachesDoubled}/${bindingDoubled})`,
 );
-console.log(`Zone選択比率        `, Object.fromEntries(
-  Object.entries(zoneTotals).map(([zone, count]) => [zone, `${((count / zoneSum) * 100).toFixed(1)}%`]),
-));
-console.log(`Spearman            `, Object.fromEntries(
-  Object.entries(correlations).map(([pair, value]) => [pair, value.toFixed(3)]),
-));
-console.log(`成約 / 棄却          ${rows.reduce((sum, row) => sum + row.withContracts.contracts.accepted, 0)} / ${rows.reduce((sum, row) => sum + (row.withContracts.contracts.proposed - row.withContracts.contracts.accepted), 0)}`);
-console.log(`Escrow release/refund ${rows.reduce((sum, row) => sum + row.withContracts.contracts.escrowReleased, 0).toFixed(0)} / ${rows.reduce((sum, row) => sum + row.withContracts.contracts.escrowRefunded, 0).toFixed(0)}`);
+console.log(
+  `Zone選択比率        `,
+  Object.fromEntries(
+    Object.entries(zoneTotals).map(([zone, count]) => [
+      zone,
+      `${((count / zoneSum) * 100).toFixed(1)}%`,
+    ]),
+  ),
+);
+console.log(
+  `Spearman            `,
+  Object.fromEntries(Object.entries(correlations).map(([pair, value]) => [pair, value.toFixed(3)])),
+);
+console.log(
+  `成約 / 棄却          ${rows.reduce((sum, row) => sum + row.withContracts.contracts.accepted, 0)} / ${rows.reduce((sum, row) => sum + (row.withContracts.contracts.proposed - row.withContracts.contracts.accepted), 0)}`,
+);
+console.log(
+  `Escrow release/refund ${rows.reduce((sum, row) => sum + row.withContracts.contracts.escrowReleased, 0).toFixed(0)} / ${rows.reduce((sum, row) => sum + row.withContracts.contracts.escrowRefunded, 0).toFixed(0)}`,
+);
 
 const failed = checks.filter((check) => !check.pass);
 const verdict = failed.length === 0 ? "GO" : "PIVOT";

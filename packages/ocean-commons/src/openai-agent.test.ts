@@ -29,12 +29,22 @@ function stubOpenAi(reply: () => Reply): { client: OpenAI; sent: Record<string, 
                 finish_reason: next.finish ?? "tool_calls",
                 message: {
                   tool_calls: next.args
-                    ? [{ id: "c1", type: "function", function: { name: "set_course", arguments: next.args } }]
+                    ? [
+                        {
+                          id: "c1",
+                          type: "function",
+                          function: { name: "set_course", arguments: next.args },
+                        },
+                      ]
                     : undefined,
                 },
               },
             ],
-            usage: { prompt_tokens: 100, completion_tokens: 20, prompt_tokens_details: { cached_tokens: 40 } },
+            usage: {
+              prompt_tokens: 100,
+              completion_tokens: 20,
+              prompt_tokens_details: { cached_tokens: 40 },
+            },
           };
         },
       },
@@ -112,7 +122,10 @@ describe("openai backend", () => {
       backend: openaiBackend({ client }),
     });
 
-    const log = await runMatch(scenario, [agent, greedyAgent(scenario.boats[1]!.id, "b", scenario)]);
+    const log = await runMatch(scenario, [
+      agent,
+      greedyAgent(scenario.boats[1]!.id, "b", scenario),
+    ]);
 
     expect(log.rounds).toHaveLength(scenario.rounds);
   });

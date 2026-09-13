@@ -115,7 +115,9 @@ async function main() {
   for (const reference of REFERENCES) {
     const evaluation = await evaluateOceanEntry(reference.entry);
     if (!evaluation.correctness) {
-      throw new Error(`${reference.id} failed its own bounds: ${evaluation.constraintFailures.join("; ")}`);
+      throw new Error(
+        `${reference.id} failed its own bounds: ${evaluation.constraintFailures.join("; ")}`,
+      );
     }
     scored.push({ reference, evaluation });
   }

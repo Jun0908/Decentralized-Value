@@ -469,10 +469,7 @@ export function toTranscript(log: MatchLog): MatchTranscript {
 }
 
 /** This boat's actions, round by round, as the engine actually applied them. */
-export function recordedActionsFor(
-  log: MatchLog,
-  boatId: BoatId,
-): Map<number, FishingAction> {
+export function recordedActionsFor(log: MatchLog, boatId: BoatId): Map<number, FishingAction> {
   const actions = new Map<number, FishingAction>();
   for (const record of log.rounds) {
     const entry = record.entries.find((candidate) => candidate.boatId === boatId);
@@ -487,10 +484,7 @@ export function recordedActionsFor(
 }
 
 /** Re-runs a transcript through the engine with no agents involved. */
-export function replayTranscript(
-  scenario: OceanScenario,
-  transcript: MatchTranscript,
-): OceanState {
+export function replayTranscript(scenario: OceanScenario, transcript: MatchTranscript): OceanState {
   let state = createInitialState(scenario);
   const zoneIds = scenario.zones.map((zone) => zone.id);
   for (const round of transcript.rounds) {

@@ -61,7 +61,7 @@ export const baseZones: readonly Zone[] = [
     id: "coastal",
     name: "Coastal shelf",
     carryingCapacity: 420,
-    growthRate: 0.220,
+    growthRate: 0.22,
     collapseThreshold: 0.25,
     initialStock: 380,
     travelCost: 4,
@@ -74,7 +74,7 @@ export const baseZones: readonly Zone[] = [
     id: "offshore",
     name: "Offshore bank",
     carryingCapacity: 900,
-    growthRate: 0.160,
+    growthRate: 0.16,
     collapseThreshold: 0.25,
     initialStock: 820,
     travelCost: 15,
@@ -191,10 +191,18 @@ export const basePriceModel: PriceModel = {
  * contract is worth signing. The run's position and length come from the seed,
  * so it replays like everything else.
  */
-export function generateWeather(seed: string, rounds: number, boatIds: readonly string[]): RoundWeather[] {
+export function generateWeather(
+  seed: string,
+  rounds: number,
+  boatIds: readonly string[],
+): RoundWeather[] {
   const rng = createRng(`${seed}:weather`);
   const galeLength = rounds >= 8 ? rngInt(rng, 2, 3) : 2;
-  const galeStart = rngInt(rng, Math.max(2, Math.floor(rounds * 0.3)), Math.max(3, rounds - galeLength - 1));
+  const galeStart = rngInt(
+    rng,
+    Math.max(2, Math.floor(rounds * 0.3)),
+    Math.max(3, rounds - galeLength - 1),
+  );
 
   const weather: RoundWeather[] = [];
   for (let round = 1; round <= rounds; round += 1) {
@@ -292,12 +300,16 @@ export function generateScenario(seed: string, options: ScenarioOptions = {}): O
         : { min: options.rounds, max: options.rounds },
     zones,
     boats,
-    weather: generateWeather(seed, rounds, boats.map((boat) => boat.id)),
+    weather: generateWeather(
+      seed,
+      rounds,
+      boats.map((boat) => boat.id),
+    ),
     price,
     spilloverRate: 0.05,
     reserveFinePerEffort: 3,
     effortCostPerUnit: 1.6,
-  fuelPerEffort: 1,
+    fuelPerEffort: 1,
     repairCost: 70,
     repairRounds: 1,
   };

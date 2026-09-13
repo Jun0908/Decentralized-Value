@@ -115,7 +115,10 @@ for (let seedIndex = 0; seedIndex < SEEDS; seedIndex += 1) {
     );
     // The same seed with this seat swapped for the boat that takes everything.
     const ifTaken = evaluateMatch(
-      await runMatch(scenario, [takerAgent(focal.id, focal.name, scenario), ...background(scenario)]),
+      await runMatch(scenario, [
+        takerAgent(focal.id, focal.name, scenario),
+        ...background(scenario),
+      ]),
     );
     scores.livelihood[e]!.push(full.livelihood);
     scores.stewardship[e]!.push(full.stewardship);
@@ -128,7 +131,9 @@ const elapsed = (Date.now() - started) / 1000;
 
 const pressure = Number(process.env["OCEAN_PRESSURE"] ?? 1);
 console.log(`\nOcean Commons — 単調性 (圧力 ${pressure}x)`);
-console.log(`seeds=${SEEDS}  matches=${SEEDS * EFFORT.length * 3}  elapsed=${elapsed.toFixed(1)}s\n`);
+console.log(
+  `seeds=${SEEDS}  matches=${SEEDS * EFFORT.length * 3}  elapsed=${elapsed.toFixed(1)}s\n`,
+);
 
 console.log("| effort | livelihood | stewardship | restraint | cooperation | 生存率 |");
 console.log("| --- | --- | --- | --- | --- | --- |");
@@ -146,7 +151,9 @@ for (let e = 0; e < EFFORT.length; e += 1) {
  * from the fleet-wide one. The second number is the real prize: if every seed
  * peaks in the same place, one constant still answers the whole arena.
  */
-console.log("\n| 軸 | 平均の最良effort | 内点か | 端に対する優位 | seedごとの最良がばらける率 | 判定 |");
+console.log(
+  "\n| 軸 | 平均の最良effort | 内点か | 端に対する優位 | seedごとの最良がばらける率 | 判定 |",
+);
 console.log("| --- | --- | --- | --- | --- | --- |");
 
 /**
@@ -204,7 +211,7 @@ function spearman(a: number[], b: number[]): number {
   const rank = (xs: number[]): number[] => {
     const order = xs.map((value, index) => ({ value, index })).sort((l, r) => l.value - r.value);
     const ranks = new Array<number>(xs.length);
-    for (let i = 0; i < order.length; ) {
+    for (let i = 0; i < order.length;) {
       let j = i;
       while (j + 1 < order.length && order[j + 1]!.value === order[i]!.value) j += 1;
       const shared = (i + j) / 2 + 1;
@@ -235,7 +242,10 @@ function spearman(a: number[], b: number[]): number {
 // Pool every (seed, effort) run: the question is whether a player who moves up
 // one axis is dragged along the others, whatever setting they arrived by.
 const pooled: Record<Axis, number[]> = {
-  livelihood: [], stewardship: [], restraint: [], cooperation: [],
+  livelihood: [],
+  stewardship: [],
+  restraint: [],
+  cooperation: [],
 };
 for (const axis of AXES) for (const column of scores[axis]) pooled[axis].push(...column);
 

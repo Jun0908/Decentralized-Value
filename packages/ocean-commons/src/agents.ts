@@ -148,8 +148,7 @@ export function expectedProfit(
   if (effort <= 0) return -boat.upkeepPerRound;
   const revenue = expectedCatch(zone, stock, weather, effort) * price;
   const fine = zone.reserve ? effort * scenario.reserveFinePerEffort : 0;
-  const costs =
-    boat.upkeepPerRound + zone.travelCost + effort * scenario.effortCostPerUnit + fine;
+  const costs = boat.upkeepPerRound + zone.travelCost + effort * scenario.effortCostPerUnit + fine;
   return revenue - costs;
 }
 
@@ -157,7 +156,6 @@ export function expectedProfit(
 export function sustainableYield(zone: Zone, stock: number): number {
   return Math.max(0, zone.growthRate * stock * (1 - stock / zone.carryingCapacity));
 }
-
 
 /**
  * The best guess this boat can make about a ground right now.
@@ -240,7 +238,9 @@ function bestZone(
     );
 
     // Respect a cap by choosing the exact effort that lands it.
-    const binding = [cap, options.catchCap].filter((value): value is number => value !== null && value !== undefined);
+    const binding = [cap, options.catchCap].filter(
+      (value): value is number => value !== null && value !== undefined,
+    );
     if (binding.length > 0) {
       const target = Math.min(...binding);
       effort = Math.min(effort, effortForCatch(zone, stock, observation.weather, target));
@@ -529,8 +529,10 @@ export function cautiousAgent(id: BoatId, name: string, scenario: OceanScenario)
           1,
           observation.zones
             .filter((zone) => !zone.reserve)
-            .reduce((sum, zone) => sum + sustainableYield(zone, believedStock(observation, zone)), 0) /
-            fleet,
+            .reduce(
+              (sum, zone) => sum + sustainableYield(zone, believedStock(observation, zone)),
+              0,
+            ) / fleet,
         ),
       });
       if (!choice) return idle(observation);
@@ -629,11 +631,12 @@ export function brokerAgent(
       // per round left 46% of the pool unspent at the final whistle.
       const pool = observation.conservationFund;
       const pooled = pool?.members.includes(id) ?? false;
-      let purse = pooled && pool
-        ? observation.roundsRemaining <= 4
-          ? pool.balance
-          : Math.min(pool.standDownCap, pool.balance)
-        : budget;
+      let purse =
+        pooled && pool
+          ? observation.roundsRemaining <= 4
+            ? pool.balance
+            : Math.min(pool.standDownCap, pool.balance)
+          : budget;
       const spokenFor: BoatId[] = [];
 
       for (let slot = 0; slot < 3; slot += 1) {
@@ -752,7 +755,9 @@ export function reciprocatorAgent(id: BoatId, name: string, scenario: OceanScena
 
       const proposals: Proposal[] = [];
       // Propose a fund once a breakdown has actually been seen in the fleet.
-      const sawBreakdown = observation.history.some((record) => record.weather.breakdowns.length > 0);
+      const sawBreakdown = observation.history.some(
+        (record) => record.weather.breakdowns.length > 0,
+      );
       if (
         !observation.fund &&
         sawBreakdown &&
@@ -763,7 +768,9 @@ export function reciprocatorAgent(id: BoatId, name: string, scenario: OceanScena
           id: proposalId(observation, "aid"),
           round: observation.round,
           proposer: id,
-          counterparties: observation.others.filter((other) => other.active).map((other) => other.id),
+          counterparties: observation.others
+            .filter((other) => other.active)
+            .map((other) => other.id),
           terms: { kind: "MUTUAL_AID", contributionPerRound: 4, payoutCap: 45 },
           payment: 0,
           durationRounds: observation.roundsRemaining,
@@ -1089,8 +1096,8 @@ export function enforcerAgent(id: BoatId, name: string, scenario: OceanScenario)
   const offenderOf = (observation: Observation): PublicBoatView | null => {
     const rivals = observation.others.filter((other) => other.active);
     if (rivals.length === 0 || observation.round < 3) return null;
-    const landed = rivals.reduce((sum, other) => sum + other.totalCatch, 0) +
-      observation.self.totalCatch;
+    const landed =
+      rivals.reduce((sum, other) => sum + other.totalCatch, 0) + observation.self.totalCatch;
     if (landed <= 0) return null;
     const worst = [...rivals].sort((left, right) => right.totalCatch - left.totalCatch)[0]!;
     // Only a share well past an even split counts as taking more than its due.
@@ -1123,7 +1130,11 @@ export function enforcerAgent(id: BoatId, name: string, scenario: OceanScenario)
       if (contested) {
         const zone = observation.zones.find((candidate) => candidate.id === contested);
         const closed = closedZones(shim, id);
-        if (zone && !closed.has(zone.id) && !tooRough(zone, observation.weather, observation.self)) {
+        if (
+          zone &&
+          !closed.has(zone.id) &&
+          !tooRough(zone, observation.weather, observation.self)
+        ) {
           const stock = believedStock(observation, zone);
           const cap = capInForce(shim, id, zone.id);
           let effort = observation.self.effortCapacity;
@@ -1150,8 +1161,10 @@ export function enforcerAgent(id: BoatId, name: string, scenario: OceanScenario)
         1,
         observation.zones
           .filter((zone) => !zone.reserve)
-          .reduce((sum, zone) => sum + sustainableYield(zone, believedStock(observation, zone)), 0) /
-          fleet,
+          .reduce(
+            (sum, zone) => sum + sustainableYield(zone, believedStock(observation, zone)),
+            0,
+          ) / fleet,
       );
       const choice = bestZone(observation, scenario, { allowReserve: false, catchCap: share });
       if (!choice) return idle(observation);

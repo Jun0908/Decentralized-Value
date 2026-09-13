@@ -320,12 +320,12 @@ describe("wallet policy", async () => {
     };
     const acceptor = cautiousAgent(scenario.boats[1]!.id, "acceptor", scenario);
 
-    const log = await runMatch(scenario, [spender, acceptor], { wallets: { [spender.id]: capped } });
+    const log = await runMatch(scenario, [spender, acceptor], {
+      wallets: { [spender.id]: capped },
+    });
 
     expect(log.spendByBoat[spender.id]).toBeLessThanOrEqual(20);
-    expect(
-      log.rejectedProposals.some((entry) => entry.reason === "OVER_MATCH_BUDGET"),
-    ).toBe(true);
+    expect(log.rejectedProposals.some((entry) => entry.reason === "OVER_MATCH_BUDGET")).toBe(true);
   });
 
   it("refuses a purpose the user did not allow", async () => {
@@ -359,9 +359,9 @@ describe("wallet policy", async () => {
     const log = await runMatch(scenario, [proposer], { wallets: { [proposer.id]: noAid } });
 
     expect(log.finalState.fund).toBeNull();
-    expect(
-      log.rejectedProposals.every((entry) => entry.reason === "PURPOSE_NOT_ALLOWED"),
-    ).toBe(true);
+    expect(log.rejectedProposals.every((entry) => entry.reason === "PURPOSE_NOT_ALLOWED")).toBe(
+      true,
+    );
   });
 });
 
@@ -522,8 +522,12 @@ describe("cooperation axis", async () => {
 
     // A boat that only ever received money has spent nothing, so however much
     // stopping it helped the sea, the credit belongs to whoever bought it out.
-    const receiver = { ...full, boats: full.boats.map((boat) =>
-      boat.boatId === paid ? { ...boat, paidOut: 0, received: 200 } : boat) };
+    const receiver = {
+      ...full,
+      boats: full.boats.map((boat) =>
+        boat.boatId === paid ? { ...boat, paidOut: 0, received: 200 } : boat,
+      ),
+    };
 
     expect(scoreCooperation(receiver, without, paid).efficacy).toBe(0);
   });
@@ -536,8 +540,14 @@ describe("cooperation axis", async () => {
       await runMatch(scenario, mixedFleet(scenario), { excludeContractsFor: loner }),
     );
 
-    const score = scoreCooperation({ ...full, boats: full.boats.map((b) =>
-      b.boatId === loner ? { ...b, paidOut: 0, received: 0 } : b) }, without, loner);
+    const score = scoreCooperation(
+      {
+        ...full,
+        boats: full.boats.map((b) => (b.boatId === loner ? { ...b, paidOut: 0, received: 0 } : b)),
+      },
+      without,
+      loner,
+    );
 
     expect(score.efficacy).toBe(0);
   });
@@ -547,13 +557,12 @@ describe("outcomes", async () => {
   it("keeps the three outcomes separate and never aggregates them", async () => {
     const scenario = generateScenario("outcomes", { vary: true });
     const outcomes = evaluateMatch(await runMatch(scenario, mixedFleet(scenario)));
-    const point = toOutcomePoint("mixed", "Mixed fleet", outcomes, { restraint: 0.4, cooperation: 0.1 });
+    const point = toOutcomePoint("mixed", "Mixed fleet", outcomes, {
+      restraint: 0.4,
+      cooperation: 0.1,
+    });
 
-    expect(Object.keys(point.values).sort()).toEqual([
-      "cooperation",
-      "livelihood",
-      "restraint",
-    ]);
+    expect(Object.keys(point.values).sort()).toEqual(["cooperation", "livelihood", "restraint"]);
     expect(point.values).not.toHaveProperty("total");
     expect(point.values).not.toHaveProperty("score");
   });
@@ -577,7 +586,12 @@ describe("outcomes", async () => {
     for (const [index, tag] of ["a", "b", "c"].entries()) {
       const agents = mixedFleet(scenario);
       const log = await runMatch(scenario, agents, { enableNegotiation: index !== 1 });
-      points.push(toOutcomePoint(tag, tag, evaluateMatch(log), { restraint: index * 0.1, cooperation: index * 0.05 }));
+      points.push(
+        toOutcomePoint(tag, tag, evaluateMatch(log), {
+          restraint: index * 0.1,
+          cooperation: index * 0.05,
+        }),
+      );
     }
 
     const forward = oceanFrontier(points).map((point) => point.id);

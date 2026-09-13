@@ -151,11 +151,7 @@ export type FishingAction = {
  * typed object whose compliance the engine checks against actual catches.
  */
 export type PactKind =
-  | "CATCH_LIMIT"
-  | "CONSERVATION_BUYOUT"
-  | "MUTUAL_AID"
-  | "CONSERVATION_FUND"
-  | "SOUNDING_EXCHANGE";
+  "CATCH_LIMIT" | "CONSERVATION_BUYOUT" | "MUTUAL_AID" | "CONSERVATION_FUND" | "SOUNDING_EXCHANGE";
 
 export type CatchLimitTerms = {
   kind: "CATCH_LIMIT";

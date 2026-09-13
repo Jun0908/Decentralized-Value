@@ -1,762 +1,744 @@
 {
- "seed": "sea-195",
- "scenario": {
-  "rounds": 9,
-  "window": {
-   "min": 7,
-   "max": 10
+  "seed": "sea-195",
+  "scenario": {
+    "rounds": 9,
+    "window": {
+      "min": 7,
+      "max": 10
+    },
+    "zones": [
+      {
+        "id": "coastal",
+        "name": "Coastal shelf",
+        "capacity": 455,
+        "reserve": false,
+        "threshold": 0.25
+      },
+      {
+        "id": "offshore",
+        "name": "Offshore bank",
+        "capacity": 758,
+        "reserve": false,
+        "threshold": 0.25
+      },
+      {
+        "id": "nursery",
+        "name": "Nursery reserve",
+        "capacity": 536,
+        "reserve": true,
+        "threshold": 0.3
+      }
+    ],
+    "boats": [
+      {
+        "id": "kaiyo",
+        "name": "Kaiyo",
+        "small": false,
+        "cash": 560,
+        "stormLimit": 0.72
+      },
+      {
+        "id": "hokuto",
+        "name": "Hokuto",
+        "small": false,
+        "cash": 528,
+        "stormLimit": 0.85
+      },
+      {
+        "id": "isana",
+        "name": "Isana",
+        "small": false,
+        "cash": 423,
+        "stormLimit": 0.72
+      },
+      {
+        "id": "nagi",
+        "name": "Nagi",
+        "small": true,
+        "cash": 276,
+        "stormLimit": 0.34
+      },
+      {
+        "id": "shiosai",
+        "name": "Shiosai",
+        "small": true,
+        "cash": 248,
+        "stormLimit": 0.28
+      }
+    ]
   },
-  "zones": [
-   {
-    "id": "coastal",
-    "name": "Coastal shelf",
-    "capacity": 455,
-    "reserve": false,
-    "threshold": 0.25
-   },
-   {
-    "id": "offshore",
-    "name": "Offshore bank",
-    "capacity": 758,
-    "reserve": false,
-    "threshold": 0.25
-   },
-   {
-    "id": "nursery",
-    "name": "Nursery reserve",
-    "capacity": 536,
-    "reserve": true,
-    "threshold": 0.3
-   }
+  "rounds": [
+    {
+      "round": 1,
+      "storm": 0.043005,
+      "breakdowns": [],
+      "price": 2.525966,
+      "stocks": {
+        "coastal": 411.264333,
+        "offshore": 545.185002,
+        "nursery": 498.086476
+      },
+      "entries": [
+        {
+          "boat": "kaiyo",
+          "zone": "offshore",
+          "effort": 35,
+          "catch": 51.949485,
+          "cash": 577.222633,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "hokuto",
+          "zone": "offshore",
+          "effort": 45,
+          "catch": 66.792195,
+          "cash": 590.714814,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "isana",
+          "zone": "offshore",
+          "effort": 36,
+          "catch": 53.433756,
+          "cash": 442.371851,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "nagi",
+          "zone": "coastal",
+          "effort": 3.51,
+          "catch": 3.740133,
+          "cash": 240.831449,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "shiosai",
+          "zone": "coastal",
+          "effort": 20,
+          "catch": 21.3113,
+          "cash": 231.831619,
+          "clamp": null,
+          "breached": false
+        }
+      ],
+      "newPacts": [
+        {
+          "id": "kaiyo-fund-r1",
+          "from": "kaiyo",
+          "to": ["isana", "nagi", "shiosai"],
+          "kind": "CONSERVATION_FUND",
+          "payment": 0,
+          "rounds": 7
+        }
+      ],
+      "money": [],
+      "breached": []
+    },
+    {
+      "round": 2,
+      "storm": 0.188757,
+      "breakdowns": [],
+      "price": 4.043042,
+      "stocks": {
+        "coastal": 294.75579,
+        "offshore": 572.428383,
+        "nursery": 487.874862
+      },
+      "entries": [
+        {
+          "boat": "kaiyo",
+          "zone": "coastal",
+          "effort": 35,
+          "catch": 34.73827,
+          "cash": 618.670918,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "hokuto",
+          "zone": "coastal",
+          "effort": 45,
+          "catch": 44.66349,
+          "cash": 680.29118,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "isana",
+          "zone": "coastal",
+          "effort": 36,
+          "catch": 35.730792,
+          "cash": 486.232944,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "nagi",
+          "zone": "coastal",
+          "effort": 6.56,
+          "catch": 6.510944,
+          "cash": 217.659469,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "shiosai",
+          "zone": "coastal",
+          "effort": 20,
+          "catch": 19.85044,
+          "cash": 242.087782,
+          "clamp": null,
+          "breached": false
+        }
+      ],
+      "newPacts": [],
+      "money": [],
+      "breached": []
+    },
+    {
+      "round": 3,
+      "storm": 0.164923,
+      "breakdowns": ["shiosai"],
+      "price": 3.773881,
+      "stocks": {
+        "coastal": 311.135391,
+        "offshore": 471.991137,
+        "nursery": 481.195731
+      },
+      "entries": [
+        {
+          "boat": "kaiyo",
+          "zone": "offshore",
+          "effort": 35,
+          "catch": 37.893345,
+          "cash": 647.675893,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "hokuto",
+          "zone": "offshore",
+          "effort": 45,
+          "catch": 48.720015,
+          "cash": 758.154719,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "isana",
+          "zone": "offshore",
+          "effort": 36,
+          "catch": 38.976012,
+          "cash": 517.723775,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "nagi",
+          "zone": "coastal",
+          "effort": 12.83,
+          "catch": 9.233559,
+          "cash": 192.977822,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "shiosai",
+          "zone": null,
+          "effort": 0,
+          "catch": 0,
+          "cash": 137.087782,
+          "clamp": "UNDER_REPAIR",
+          "breached": false
+        }
+      ],
+      "newPacts": [],
+      "money": [],
+      "breached": []
+    },
+    {
+      "round": 4,
+      "storm": 0.92621,
+      "breakdowns": ["isana"],
+      "price": 6.690229,
+      "stocks": {
+        "coastal": 297.712456,
+        "offshore": 497.844822,
+        "nursery": 476.626621
+      },
+      "entries": [
+        {
+          "boat": "kaiyo",
+          "zone": "coastal",
+          "effort": 35,
+          "catch": 16.749775,
+          "cash": 510.735723,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "hokuto",
+          "zone": "coastal",
+          "effort": 45,
+          "catch": 21.535425,
+          "cash": 886.231644,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "isana",
+          "zone": null,
+          "effort": 0,
+          "catch": 0,
+          "cash": 407.723775,
+          "clamp": "UNDER_REPAIR",
+          "breached": false
+        },
+        {
+          "boat": "nagi",
+          "zone": null,
+          "effort": 0,
+          "catch": 0,
+          "cash": 156.977822,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "shiosai",
+          "zone": null,
+          "effort": 0,
+          "catch": 0,
+          "cash": 102.087782,
+          "clamp": null,
+          "breached": false
+        }
+      ],
+      "newPacts": [
+        {
+          "id": "kaiyo-cap-r4",
+          "from": "kaiyo",
+          "to": ["hokuto"],
+          "kind": "CATCH_LIMIT",
+          "payment": 150,
+          "rounds": 2
+        }
+      ],
+      "money": [
+        {
+          "pactId": "kaiyo-cap-r4",
+          "from": "kaiyo",
+          "to": "hokuto",
+          "amount": 75,
+          "type": "RELEASE"
+        }
+      ],
+      "breached": []
+    },
+    {
+      "round": 5,
+      "storm": 0.966233,
+      "breakdowns": ["nagi"],
+      "price": 5.484633,
+      "stocks": {
+        "coastal": 305.782454,
+        "offshore": 522.5897,
+        "nursery": 410.598842
+      },
+      "entries": [
+        {
+          "boat": "kaiyo",
+          "zone": "coastal",
+          "effort": 35,
+          "catch": 15.53223,
+          "cash": 496.924304,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "hokuto",
+          "zone": "nursery",
+          "effort": 16.97,
+          "catch": 24.348166,
+          "cash": 990.710399,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "isana",
+          "zone": "nursery",
+          "effort": 36,
+          "catch": 51.651972,
+          "cash": 475.415885,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "nagi",
+          "zone": null,
+          "effort": 0,
+          "catch": 0,
+          "cash": 50.977822,
+          "clamp": "UNDER_REPAIR",
+          "breached": false
+        },
+        {
+          "boat": "shiosai",
+          "zone": null,
+          "effort": 0,
+          "catch": 0,
+          "cash": 67.087782,
+          "clamp": null,
+          "breached": false
+        }
+      ],
+      "newPacts": [],
+      "money": [
+        {
+          "pactId": "kaiyo-cap-r4",
+          "from": "kaiyo",
+          "to": "hokuto",
+          "amount": 75,
+          "type": "RELEASE"
+        }
+      ],
+      "breached": []
+    },
+    {
+      "round": 6,
+      "storm": 0.995252,
+      "breakdowns": ["kaiyo"],
+      "price": 6.241611,
+      "stocks": {
+        "coastal": 329.369954,
+        "offshore": 546.829162,
+        "nursery": 377.574337
+      },
+      "entries": [
+        {
+          "boat": "kaiyo",
+          "zone": null,
+          "effort": 0,
+          "catch": 0,
+          "cash": 386.924304,
+          "clamp": "UNDER_REPAIR",
+          "breached": false
+        },
+        {
+          "boat": "hokuto",
+          "zone": null,
+          "effort": 0,
+          "catch": 0,
+          "cash": 1063.210399,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "isana",
+          "zone": "nursery",
+          "effort": 36,
+          "catch": 44.176428,
+          "cash": 535.547964,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "nagi",
+          "zone": null,
+          "effort": 0,
+          "catch": 0,
+          "cash": 14.977822,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "shiosai",
+          "zone": null,
+          "effort": 0,
+          "catch": 0,
+          "cash": 32.087782,
+          "clamp": null,
+          "breached": false
+        }
+      ],
+      "newPacts": [
+        {
+          "id": "kaiyo-standdown-r6-0",
+          "from": "kaiyo",
+          "to": ["hokuto"],
+          "kind": "CONSERVATION_BUYOUT",
+          "payment": 177,
+          "rounds": 2
+        }
+      ],
+      "money": [
+        {
+          "pactId": "kaiyo-standdown-r6-0",
+          "from": "conservation-fund",
+          "to": "hokuto",
+          "amount": 88.5,
+          "type": "RELEASE"
+        }
+      ],
+      "breached": []
+    },
+    {
+      "round": 7,
+      "storm": 0.8607,
+      "breakdowns": [],
+      "price": 6.971556,
+      "stocks": {
+        "coastal": 333.603556,
+        "offshore": 570.335082,
+        "nursery": 345.923937
+      },
+      "entries": [
+        {
+          "boat": "kaiyo",
+          "zone": "coastal",
+          "effort": 35,
+          "catch": 18.6277,
+          "cash": 417.788358,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "hokuto",
+          "zone": null,
+          "effort": 0,
+          "catch": 0,
+          "cash": 1135.710399,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "isana",
+          "zone": "nursery",
+          "effort": 36,
+          "catch": 41.988168,
+          "cash": 612.670829,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "nagi",
+          "zone": null,
+          "effort": 0,
+          "catch": 0,
+          "cash": 0,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "shiosai",
+          "zone": null,
+          "effort": 0,
+          "catch": 0,
+          "cash": 0,
+          "clamp": null,
+          "breached": false
+        }
+      ],
+      "newPacts": [],
+      "money": [
+        {
+          "pactId": "kaiyo-standdown-r6-0",
+          "from": "conservation-fund",
+          "to": "hokuto",
+          "amount": 88.5,
+          "type": "RELEASE"
+        }
+      ],
+      "breached": []
+    },
+    {
+      "round": 8,
+      "storm": 0.053054,
+      "breakdowns": [],
+      "price": 3.234029,
+      "stocks": {
+        "coastal": 330.959711,
+        "offshore": 450.639908,
+        "nursery": 356.70629
+      },
+      "entries": [
+        {
+          "boat": "kaiyo",
+          "zone": "offshore",
+          "effort": 35,
+          "catch": 42.512645,
+          "cash": 469.275485,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "hokuto",
+          "zone": "offshore",
+          "effort": 45,
+          "catch": 54.659115,
+          "cash": 1206.479562,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "isana",
+          "zone": "offshore",
+          "effort": 36,
+          "catch": 43.727292,
+          "cash": 666.486159,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "nagi",
+          "zone": "coastal",
+          "effort": 9.96,
+          "catch": 8.553927,
+          "cash": 0.727648,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "shiosai",
+          "zone": "coastal",
+          "effort": 20,
+          "catch": 17.17656,
+          "cash": 13.549493,
+          "clamp": null,
+          "breached": false
+        }
+      ],
+      "newPacts": [],
+      "money": [],
+      "breached": []
+    },
+    {
+      "round": 9,
+      "storm": 0.0598,
+      "breakdowns": ["shiosai"],
+      "price": 5.043837,
+      "stocks": {
+        "coastal": 282.074409,
+        "offshore": 428.301069,
+        "nursery": 367.772999
+      },
+      "entries": [
+        {
+          "boat": "kaiyo",
+          "zone": "coastal",
+          "effort": 35,
+          "catch": 29.72802,
+          "cash": 548.218772,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "hokuto",
+          "zone": "offshore",
+          "effort": 45,
+          "catch": 42.89643,
+          "cash": 1316.842163,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "isana",
+          "zone": "coastal",
+          "effort": 36,
+          "catch": 30.577392,
+          "cash": 748.11354,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "nagi",
+          "zone": "coastal",
+          "effort": 11.61,
+          "catch": 9.861209,
+          "cash": 20.889979,
+          "clamp": null,
+          "breached": false
+        },
+        {
+          "boat": "shiosai",
+          "zone": null,
+          "effort": 0,
+          "catch": 0,
+          "cash": -63.450507,
+          "clamp": "UNDER_REPAIR",
+          "breached": false
+        }
+      ],
+      "newPacts": [],
+      "money": [],
+      "breached": []
+    }
   ],
-  "boats": [
-   {
-    "id": "kaiyo",
-    "name": "Kaiyo",
-    "small": false,
-    "cash": 560,
-    "stormLimit": 0.72
-   },
-   {
-    "id": "hokuto",
-    "name": "Hokuto",
-    "small": false,
-    "cash": 528,
-    "stormLimit": 0.85
-   },
-   {
-    "id": "isana",
-    "name": "Isana",
-    "small": false,
-    "cash": 423,
-    "stormLimit": 0.72
-   },
-   {
-    "id": "nagi",
-    "name": "Nagi",
-    "small": true,
-    "cash": 276,
-    "stormLimit": 0.34
-   },
-   {
-    "id": "shiosai",
-    "name": "Shiosai",
-    "small": true,
-    "cash": 248,
-    "stormLimit": 0.28
-   }
-  ]
- },
- "rounds": [
-  {
-   "round": 1,
-   "storm": 0.043005,
-   "breakdowns": [],
-   "price": 2.525966,
-   "stocks": {
-    "coastal": 411.264333,
-    "offshore": 545.185002,
-    "nursery": 498.086476
-   },
-   "entries": [
-    {
-     "boat": "kaiyo",
-     "zone": "offshore",
-     "effort": 35,
-     "catch": 51.949485,
-     "cash": 577.222633,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "hokuto",
-     "zone": "offshore",
-     "effort": 45,
-     "catch": 66.792195,
-     "cash": 590.714814,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "isana",
-     "zone": "offshore",
-     "effort": 36,
-     "catch": 53.433756,
-     "cash": 442.371851,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "nagi",
-     "zone": "coastal",
-     "effort": 3.51,
-     "catch": 3.740133,
-     "cash": 240.831449,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "shiosai",
-     "zone": "coastal",
-     "effort": 20,
-     "catch": 21.3113,
-     "cash": 231.831619,
-     "clamp": null,
-     "breached": false
-    }
-   ],
-   "newPacts": [
-    {
-     "id": "kaiyo-fund-r1",
-     "from": "kaiyo",
-     "to": [
-      "isana",
-      "nagi",
-      "shiosai"
-     ],
-     "kind": "CONSERVATION_FUND",
-     "payment": 0,
-     "rounds": 7
-    }
-   ],
-   "money": [],
-   "breached": []
-  },
-  {
-   "round": 2,
-   "storm": 0.188757,
-   "breakdowns": [],
-   "price": 4.043042,
-   "stocks": {
-    "coastal": 294.75579,
-    "offshore": 572.428383,
-    "nursery": 487.874862
-   },
-   "entries": [
-    {
-     "boat": "kaiyo",
-     "zone": "coastal",
-     "effort": 35,
-     "catch": 34.73827,
-     "cash": 618.670918,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "hokuto",
-     "zone": "coastal",
-     "effort": 45,
-     "catch": 44.66349,
-     "cash": 680.29118,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "isana",
-     "zone": "coastal",
-     "effort": 36,
-     "catch": 35.730792,
-     "cash": 486.232944,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "nagi",
-     "zone": "coastal",
-     "effort": 6.56,
-     "catch": 6.510944,
-     "cash": 217.659469,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "shiosai",
-     "zone": "coastal",
-     "effort": 20,
-     "catch": 19.85044,
-     "cash": 242.087782,
-     "clamp": null,
-     "breached": false
-    }
-   ],
-   "newPacts": [],
-   "money": [],
-   "breached": []
-  },
-  {
-   "round": 3,
-   "storm": 0.164923,
-   "breakdowns": [
-    "shiosai"
-   ],
-   "price": 3.773881,
-   "stocks": {
-    "coastal": 311.135391,
-    "offshore": 471.991137,
-    "nursery": 481.195731
-   },
-   "entries": [
-    {
-     "boat": "kaiyo",
-     "zone": "offshore",
-     "effort": 35,
-     "catch": 37.893345,
-     "cash": 647.675893,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "hokuto",
-     "zone": "offshore",
-     "effort": 45,
-     "catch": 48.720015,
-     "cash": 758.154719,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "isana",
-     "zone": "offshore",
-     "effort": 36,
-     "catch": 38.976012,
-     "cash": 517.723775,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "nagi",
-     "zone": "coastal",
-     "effort": 12.83,
-     "catch": 9.233559,
-     "cash": 192.977822,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "shiosai",
-     "zone": null,
-     "effort": 0,
-     "catch": 0,
-     "cash": 137.087782,
-     "clamp": "UNDER_REPAIR",
-     "breached": false
-    }
-   ],
-   "newPacts": [],
-   "money": [],
-   "breached": []
-  },
-  {
-   "round": 4,
-   "storm": 0.92621,
-   "breakdowns": [
-    "isana"
-   ],
-   "price": 6.690229,
-   "stocks": {
-    "coastal": 297.712456,
-    "offshore": 497.844822,
-    "nursery": 476.626621
-   },
-   "entries": [
-    {
-     "boat": "kaiyo",
-     "zone": "coastal",
-     "effort": 35,
-     "catch": 16.749775,
-     "cash": 510.735723,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "hokuto",
-     "zone": "coastal",
-     "effort": 45,
-     "catch": 21.535425,
-     "cash": 886.231644,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "isana",
-     "zone": null,
-     "effort": 0,
-     "catch": 0,
-     "cash": 407.723775,
-     "clamp": "UNDER_REPAIR",
-     "breached": false
-    },
-    {
-     "boat": "nagi",
-     "zone": null,
-     "effort": 0,
-     "catch": 0,
-     "cash": 156.977822,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "shiosai",
-     "zone": null,
-     "effort": 0,
-     "catch": 0,
-     "cash": 102.087782,
-     "clamp": null,
-     "breached": false
-    }
-   ],
-   "newPacts": [
-    {
-     "id": "kaiyo-cap-r4",
-     "from": "kaiyo",
-     "to": [
-      "hokuto"
-     ],
-     "kind": "CATCH_LIMIT",
-     "payment": 150,
-     "rounds": 2
-    }
-   ],
-   "money": [
-    {
-     "pactId": "kaiyo-cap-r4",
-     "from": "kaiyo",
-     "to": "hokuto",
-     "amount": 75,
-     "type": "RELEASE"
-    }
-   ],
-   "breached": []
-  },
-  {
-   "round": 5,
-   "storm": 0.966233,
-   "breakdowns": [
-    "nagi"
-   ],
-   "price": 5.484633,
-   "stocks": {
-    "coastal": 305.782454,
-    "offshore": 522.5897,
-    "nursery": 410.598842
-   },
-   "entries": [
-    {
-     "boat": "kaiyo",
-     "zone": "coastal",
-     "effort": 35,
-     "catch": 15.53223,
-     "cash": 496.924304,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "hokuto",
-     "zone": "nursery",
-     "effort": 16.97,
-     "catch": 24.348166,
-     "cash": 990.710399,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "isana",
-     "zone": "nursery",
-     "effort": 36,
-     "catch": 51.651972,
-     "cash": 475.415885,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "nagi",
-     "zone": null,
-     "effort": 0,
-     "catch": 0,
-     "cash": 50.977822,
-     "clamp": "UNDER_REPAIR",
-     "breached": false
-    },
-    {
-     "boat": "shiosai",
-     "zone": null,
-     "effort": 0,
-     "catch": 0,
-     "cash": 67.087782,
-     "clamp": null,
-     "breached": false
-    }
-   ],
-   "newPacts": [],
-   "money": [
-    {
-     "pactId": "kaiyo-cap-r4",
-     "from": "kaiyo",
-     "to": "hokuto",
-     "amount": 75,
-     "type": "RELEASE"
-    }
-   ],
-   "breached": []
-  },
-  {
-   "round": 6,
-   "storm": 0.995252,
-   "breakdowns": [
-    "kaiyo"
-   ],
-   "price": 6.241611,
-   "stocks": {
-    "coastal": 329.369954,
-    "offshore": 546.829162,
-    "nursery": 377.574337
-   },
-   "entries": [
-    {
-     "boat": "kaiyo",
-     "zone": null,
-     "effort": 0,
-     "catch": 0,
-     "cash": 386.924304,
-     "clamp": "UNDER_REPAIR",
-     "breached": false
-    },
-    {
-     "boat": "hokuto",
-     "zone": null,
-     "effort": 0,
-     "catch": 0,
-     "cash": 1063.210399,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "isana",
-     "zone": "nursery",
-     "effort": 36,
-     "catch": 44.176428,
-     "cash": 535.547964,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "nagi",
-     "zone": null,
-     "effort": 0,
-     "catch": 0,
-     "cash": 14.977822,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "shiosai",
-     "zone": null,
-     "effort": 0,
-     "catch": 0,
-     "cash": 32.087782,
-     "clamp": null,
-     "breached": false
-    }
-   ],
-   "newPacts": [
-    {
-     "id": "kaiyo-standdown-r6-0",
-     "from": "kaiyo",
-     "to": [
-      "hokuto"
-     ],
-     "kind": "CONSERVATION_BUYOUT",
-     "payment": 177,
-     "rounds": 2
-    }
-   ],
-   "money": [
-    {
-     "pactId": "kaiyo-standdown-r6-0",
-     "from": "conservation-fund",
-     "to": "hokuto",
-     "amount": 88.5,
-     "type": "RELEASE"
-    }
-   ],
-   "breached": []
-  },
-  {
-   "round": 7,
-   "storm": 0.8607,
-   "breakdowns": [],
-   "price": 6.971556,
-   "stocks": {
-    "coastal": 333.603556,
-    "offshore": 570.335082,
-    "nursery": 345.923937
-   },
-   "entries": [
-    {
-     "boat": "kaiyo",
-     "zone": "coastal",
-     "effort": 35,
-     "catch": 18.6277,
-     "cash": 417.788358,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "hokuto",
-     "zone": null,
-     "effort": 0,
-     "catch": 0,
-     "cash": 1135.710399,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "isana",
-     "zone": "nursery",
-     "effort": 36,
-     "catch": 41.988168,
-     "cash": 612.670829,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "nagi",
-     "zone": null,
-     "effort": 0,
-     "catch": 0,
-     "cash": 0,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "shiosai",
-     "zone": null,
-     "effort": 0,
-     "catch": 0,
-     "cash": 0,
-     "clamp": null,
-     "breached": false
-    }
-   ],
-   "newPacts": [],
-   "money": [
-    {
-     "pactId": "kaiyo-standdown-r6-0",
-     "from": "conservation-fund",
-     "to": "hokuto",
-     "amount": 88.5,
-     "type": "RELEASE"
-    }
-   ],
-   "breached": []
-  },
-  {
-   "round": 8,
-   "storm": 0.053054,
-   "breakdowns": [],
-   "price": 3.234029,
-   "stocks": {
-    "coastal": 330.959711,
-    "offshore": 450.639908,
-    "nursery": 356.70629
-   },
-   "entries": [
-    {
-     "boat": "kaiyo",
-     "zone": "offshore",
-     "effort": 35,
-     "catch": 42.512645,
-     "cash": 469.275485,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "hokuto",
-     "zone": "offshore",
-     "effort": 45,
-     "catch": 54.659115,
-     "cash": 1206.479562,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "isana",
-     "zone": "offshore",
-     "effort": 36,
-     "catch": 43.727292,
-     "cash": 666.486159,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "nagi",
-     "zone": "coastal",
-     "effort": 9.96,
-     "catch": 8.553927,
-     "cash": 0.727648,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "shiosai",
-     "zone": "coastal",
-     "effort": 20,
-     "catch": 17.17656,
-     "cash": 13.549493,
-     "clamp": null,
-     "breached": false
-    }
-   ],
-   "newPacts": [],
-   "money": [],
-   "breached": []
-  },
-  {
-   "round": 9,
-   "storm": 0.0598,
-   "breakdowns": [
-    "shiosai"
-   ],
-   "price": 5.043837,
-   "stocks": {
-    "coastal": 282.074409,
-    "offshore": 428.301069,
-    "nursery": 367.772999
-   },
-   "entries": [
-    {
-     "boat": "kaiyo",
-     "zone": "coastal",
-     "effort": 35,
-     "catch": 29.72802,
-     "cash": 548.218772,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "hokuto",
-     "zone": "offshore",
-     "effort": 45,
-     "catch": 42.89643,
-     "cash": 1316.842163,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "isana",
-     "zone": "coastal",
-     "effort": 36,
-     "catch": 30.577392,
-     "cash": 748.11354,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "nagi",
-     "zone": "coastal",
-     "effort": 11.61,
-     "catch": 9.861209,
-     "cash": 20.889979,
-     "clamp": null,
-     "breached": false
-    },
-    {
-     "boat": "shiosai",
-     "zone": null,
-     "effort": 0,
-     "catch": 0,
-     "cash": -63.450507,
-     "clamp": "UNDER_REPAIR",
-     "breached": false
-    }
-   ],
-   "newPacts": [],
-   "money": [],
-   "breached": []
+  "outcome": {
+    "livelihood": 648.166156,
+    "stewardship": 0.616437,
+    "cooperation": 0.238616,
+    "spent": 346,
+    "counterfactualStewardship": 0.533876,
+    "boats": [
+      {
+        "boatId": "kaiyo",
+        "finalCash": 548.218772,
+        "operatingProfit": 334.218772,
+        "survived": true,
+        "totalCatch": 247.73147,
+        "breaches": 0,
+        "paidOut": 346,
+        "received": 0,
+        "smallFleet": false
+      },
+      {
+        "boatId": "hokuto",
+        "finalCash": 1316.842163,
+        "operatingProfit": 461.842163,
+        "survived": true,
+        "totalCatch": 303.614836,
+        "breaches": 0,
+        "paidOut": 0,
+        "received": 327,
+        "smallFleet": false
+      },
+      {
+        "boatId": "isana",
+        "finalCash": 748.11354,
+        "operatingProfit": 521.11354,
+        "survived": true,
+        "totalCatch": 340.261812,
+        "breaches": 0,
+        "paidOut": 196,
+        "received": 0,
+        "smallFleet": false
+      },
+      {
+        "boatId": "nagi",
+        "finalCash": 20.889979,
+        "operatingProfit": -80.132199,
+        "survived": true,
+        "totalCatch": 37.899772,
+        "breaches": 0,
+        "paidOut": 174.977822,
+        "received": 0,
+        "smallFleet": true
+      },
+      {
+        "boatId": "shiosai",
+        "finalCash": -63.450507,
+        "operatingProfit": -118.362725,
+        "survived": false,
+        "totalCatch": 58.3383,
+        "breaches": 0,
+        "paidOut": 193.087782,
+        "received": 0,
+        "smallFleet": true
+      }
+    ]
   }
- ],
- "outcome": {
-  "livelihood": 648.166156,
-  "stewardship": 0.616437,
-  "cooperation": 0.238616,
-  "spent": 346,
-  "counterfactualStewardship": 0.533876,
-  "boats": [
-   {
-    "boatId": "kaiyo",
-    "finalCash": 548.218772,
-    "operatingProfit": 334.218772,
-    "survived": true,
-    "totalCatch": 247.73147,
-    "breaches": 0,
-    "paidOut": 346,
-    "received": 0,
-    "smallFleet": false
-   },
-   {
-    "boatId": "hokuto",
-    "finalCash": 1316.842163,
-    "operatingProfit": 461.842163,
-    "survived": true,
-    "totalCatch": 303.614836,
-    "breaches": 0,
-    "paidOut": 0,
-    "received": 327,
-    "smallFleet": false
-   },
-   {
-    "boatId": "isana",
-    "finalCash": 748.11354,
-    "operatingProfit": 521.11354,
-    "survived": true,
-    "totalCatch": 340.261812,
-    "breaches": 0,
-    "paidOut": 196,
-    "received": 0,
-    "smallFleet": false
-   },
-   {
-    "boatId": "nagi",
-    "finalCash": 20.889979,
-    "operatingProfit": -80.132199,
-    "survived": true,
-    "totalCatch": 37.899772,
-    "breaches": 0,
-    "paidOut": 174.977822,
-    "received": 0,
-    "smallFleet": true
-   },
-   {
-    "boatId": "shiosai",
-    "finalCash": -63.450507,
-    "operatingProfit": -118.362725,
-    "survived": false,
-    "totalCatch": 58.3383,
-    "breaches": 0,
-    "paidOut": 193.087782,
-    "received": 0,
-    "smallFleet": true
-   }
-  ]
- }
 }

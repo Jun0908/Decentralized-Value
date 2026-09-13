@@ -78,7 +78,9 @@ export function systemPrompt(scenario: OceanScenario, mission: string): string {
         `- ${zone.id} (${zone.name}): capacity ${zone.carryingCapacity}, regrowth ${zone.growthRate}, ` +
         `travel cost ${zone.travelCost}, yield per effort at full stock ${zone.catchEfficiency}, ` +
         `storm exposure ${zone.stormExposure}` +
-        (zone.reserve ? `, RESERVE — fined ${scenario.reserveFinePerEffort} per unit of effort` : ""),
+        (zone.reserve
+          ? `, RESERVE — fined ${scenario.reserveFinePerEffort} per unit of effort`
+          : ""),
     )
     .join("\n");
 

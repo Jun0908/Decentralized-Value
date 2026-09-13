@@ -213,7 +213,9 @@ export function transition(
 
   // 3. Share each zone's finite stock among everyone fishing it.
   for (const zone of scenario.zones) {
-    const here = planned.filter((item) => item.zone?.id === zone.id && item.entry.appliedEffort > 0);
+    const here = planned.filter(
+      (item) => item.zone?.id === zone.id && item.entry.appliedEffort > 0,
+    );
     if (here.length === 0) continue;
     const stock = state.stocks[zone.id] ?? 0;
     const perEffort = yieldPerEffort(zone, stock, weather);
@@ -225,7 +227,9 @@ export function transition(
       item.entry.catch = landed;
       if (scale < 1) item.entry.clampReason = "STOCK_EXHAUSTED";
     }
-    state.stocks[zone.id] = stable(Math.max(0, stock - here.reduce((sum, item) => sum + item.entry.catch, 0)));
+    state.stocks[zone.id] = stable(
+      Math.max(0, stock - here.reduce((sum, item) => sum + item.entry.catch, 0)),
+    );
   }
 
   // 4. One market clears for the whole fleet, so a glut hurts every boat.
@@ -274,7 +278,9 @@ export function transition(
       if (!state.fund.members.includes(boatId)) continue;
       const boatState = state.boats[boatId];
       if (!boatState?.active) continue;
-      const payout = stable(Math.min(state.fund.payoutCap, state.fund.balance, scenario.repairCost));
+      const payout = stable(
+        Math.min(state.fund.payoutCap, state.fund.balance, scenario.repairCost),
+      );
       if (payout <= 0) continue;
       boatState.cash = stable(boatState.cash + payout);
       state.fund.balance = stable(state.fund.balance - payout);

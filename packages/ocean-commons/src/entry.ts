@@ -78,7 +78,8 @@ yourself, when the arithmetic favours it.`,
  */
 export function checkOceanEntry(input: unknown): { entry: OceanEntry | null; failures: string[] } {
   const failures: string[] = [];
-  const record = typeof input === "object" && input !== null ? (input as Record<string, unknown>) : null;
+  const record =
+    typeof input === "object" && input !== null ? (input as Record<string, unknown>) : null;
   if (record === null) return { entry: null, failures: ["An entry must be a JSON object"] };
 
   const name = typeof record["name"] === "string" ? record["name"].trim() : "";
@@ -100,7 +101,11 @@ export function checkOceanEntry(input: unknown): { entry: OceanEntry | null; fai
   const money = (key: keyof typeof OCEAN_ENTRY_LIMITS, label: string): number => {
     const bounds = OCEAN_ENTRY_LIMITS[key] as { min: number; max: number };
     const value = wallet?.[key];
-    if (!Number.isSafeInteger(value) || (value as number) < bounds.min || (value as number) > bounds.max) {
+    if (
+      !Number.isSafeInteger(value) ||
+      (value as number) < bounds.min ||
+      (value as number) > bounds.max
+    ) {
       failures.push(`${label} must be a whole number from ${bounds.min} to ${bounds.max}`);
       return bounds.min;
     }
@@ -139,7 +144,12 @@ export function checkOceanEntry(input: unknown): { entry: OceanEntry | null; fai
     failures.push("reserve must be never, storm-only or always");
   }
   const contracts = sailing?.["contracts"];
-  if (contracts !== "none" && contracts !== "cheap" && contracts !== "fair" && contracts !== "generous") {
+  if (
+    contracts !== "none" &&
+    contracts !== "cheap" &&
+    contracts !== "fair" &&
+    contracts !== "generous"
+  ) {
     failures.push("contracts must be none, cheap, fair or generous");
   }
 
@@ -204,7 +214,10 @@ export function oceanEntrySpaceSize(): number {
   return (
     2 ** OCEAN_PACT_KINDS.length *
     steps(OCEAN_ENTRY_LIMITS.startingBudget, OCEAN_WALLET_STEPS.startingBudget) *
-    steps(OCEAN_ENTRY_LIMITS.maxPaymentPerTransaction, OCEAN_WALLET_STEPS.maxPaymentPerTransaction) *
+    steps(
+      OCEAN_ENTRY_LIMITS.maxPaymentPerTransaction,
+      OCEAN_WALLET_STEPS.maxPaymentPerTransaction,
+    ) *
     steps(
       OCEAN_ENTRY_LIMITS.maxAutonomousSpendPerMatch,
       OCEAN_WALLET_STEPS.maxAutonomousSpendPerMatch,

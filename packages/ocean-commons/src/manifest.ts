@@ -13,7 +13,11 @@
  * here claims a competition.
  */
 
-import { canonicalProtocolJson, hashChallengeManifest, parseChallengeManifest } from "@frontier/shared";
+import {
+  canonicalProtocolJson,
+  hashChallengeManifest,
+  parseChallengeManifest,
+} from "@frontier/shared";
 import type { OutcomeMetric } from "@frontier/shared";
 import { keccak256, stringToHex, type Hex } from "viem";
 import { generateScenario, SEASON_WINDOW, baseBoats, baseZones } from "./scenario";

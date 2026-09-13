@@ -1,12 +1,5 @@
 import { stable } from "./rng";
-import type {
-  ActivePact,
-  BoatId,
-  EscrowRelease,
-  OceanState,
-  Proposal,
-  ZoneId,
-} from "./types";
+import type { ActivePact, BoatId, EscrowRelease, OceanState, Proposal, ZoneId } from "./types";
 
 /**
  * Contracts between agents. Two rules hold everywhere in this file:
@@ -142,9 +135,7 @@ export function acceptProposal(
       standDownCap: proposal.terms.standDownCap,
     };
   } else if (fundFinanced) {
-    state.conservationFund!.balance = stable(
-      state.conservationFund!.balance - proposal.payment,
-    );
+    state.conservationFund!.balance = stable(state.conservationFund!.balance - proposal.payment);
   } else {
     proposer.cash = stable(proposer.cash - proposal.payment);
   }

@@ -77,9 +77,14 @@ for (let seedIndex = 0; seedIndex < SEEDS; seedIndex += 1) {
       ...background(scenario),
     ];
     const full = evaluateMatch(await runMatch(scenario, build()));
-    const solo = evaluateMatch(await runMatch(scenario, build(), { excludeContractsFor: focal.id }));
+    const solo = evaluateMatch(
+      await runMatch(scenario, build(), { excludeContractsFor: focal.id }),
+    );
     const ifTaken = evaluateMatch(
-      await runMatch(scenario, [takerAgent(focal.id, focal.name, scenario), ...background(scenario)]),
+      await runMatch(scenario, [
+        takerAgent(focal.id, focal.name, scenario),
+        ...background(scenario),
+      ]),
     );
     scores.livelihood[g]!.push(full.livelihood);
     scores.restraint[g]!.push(scoreRestraint(full, ifTaken, focal.id).efficacy);
@@ -91,7 +96,9 @@ const elapsed = (Date.now() - started) / 1000;
 // --- A. does one setting win everywhere? ----------------------------------
 
 console.log(`\nOcean Commons — Phase 0 / 全探索可能性`);
-console.log(`grid=${GRID.length} settings  seeds=${SEEDS}  matches=${GRID.length * SEEDS * 2}  elapsed=${elapsed.toFixed(1)}s\n`);
+console.log(
+  `grid=${GRID.length} settings  seeds=${SEEDS}  matches=${GRID.length * SEEDS * 2}  elapsed=${elapsed.toFixed(1)}s\n`,
+);
 
 console.log("| 軸 | 最頻の勝者 | その勝率 | 勝者の種類数 | 判定 |");
 console.log("| --- | --- | --- | --- | --- |");
@@ -134,7 +141,9 @@ console.log(
 
 // --- B. does a setting tuned on practice hold up on unseen seeds? ---------
 
-console.log(`\n--- 一般化 (Practice seed 0-${TRAIN - 1} で選び、Final seed ${TRAIN}-${SEEDS - 1} で評価) ---`);
+console.log(
+  `\n--- 一般化 (Practice seed 0-${TRAIN - 1} で選び、Final seed ${TRAIN}-${SEEDS - 1} で評価) ---`,
+);
 console.log("| 軸 | Practiceでの最良設定 | Final順位 | 全体順位の相関 |");
 console.log("| --- | --- | --- | --- |");
 
@@ -166,7 +175,8 @@ for (const axis of AXES) {
   const practice = GRID.map((_, g) => mean(scores[axis][g]!.slice(0, TRAIN)));
   const final = GRID.map((_, g) => mean(scores[axis][g]!.slice(TRAIN)));
   let bestPractice = 0;
-  for (let g = 1; g < GRID.length; g += 1) if (practice[g]! > practice[bestPractice]!) bestPractice = g;
+  for (let g = 1; g < GRID.length; g += 1)
+    if (practice[g]! > practice[bestPractice]!) bestPractice = g;
   const finalRank = ranks(final)[bestPractice]!;
   console.log(
     `| ${axis} | ${label(GRID[bestPractice]!)} | ${finalRank}位 / ${GRID.length} | ρ=${spearman(practice, final).toFixed(3)} |`,
@@ -185,7 +195,12 @@ for (const axis of AXES) {
   const pairs: number[] = [];
   for (let i = 0; i < packRanks.length; i += 1) {
     for (let j = i + 1; j < packRanks.length; j += 1) {
-      pairs.push(spearman(packRanks[i]!.map((r) => -r), packRanks[j]!.map((r) => -r)));
+      pairs.push(
+        spearman(
+          packRanks[i]!.map((r) => -r),
+          packRanks[j]!.map((r) => -r),
+        ),
+      );
     }
   }
   const top = packRanks.map((r) => r.indexOf(1));

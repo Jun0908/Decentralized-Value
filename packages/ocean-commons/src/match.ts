@@ -88,12 +88,22 @@ function soundingsFor(
       const truth = record.stocksBefore[zone.id] ?? 0;
       const mine = worked.some((entry) => entry.boatId === boatId);
       if (mine) {
-        soundings.push({ zoneId: zone.id, stock: stable(truth), round: record.round, source: "FISHED" });
+        soundings.push({
+          zoneId: zone.id,
+          stock: stable(truth),
+          round: record.round,
+          source: "FISHED",
+        });
         continue;
       }
       // A counterparty under a sounding exchange reports what it measured.
       if (worked.some((entry) => shared.has(entry.boatId))) {
-        soundings.push({ zoneId: zone.id, stock: stable(truth), round: record.round, source: "SHARED" });
+        soundings.push({
+          zoneId: zone.id,
+          stock: stable(truth),
+          round: record.round,
+          source: "SHARED",
+        });
         continue;
       }
       const band = zone.carryingCapacity / 10;
@@ -125,15 +135,17 @@ function memoryFor(history: RoundRecord[], boatId: string): BoatRoundMemory[] {
   return history.flatMap((record) => {
     const self = record.entries.find((entry) => entry.boatId === boatId);
     if (!self) return [];
-    return [{
-      round: record.round,
-      weather: record.weather,
-      price: record.priceBefore,
-      self,
-      others: record.entries
-        .filter((entry) => entry.boatId !== boatId)
-        .map((entry) => ({ boatId: entry.boatId, zoneId: entry.zoneId, catch: entry.catch })),
-    }];
+    return [
+      {
+        round: record.round,
+        weather: record.weather,
+        price: record.priceBefore,
+        self,
+        others: record.entries
+          .filter((entry) => entry.boatId !== boatId)
+          .map((entry) => ({ boatId: entry.boatId, zoneId: entry.zoneId, catch: entry.catch })),
+      },
+    ];
   });
 }
 
@@ -359,11 +371,7 @@ export async function runMatch(
 }
 
 /** Returns a violation code when a proposal exceeds the user's mandate. */
-function walletViolation(
-  proposal: Proposal,
-  wallet: WalletPolicy,
-  spent: number,
-): string | null {
+function walletViolation(proposal: Proposal, wallet: WalletPolicy, spent: number): string | null {
   if (!wallet.allowedPurposes.includes(proposal.terms.kind)) return "PURPOSE_NOT_ALLOWED";
   // Personal spend limits apply to a boat's own money. Pool money is governed
   // by the fund's own ceiling, which every member agreed to when it joined.

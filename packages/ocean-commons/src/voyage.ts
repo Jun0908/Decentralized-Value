@@ -109,12 +109,7 @@ const GALE = 0.85;
  * After that it creeps back one step per round, because the ground keeps
  * moving while you are not looking.
  */
-function fogFor(
-  log: MatchLog,
-  zoneId: ZoneId,
-  round: number,
-  viewpoint: BoatId | null,
-): number {
+function fogFor(log: MatchLog, zoneId: ZoneId, round: number, viewpoint: BoatId | null): number {
   if (viewpoint === null) return 0;
   let best = 1;
   for (const record of log.rounds) {
@@ -199,20 +194,25 @@ function captionsFor(
         : "The bank is shut. Everyone is working inshore.",
     );
   } else if (raiders.length > 0) {
-    out.push(`${list(raiders)} ${raiders.length === 1 ? "is" : "are"} fishing the nursery reserve.`);
+    out.push(
+      `${list(raiders)} ${raiders.length === 1 ? "is" : "are"} fishing the nursery reserve.`,
+    );
   }
 
   const dry = boats.filter(
     (boat) => boat.clampReason === "OUT_OF_FUEL" && hadFuel.has(boat.boatId),
   );
   if (dry.length > 0) {
-    out.push(`${list(dry)} ${dry.length === 1 ? "is" : "are"} out of fuel and tied up for the rest of the season.`);
+    out.push(
+      `${list(dry)} ${dry.length === 1 ? "is" : "are"} out of fuel and tied up for the rest of the season.`,
+    );
   }
 
   const best = boats.reduce((top, boat) => (boat.catch > top.catch ? boat : top), boats[0]!);
   if (phase === "RESULT") out.push("The season is over.");
   if (storm > 0.5) out.push("Rough water. The exposed grounds pay badly today.");
-  if (best.catch > 0) out.push(`${best.name} has the best of it, landing ${best.catch.toFixed(0)}.`);
+  if (best.catch > 0)
+    out.push(`${best.name} has the best of it, landing ${best.catch.toFixed(0)}.`);
   out.push("A quiet round. Nobody landed anything worth the fuel.");
   return out;
 }
@@ -252,9 +252,7 @@ export function toVoyage(log: MatchLog, viewpoint: BoatId | null = null): Voyage
     // or it is broken. `RoundRecord` carries only the ids, so the terms come
     // back from the proposals the match actually settled.
     const live = log.acceptedProposals.filter((proposal) => {
-      const broke = log.rounds.find((candidate) =>
-        candidate.breachedPacts.includes(proposal.id),
-      );
+      const broke = log.rounds.find((candidate) => candidate.breachedPacts.includes(proposal.id));
       const last = proposal.round + proposal.durationRounds - 1;
       return (
         record.round >= proposal.round &&
@@ -297,9 +295,7 @@ export function toVoyage(log: MatchLog, viewpoint: BoatId | null = null): Voyage
         .filter((candidate) => candidate.round <= record.round)
         .reverse()
         .find((candidate) =>
-          candidate.entries.some(
-            (entry) => entry.zoneId === zone.id && entry.appliedEffort > 0,
-          ),
+          candidate.entries.some((entry) => entry.zoneId === zone.id && entry.appliedEffort > 0),
         );
       const believed =
         viewpoint === null || lastSeen === undefined
@@ -360,7 +356,9 @@ export function toVoyage(log: MatchLog, viewpoint: BoatId | null = null): Voyage
       round.bonds,
       round.stormSeverity,
       names,
-      index === 0 ? round.boats.map((boat) => ({ ...boat, active: true, clampReason: null })) : rounds[index - 1]!.boats,
+      index === 0
+        ? round.boats.map((boat) => ({ ...boat, active: true, clampReason: null }))
+        : rounds[index - 1]!.boats,
       round.refusals,
     );
     round.caption = options.find((line) => line !== saidLast) ?? options[0]!;

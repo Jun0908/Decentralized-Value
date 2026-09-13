@@ -60,7 +60,9 @@ const fleet: OceanAgent[] = [
   cautiousAgent(e!.id, e!.name, scenario),
 ];
 
-console.log(`Ocean Commons — seed ${SEED}, ${scenario.rounds} rounds (window ${scenario.seasonWindow.min}-${scenario.seasonWindow.max})`);
+console.log(
+  `Ocean Commons — seed ${SEED}, ${scenario.rounds} rounds (window ${scenario.seasonWindow.min}-${scenario.seasonWindow.max})`,
+);
 const RUNNER = process.env["OPENAI_MODEL"] ?? "gpt-5";
 console.log(`${focal!.name} is run by ${RUNNER}; the other four are scripted baselines.\n`);
 
@@ -80,7 +82,7 @@ for (const record of log.rounds) {
 
   console.log(`── Round ${record.round} ${"─".repeat(46)}`);
   console.log(
-    `  Observed   stocks ${(stock / capacity * 100).toFixed(0)}% of capacity, ` +
+    `  Observed   stocks ${((stock / capacity) * 100).toFixed(0)}% of capacity, ` +
       `price ${record.priceBefore.toFixed(2)}, storm ${record.weather.stormSeverity.toFixed(2)}` +
       (record.weather.breakdowns.length > 0
         ? `, breakdowns: ${record.weather.breakdowns.join(", ")}`
@@ -101,7 +103,8 @@ for (const record of log.rounds) {
         `${pact.terms.kind}, ${pact.payment} DemoUSD escrowed for ${pact.durationRounds} rounds`,
     );
   }
-  if (talk?.declaredReason && newPacts.length > 0) console.log(`  Reason     "${talk.declaredReason}"`);
+  if (talk?.declaredReason && newPacts.length > 0)
+    console.log(`  Reason     "${talk.declaredReason}"`);
   for (const release of record.escrowReleases) {
     console.log(
       `  Money      ${release.type === "RELEASE" ? "released" : "refunded"} ${release.amount.toFixed(1)} ` +
@@ -113,7 +116,9 @@ for (const record of log.rounds) {
   }
   console.log(
     `  Result     cash ${mine.cashAfter.toFixed(0)}, price now ${record.priceAfter.toFixed(2)}, ` +
-      `stocks ${Object.entries(record.stocksAfter).map(([z, v]) => `${z} ${(v as number).toFixed(0)}`).join(", ")}`,
+      `stocks ${Object.entries(record.stocksAfter)
+        .map(([z, v]) => `${z} ${(v as number).toFixed(0)}`)
+        .join(", ")}`,
   );
 }
 
@@ -135,10 +140,16 @@ const cooperation = scoreCooperation(full, solo, focal!.id);
 const me = full.boats.find((boat) => boat.boatId === focal!.id)!;
 
 console.log(`\n${"═".repeat(60)}`);
-console.log(`Livelihood            ${full.livelihood.toFixed(0)} (fleet median)   your cash ${me.finalCash.toFixed(0)}`);
+console.log(
+  `Livelihood            ${full.livelihood.toFixed(0)} (fleet median)   your cash ${me.finalCash.toFixed(0)}`,
+);
 console.log(`Stewardship           ${full.stewardship.toFixed(3)} of capacity at its worst`);
-console.log(`Cooperation efficacy  ${cooperation.efficacy.toFixed(3)} per 1000 DemoUSD spent (${cooperation.spent.toFixed(0)} spent)`);
-console.log(`Contracts             ${full.contracts.accepted} accepted, ${full.contracts.breached} broken`);
+console.log(
+  `Cooperation efficacy  ${cooperation.efficacy.toFixed(3)} per 1000 DemoUSD spent (${cooperation.spent.toFixed(0)} spent)`,
+);
+console.log(
+  `Contracts             ${full.contracts.accepted} accepted, ${full.contracts.breached} broken`,
+);
 console.log(`Survived              ${me.survived ? "yes" : "no — bankrupt"}`);
 
 const usage = turns.reduce(

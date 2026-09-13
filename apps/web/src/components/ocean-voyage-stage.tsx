@@ -263,11 +263,11 @@ export function OceanVoyageStage({ voyage }: { voyage: Voyage }) {
           return (
             <path
               key={`${bond.pactId}-${bond.to}-${bond.fresh ? "new" : "held"}`}
-              className={`ocean-bond${bond.broken ? " broken" : ""}${
-                bond.fresh ? " fresh" : ""
-              }`}
+              className={`ocean-bond${bond.broken ? " broken" : ""}${bond.fresh ? " fresh" : ""}`}
               stroke={BOND_COLOR[bond.kind] ?? "var(--ocean-bond-limit)"}
-              strokeWidth={bond.broken ? 0.7 : Math.max(0.5, Math.min(2.2, bond.escrowRemaining / 60))}
+              strokeWidth={
+                bond.broken ? 0.7 : Math.max(0.5, Math.min(2.2, bond.escrowRemaining / 60))
+              }
               strokeDasharray={
                 bond.broken
                   ? "1.2 1.6"
