@@ -6,7 +6,7 @@ import fixture from "../../../tests/fixtures/rescue-room.json";
 import {
   evaluateRescueDoctrinePracticeEpisode,
   normalizeRescueDoctrine,
-  publicRescueRoomScenario,
+  rescuePublicPracticeEpisodeIds,
   rescueDoctrinePresets,
 } from "../../rescue-room/src/index";
 import {
@@ -100,15 +100,21 @@ describe("Rescue Doctrine SDK integrity verifier", () => {
     expect(input).toEqual(before);
   });
 
-  it("agrees with every existing public Episode and all three canonical Doctrine presets", () => {
-    for (const episode of publicRescueRoomScenario().episodes) {
-      for (const preset of rescueDoctrinePresets) {
-        const input = makeInput(preset.doctrine, episode.id);
-        expect(verifyRescueDoctrinePracticeIntegrity(input).hashes.evaluation).toBe(
-          input.run.raw.evaluationHash,
-        );
-      }
-    }
+  // Keep every combination, with an independent default timeout and useful failure name.
+  // Reading public IDs also avoids computing an unrelated reference leaderboard.
+  it.each(
+    rescuePublicPracticeEpisodeIds().flatMap((episodeId) =>
+      rescueDoctrinePresets.map((preset) => ({
+        episodeId,
+        presetId: preset.id,
+        doctrine: preset.doctrine,
+      })),
+    ),
+  )("agrees with public Episode $episodeId / Doctrine $presetId", ({ episodeId, doctrine }) => {
+    const input = makeInput(doctrine, episodeId);
+    expect(verifyRescueDoctrinePracticeIntegrity(input).hashes.evaluation).toBe(
+      input.run.raw.evaluationHash,
+    );
   });
 
   it("matches name trimming and lexical set sorting while preserving priority order", () => {

@@ -2880,7 +2880,11 @@ export function publicRescueRoomScenario() {
         initialEpisodeBudget: rescueRoomInitialBudgetCredits,
       },
       sepoliaShowcase: {
-        state: "contract-implemented-not-deployed" as const,
+        state: "operator-pilot-paid" as const,
+        evidenceUrl:
+          "https://github.com/Jun0908/Decentralized-Value/blob/main/Docs/deployments/sepolia-rescue-service-demo.json",
+        // These are Practice execution targets, not the historical operator deployment.
+        // Keep them unset: the public Practice API cannot spend from the operator wallets.
         token: { ...rescueUsdDemoToken, address: null },
         escrowAddress: null,
         maximumOrderAmount: 50,
@@ -2888,7 +2892,7 @@ export function publicRescueRoomScenario() {
         orderStates: ["NONE", "FUNDED", "DELIVERED", "RELEASED", "REFUNDED"] as const,
         evidenceSchemaVersion: "rescue-sepolia-payment-evidence-v0" as const,
         claimBoundary:
-          "Paid requires a confirmed release event and verified Service Agent balance increase.",
+          "Recorded operator-controlled Sepolia pilot: 5 rUSD-DEMO paid and a separate 5 rUSD-DEMO refunded. Contract and role addresses are published in the linked evidence, not configured as Practice payment targets here. Practice remains game-credits; this is not live payment readiness, a third-party market, or tournament reward settlement. Paid requires a confirmed release event and verified Service Agent balance increase.",
       },
     },
     initialBudgetCredits: rescueRoomInitialBudgetCredits,
@@ -2939,7 +2943,8 @@ export function publicRescueRoomScenario() {
     }),
     policyResults: rescuePracticePolicyResults,
     frontierPolicyIds: rescuePracticeFrontier.map(({ id }) => id as RescuePracticePolicyId),
-    valuePools: rescuePracticeValuePools,
+    // Materialize lazy allocations before crossing the React Server/Client boundary.
+    valuePools: rescuePracticeValuePools.map((pool) => ({ ...pool })),
   };
 }
 

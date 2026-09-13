@@ -22,6 +22,7 @@ import {
   rescueSepoliaPaymentEvidenceSchema,
   rescueServiceManifestHash,
   rescueUsdDemoToken,
+  rescuePracticeValuePools,
   runRescuePolicy,
   type IncidentFamily,
 } from "./index";
@@ -35,6 +36,19 @@ function findSeed(family: IncidentFamily): string {
 }
 
 describe("Rescue Room Phase 0", () => {
+  it("materializes public Pool allocations without changing their values", () => {
+    const pools = publicRescueRoomScenario().valuePools;
+    expect(pools).toEqual(rescuePracticeValuePools);
+    expect(JSON.parse(JSON.stringify(pools))).toEqual(pools);
+    for (const pool of pools) {
+      expect(Object.getPrototypeOf(pool)).toBe(Object.prototype);
+      for (const descriptor of Object.values(Object.getOwnPropertyDescriptors(pool))) {
+        expect(descriptor.get).toBeUndefined();
+        expect(descriptor.set).toBeUndefined();
+      }
+    }
+  });
+
   it("generates the same committed Episode from the same seed", () => {
     const first = generateRescueEpisode("repeatable-seed");
     const second = generateRescueEpisode("repeatable-seed");

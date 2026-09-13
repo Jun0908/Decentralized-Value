@@ -2,7 +2,7 @@
 
 Date: 2026-09-13. Source: user-supplied Claude Code review, followed by local source inspection and four nonmutating public GET checks.
 
-Status: **documented and partially independently reproduced; fixes not implemented in this documentation task.**
+Status: **initial review documented; local follow-up corrections are recorded in section 7. Production deployment remains unverified for those corrections.**
 
 This supplements the earlier [public verification report](PUBLIC_VERIFICATION_2026-09-13.md). That report covered pages, deterministic practice, proof handling, evidence downloads, and a non-AI SDK journey. It did not test public paid AI execution.
 
@@ -75,4 +75,18 @@ The user reports successful public page checks, input validation, sandbox revisi
 
 Recorded Sepolia payment and official CRE simulation evidence should remain visible. The corrective action is to align machine-readable availability with actual capabilities, not to erase demonstrated work or imply broader completion.
 
-This task updates plans and evidence boundaries only. No runtime fix, secret registration, deployment, paid AI run, or Push has been performed.
+The initial documentation task made no runtime fix, secret registration, deployment, paid AI run, or Push. The subsequent local implementation is recorded below.
+
+## 7. Local corrective implementation — 2026-09-13
+
+- Replaced the single 105-case SDK integrity loop with 105 individually named tests using the lightweight public Episode ID list. No timeout increase, removed cases, fake result, or hash-algorithm change. The original isolated test passed once here; the user-reported repeated timeout is not relabeled as a proven load flake.
+- Added `/rescue-room` → `/arenas/rescue-room` navigation. Browser verification also exposed existing lazy Pool getters crossing the React Server/Client boundary; materializing the Pool objects resolves that error without changing allocation values.
+- Corrected the descriptor to `operator-pilot-paid`, linked saved deployment/payment evidence, and preserved null Practice execution targets. Historical contract/role addresses remain in the linked public evidence. Public Practice still cannot spend operator funds, and its payment state remains `game-credits`.
+- Verified the public operations, submission, English submission and sponsor evidence pages by GET; corrected README's obsolete local-only claims. This is not public live-inference verification.
+- Excluded `workflows/chainlink-cre/**/generated/**` from both ESLint and Prettier; excluded local recording, smoke-result and scratch output from the relevant checks. Authored CRE sources and SDK-generated contract sources remain checked. Applied formatting-only changes to six remaining authored files flagged by the full format check.
+
+Standard `pnpm test:ts`: **940 passed / 11 skipped**. Workspace typecheck, Web production build, full Prettier, ESLint and SDK/CLI contract checks passed. Parent/child browser navigation passed at desktop/mobile sizes with console errors 0. Recorded screenshots still show an existing mobile hero clipping issue; this was not presented as a full layout pass. Full `pnpm lint` cannot complete its Foundry step because `forge` is unavailable in this PowerShell environment; full CI and Solidity checks were not claimed.
+
+The first full test run overlapped SDK regeneration and failed its stale-fixture guard. After regeneration completed, the standard full suite passed twice (939 tests before the additional Pool-boundary regression, 940 afterward). Only Starter/provenance digests changed; the deterministic evaluation result remained unchanged.
+
+No new AI inference, payment, secret registration, Push or deployment was performed. Public AI configuration, Ocean duration/recovery, discovery and mixed arena identifiers remain open. A local green check does not establish that GitHub main or the deployed application has received these changes.

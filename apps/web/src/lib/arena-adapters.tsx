@@ -99,7 +99,8 @@ const oceanAdapter: ArenaAdapter = {
     return <OceanCommonsWorkbench scenario={publicOceanCommonsScenario()} />;
   },
   async loadManifest() {
-    const { oceanCommonsManifest, oceanCommonsManifestHash } = await import("@frontier/ocean-commons");
+    const { oceanCommonsManifest, oceanCommonsManifestHash } =
+      await import("@frontier/ocean-commons");
     return { manifest: oceanCommonsManifest, manifestHash: oceanCommonsManifestHash };
   },
 };
@@ -112,9 +113,7 @@ export const arenaAdapters: ReadonlyMap<string, ArenaAdapter> = new Map(
     secretGateAdapter,
     rescueRoomAdapter,
     oceanAdapter,
-  ].map(
-    (adapter) => [adapter.kind, adapter],
-  ),
+  ].map((adapter) => [adapter.kind, adapter]),
 );
 
 export function getArenaAdapter(kind: string): ArenaAdapter | undefined {

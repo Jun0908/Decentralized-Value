@@ -16,7 +16,7 @@ Value Decentralization is an open evaluation protocol for **sharing evidence wit
 
 ## Judges: see the protocol in 60 seconds
 
-Sponsor integrations now have recorded ENSv2 Sepolia permission transactions, official CRE local simulation with private-input/reveal replay, and a real external AI using Bazantic MCP. [Recording guide, evidence, and representative source](Docs/sponsors/SPONSOR_DEMO_RECORDING.md). The new `/sponsors/demo` page is local until deployed. These are separate demonstrations, not a completed hidden Final tournament or a Bazantic-hosted Recipe execution.
+Sponsor integrations now have recorded ENSv2 Sepolia permission transactions, official CRE local simulation with private-input/reveal replay, and a real external AI using Bazantic MCP. [Recording guide, evidence, and representative source](Docs/sponsors/SPONSOR_DEMO_RECORDING.md). The [sponsor evidence page](https://web-rho-seven-d6te7t3f0y.vercel.app/sponsors/demo) is publicly available (verified 2026-09-13). These are separate demonstrations, not a completed hidden Final tournament or a Bazantic-hosted Recipe execution.
 
 ### 1. Run a real EVM evaluation
 
@@ -52,15 +52,15 @@ The same evidence can then feed separate Efficiency, Resilience, Fairness, and F
 
 The Sepolia demonstration completes the path from allocation commitment to `RewardPaid` and records a `10,000 FDT` recipient balance increase. FDT is a demonstration token and carries no claim of monetary value.
 
-### Local Rescue Room: an AI hired another AI and paid it
+### Rescue Room: an AI hired another AI and paid it
 
-The new local `/rescue-room/operations` page explains a verified Commander → specialist → Sepolia escrow payment of **5 rUSD-DEMO**, plus a separate **5 rUSD-DEMO timeout refund**. [Public transaction evidence](Docs/deployments/sepolia-rescue-service-demo.json) and the [Japanese operator runbook](Docs/RESCUE_EXECUTION_BATCH.md) describe the exact scope. This page has not been deployed to the public product above.
+The public [Rescue operations page](https://web-rho-seven-d6te7t3f0y.vercel.app/rescue-room/operations) explains a verified Commander → specialist → Sepolia escrow payment of **5 rUSD-DEMO**, plus a separate **5 rUSD-DEMO timeout refund**. [Public transaction evidence](Docs/deployments/sepolia-rescue-service-demo.json) and the [Japanese operator runbook](Docs/RESCUE_EXECUTION_BATCH.md) describe the exact scope. The evidence page was verified publicly available on 2026-09-13; viewing it does not execute a new AI run or payment.
 
-These are separate real model calls and operator-controlled wallets. The purchased service interprets supplied observations; its diagnosis is not proven correct. A separate local `/rescue-room/submission` demo now feeds that analysis back into three real Commander decisions, replays their simulated outcomes, and compares three independent Pool previews. In this recorded episode, doing nothing dominates the AI response; the demo does not hide that result. Run `pnpm verify:rescue:submission-replay` to reproduce the recorded game outcome and Pool allocation from public inputs without API keys. [Submission scope and narration draft](Docs/HACKATHON_SUBMISSION.md).
+These are separate real model calls and operator-controlled wallets. The purchased service interprets supplied observations; its diagnosis is not proven correct. The public [submission demo](https://web-rho-seven-d6te7t3f0y.vercel.app/rescue-room/submission) shows that analysis fed back into three recorded real Commander decisions, replays their simulated outcomes, and compares three independent Pool previews. In this recorded episode, doing nothing dominates the AI response; the demo does not hide that result. Run `pnpm verify:rescue:submission-replay` to reproduce the recorded game outcome and Pool allocation from public inputs without API keys. [Submission scope and narration draft](Docs/HACKATHON_SUBMISSION.md).
 
 rUSD-DEMO has no monetary value. An open third-party service market, hidden Final competition, and Rescue reward settlement are **not yet complete**.
 
-For the English recorded-run demo, open local `/rescue-room/submission/en`. The [handoff guide](Docs/RESCUE_HANDOFF.md) includes a two-minute English narration, a locally recorded silent video, and clean-room replay / SDK HTTP verification. The video and latest page are not published by these local checks.
+For the English recorded-run demo, open the public [English submission page](https://web-rho-seven-d6te7t3f0y.vercel.app/rescue-room/submission/en). Both submission pages were verified publicly available on 2026-09-13. The [handoff guide](Docs/RESCUE_HANDOFF.md) includes a two-minute English narration, a locally recorded silent video, and clean-room replay / SDK HTTP verification. Video publication and public live-AI readiness are separate from these evidence-page checks.
 
 Developers can follow the [Rescue Practice quickstart](Docs/RESCUE_AGENT_QUICKSTART.md) and run `pnpm exec tsx scripts/verify-rescue-practice-onboarding.ts http://localhost:3000` to check the existing non-billable API, Starter digest, result integrity and repeatability. This does not enter a Final or make a payment.
 

@@ -1,4 +1,5 @@
 import benchmark from "../../../benchmarks/evm-orderbook/results/latest.json";
+import rescuePaymentEvidence from "../../../Docs/deployments/sepolia-rescue-service-demo.json";
 import { strFromU8, unzipSync } from "fflate";
 import { defaultOceanEntry, OCEAN_SUBMISSION_SEASONS } from "@frontier/ocean-commons";
 import { describe, expect, it, vi } from "vitest";
@@ -117,8 +118,22 @@ describe("Frontier API contracts", () => {
 
     expect(scenario.state).toBe("simulated");
     expect(scenario.paymentState).toBe("game-credits");
-    expect(scenario.paymentRuntime.sepoliaShowcase.state).toBe("contract-implemented-not-deployed");
+    expect(scenario.paymentRuntime.sepoliaShowcase.state).toBe("operator-pilot-paid");
     expect(scenario.paymentRuntime.sepoliaShowcase.token.symbol).toBe("rUSD-DEMO");
+    expect(scenario.paymentRuntime.sepoliaShowcase.token.address).toBeNull();
+    expect(scenario.paymentRuntime.sepoliaShowcase.escrowAddress).toBeNull();
+    expect(scenario.paymentRuntime.sepoliaShowcase.evidenceUrl).toBe(
+      "https://github.com/Jun0908/Decentralized-Value/blob/main/Docs/deployments/sepolia-rescue-service-demo.json",
+    );
+    // Bind the historical claim to checked-in evidence, not live RPC or Practice settlement.
+    expect(rescuePaymentEvidence.verifiedAt).toBeTruthy();
+    expect(rescuePaymentEvidence.deployment.tokenAddress).toMatch(/^0x[0-9a-fA-F]{40}$/);
+    expect(rescuePaymentEvidence.deployment.escrowAddress).toMatch(/^0x[0-9a-fA-F]{40}$/);
+    expect(rescuePaymentEvidence.purchase.releaseTx).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(rescuePaymentEvidence.purchase.amount).toBe("5");
+    expect(rescuePaymentEvidence.purchase.providerBalanceAfter).toBe("5");
+    expect(rescuePaymentEvidence.refund.amount).toBe("5");
+    expect(rescuePaymentEvidence.refund.refundTx).toMatch(/^0x[0-9a-f]{64}$/);
     expect(scenario.episodes).toHaveLength(35);
     expect(publicEpisodes).not.toContain("incidentFamily");
     expect(firstResponse.status).toBe(200);

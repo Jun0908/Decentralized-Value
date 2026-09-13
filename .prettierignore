@@ -6,3 +6,10 @@ pnpm-lock.yaml
 Docs/
 packages/contracts/lib
 packages/contracts/out
+
+# Machine-written recording, measurement and CRE build output (not authored source).
+artifacts/video-demo/
+benchmarks/rescue-room/results/ai-smoke-latest.json
+workflows/chainlink-cre/**/generated/**
+.frontier/
+**/scratchpad/**

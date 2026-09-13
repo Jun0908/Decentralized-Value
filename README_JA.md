@@ -23,8 +23,8 @@ Value Decentralizationは、**事実は共有しながら、価値判断は一�
 現在のPacked codecの再現可能な結果:
 
 | Calldata gas | Decoder gas | Correctness | Frontier contribution |
-| ---: | ---: | :---: | ---: |
-| `8,200` | `13,061` | `PASS` | `+5.27%` |
+| -----------: | ----------: | :---------: | --------------------: |
+|      `8,200` |    `13,061` |   `PASS`    |              `+5.27%` |
 
 DictionaryはCalldataが小さく、PackedはDecoderが安い。どちらも他方を完全には上回らないため、両方がPareto Frontierに残ります。Standard ABIは両軸で劣るためFrontierから外れます。
 
@@ -176,14 +176,14 @@ Same Outcome / Result Hash
 
 ## 6つのArena、1つのProtocol
 
-| Arena | 独立したOutcome | State |
-| --- | --- | --- |
-| **72-Hour Disaster Response** | cost ↓ · worst-case delivery ↑ · regional coverage ↑ | Demo competition |
-| **Ethereum Calldata Compression** | calldata gas ↓ · decoder gas ↓ | Practice |
-| **Community Microgrid Dispatch** | cost ↓ · worst-case energy ↑ · carbon ↓ | Practice |
-| **Secret Gate** | proof latency ↓ · memory ↓ | Practice / observational |
-| **Rescue Room** | user loss ↓ · demand served ↑ · response spend ↓ | Controlled Practice |
-| **Ocean Commons** | livelihood ↑ · restraint ↑ · cooperation ↑ | Practice |
+| Arena                             | 独立したOutcome                                      | State                    |
+| --------------------------------- | ---------------------------------------------------- | ------------------------ |
+| **72-Hour Disaster Response**     | cost ↓ · worst-case delivery ↑ · regional coverage ↑ | Demo competition         |
+| **Ethereum Calldata Compression** | calldata gas ↓ · decoder gas ↓                       | Practice                 |
+| **Community Microgrid Dispatch**  | cost ↓ · worst-case energy ↑ · carbon ↓              | Practice                 |
+| **Secret Gate**                   | proof latency ↓ · memory ↓                           | Practice / observational |
+| **Rescue Room**                   | user loss ↓ · demand served ↑ · response spend ↓     | Controlled Practice      |
+| **Ocean Commons**                 | livelihood ↑ · restraint ↑ · cooperation ↑           | Practice                 |
 
 問題ごとに専用Evaluatorは必要ですが、**Context / Hard Constraint / Outcome / Pareto / Evidence / Value Pool**というProtocol Primitiveは共通です。
 
@@ -209,13 +209,13 @@ Blockchainは「Offchain Evaluatorが社会的に正しい」ことを証明し�
 
 このProjectでは、異なる種類の証拠を同じ「verified」という言葉でまとめません。
 
-| State | Meaning |
-| --- | --- |
-| `measured` | deterministic evaluatorが結果を生成した |
-| `simulated` | modeled boundaryであることを明示している |
-| `committed` | 対応するOnchain Evidenceが存在する |
-| `paid` | Transfer/EventとRecipient Evidenceが存在する |
-| `Practice` | Measurementは実物だがProduction Tournament Layerは未完成 |
+| State       | Meaning                                                  |
+| ----------- | -------------------------------------------------------- |
+| `measured`  | deterministic evaluatorが結果を生成した                  |
+| `simulated` | modeled boundaryであることを明示している                 |
+| `committed` | 対応するOnchain Evidenceが存在する                       |
+| `paid`      | Transfer/EventとRecipient Evidenceが存在する             |
+| `Practice`  | Measurementは実物だがProduction Tournament Layerは未完成 |
 
 現在のPublic EvaluatorとSepolia Reward Demonstrationは実在しますが、それはProduction Tournamentが完成したという意味ではありません。
 

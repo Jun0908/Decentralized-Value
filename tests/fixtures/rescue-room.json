@@ -201,7 +201,7 @@
     },
     "starter": {
       "path": "/v1/rescue-room/starter-kit",
-      "sha256": "1408c34f5564e6beb06c64a4be146c5267984af7f91965e656c08ec7d0fccb45"
+      "sha256": "f907b7e3f3f263bc5bdb077b341c0dec0bc5686b1faeae1e6d51a7c512339df2"
     },
     "episodes": [
       {
