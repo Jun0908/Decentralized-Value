@@ -18,6 +18,7 @@ import {
   rescueCommanderPlaybookHash,
   rescueCommanderStarterPlaybook,
   rescuePublicViewHash,
+  rescuePublicPracticeEpisodeIds,
   rescuePaymentEpisodeContextHash,
   rescueSepoliaPaymentEvidenceSchema,
   rescueServiceManifestHash,
@@ -347,15 +348,19 @@ describe("Rescue Room Phase 0", () => {
     expect(first.replay.matchesRecordedOutcome).toBe(true);
   });
 
-  it("keeps every published Doctrine preset valid across the public Practice pack", () => {
-    const scenario = publicRescueRoomScenario();
-    for (const preset of rescueDoctrinePresets) {
-      for (const episode of scenario.episodes) {
-        const evaluation = evaluateRescueDoctrinePracticeEpisode(preset.doctrine, episode.id);
-        expect(evaluation.outcome.correctness).toBe(true);
-        expect(evaluation.decisions.every(({ accepted }) => accepted)).toBe(true);
-      }
-    }
+  // Every combination retains its own default timeout and an actionable failure name.
+  it.each(
+    rescuePublicPracticeEpisodeIds().flatMap((episodeId) =>
+      rescueDoctrinePresets.map((preset) => ({
+        episodeId,
+        presetId: preset.id,
+        doctrine: preset.doctrine,
+      })),
+    ),
+  )("keeps Doctrine $presetId valid for public Episode $episodeId", ({ episodeId, doctrine }) => {
+    const evaluation = evaluateRescueDoctrinePracticeEpisode(doctrine, episodeId);
+    expect(evaluation.outcome.correctness).toBe(true);
+    expect(evaluation.decisions.every(({ accepted }) => accepted)).toBe(true);
   });
 
   it("enforces the Playbook investigation budget as a common execution gate", () => {
