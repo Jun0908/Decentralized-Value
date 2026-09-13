@@ -191,17 +191,21 @@ The protocol reproduces what the agent actually did, not its hidden chain of tho
 
 Each domain needs its own evaluator, but the protocol primitives remain shared: **Context, Hard Constraints, independent Outcomes, Pareto, Evidence, and Value Pools**.
 
-### New local Practice workbenches
+### Practice workbenches
 
-The local code includes three independently scoped improvements; this section does not claim that the public deployment has been updated:
+The three workbenches and their introduction illustrations were verified on the public deployment on September 13, 2026, after commit `033a73c`. [Public verification and exact scope](Docs/PUBLIC_VERIFICATION_2026-09-13.md). Later local onboarding changes require their own deployment verification.
 
-- **Calldata:** edit bounded codec-selection rules, inspect packing and decoding, measure real EVM gas, and download same-context evidence. Arbitrary participant code is not executed. [Japanese plan and completed scope](Docs/Plan-Calldata.md).
-- **Microgrid:** operate a six-turn modeled day with battery policy, weather, outage replay, and separate cost / unserved energy / operational carbon outcomes. This is a new context, not the classic 100 MWh challenge above. [Japanese plan and completed scope](Docs/Plan-Microgrid.md).
-- **Secret Gate:** follow a real proof from browser identity to one-use entry, resend the same proof, and inspect explained execution settings. Latency/memory remain personal observations; the competition remains `PIVOT`. [Japanese plan and completed scope](Docs/Plan-SecretGate.md).
+- **Calldata:** edit bounded codec-selection rules, inspect packing and decoding, measure real EVM gas, and download same-context evidence. Arbitrary participant code is not executed. [English plan and completed scope](Docs/Plan-Calldata.md).
+- **Microgrid:** operate a six-turn modeled day with battery policy, weather, outage replay, and separate cost / unserved energy / operational carbon outcomes. This is a new context, not the classic 100 MWh challenge above. [English plan and completed scope](Docs/Plan-Microgrid.md).
+- **Secret Gate:** follow a real proof from browser identity to one-use entry, resend the same proof, and inspect explained execution settings. Latency/memory remain personal observations; the competition remains `PIVOT`. [English plan and completed scope](Docs/Plan-SecretGate.md).
 
 These changes do not complete hidden Final evaluation, persistent entries, or reward settlement. See each plan for verification evidence and exclusions.
 
-For a loopback-only preview of all three labs, including real Secret Gate verification with development-only memory storage, follow the [local preview instructions](Docs/Plan-SecretGate.md#ローカルプレビューの再起動手順). It does not use production Redis or enable AI/payment routes. Recheck with `pnpm exec tsx scripts/verify-arena-labs.ts http://127.0.0.1:3014`.
+Current implementation and next milestones are organized in the [English plan index](Docs/PLANS.md). Public AI execution requires the follow-up in the [production readiness review](Docs/PRODUCTION_READINESS_2026-09-13.md); working practice pages and saved AI evidence do not imply that new model runs are available on the public deployment.
+
+For local setup, see [Environment Configuration](Docs/ENVIRONMENT.md): blank template fields mean unconfigured features, not necessarily unused variables. `pnpm env:check` checks local formats; `pnpm env:check --example` checks the credential-free template. Neither verifies live services.
+
+For a loopback-only preview of all three labs, including real Secret Gate verification with development-only memory storage, follow the [local preview instructions](Docs/Plan-SecretGate.md#local-preview-instructions). It does not use production Redis or enable AI/payment routes. Recheck with `pnpm exec tsx scripts/verify-arena-labs.ts http://127.0.0.1:3014`.
 
 ## Why Ethereum
 

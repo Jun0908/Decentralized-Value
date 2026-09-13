@@ -1,6 +1,8 @@
 # Rescue Room — 提出素材・無人作業の引継ぎ
 
-2026-09-12。ローカル成果物。Push・Web公開・応募送信は行っていない。
+初回作成: 2026-09-12。以下の動画・独立起動検証はその時点の記録。
+
+最新追記（2026-09-13）: コードのPushと公開Web確認は完了。SponsorのENSv2取引・公式CRE秘密Pack Simulation・外部AIによるBazantic MCP評価も実行済み。[最新提出文](SUBMISSION_COPY_EN.md)と[公開確認記録](PUBLIC_VERIFICATION_2026-09-13.md)を優先する。完成した音声入り動画の公開確認と応募送信は、この作業では実施していない。後日のMain／Sponsor録画は `D:/Codex/Engllish Presentation/assets/video/` へ引き渡し済みで、以下の初回Rescue動画だけが最新素材という意味ではない。
 
 ## まず使うもの
 
@@ -94,8 +96,8 @@ pnpm exec tsx scripts/verify-bazantic-readiness.ts
 
 1. 本人Dashboardの参加Track・締切・応募賞、審査対象の開始Commitを確認する。
 2. 動画へ本人の実録音声を載せ、完成動画を視聴する。
-3. CRE / Bazanticの既存アカウント認証。ENS操作を進めるならNamespace・Wallet・変更権限の範囲を確認する。
-4. 公開対象を確認してPush / Web公開を指示し、公開URLで最終検証する。
+3. ENS / Chainlink / Bazanticの選択賞に、実行済みEvidenceと未完成範囲を正確に記載する。最低Demoのための再認証・ENS再取得・再送金は不要。
+4. 公開済みWebとGitHubのリンクを提出欄へ使う。公開確認後の新しいローカル変更は、別途反映を確認してから説明する。
 5. AI利用と実際の人間の貢献を確認し、応募フォームを送信する。
 
 スポンサー実証が増えない場合は、完成済みとしてスポンサー名を動画や提出文へ追加しない。[提出条件の確認事項](sponsors/MANUAL_ACTION_REQUIRED.md)を参照。

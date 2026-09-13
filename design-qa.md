@@ -1,5 +1,18 @@
 # Rescue Room — Design QA
 
+## 下段3Arena First Mission — 2026-09-13
+
+対象は `arena-intro-story` に続く新しい `first-mission`。Calldataは2回の実測、Microgridは1パラメータの変更、Secret Gateは4つの実操作へ直接つなぐ。画像は先行生成素材を保持し、この変更では新規生成なし。
+
+- 初回検証でMicrogridの既存ボタンCSSが新コンポーネントに干渉して白背景になったため、`.mission .steps .action`へScopeを限定してdark＋lightに固定。共通globals.cssは変更しない。
+- default / hover / disabled、focus outline、activeのlime＋darkを同一Scopeで明示。
+- 1440×1000 / 390×1000で実操作完走、横Overflowなし、Console errorなし。意図した重複拒否409は別計数。
+- 未測定・編集中・同じArtifact・別Context・不正入力を区別し、Learning progressをScoreやRewardへ接続しない。
+- 画像: `.frontier/first-mission-qa/{calldata-compression,microgrid-dispatch,secret-gate}-{1440,390}-{initial,complete}.png`。最終Microgrid mobileもdark buttonで再確認。
+- 自動確認: `scripts/verify-first-missions.ts`。ボタン／リンクの背景色の継承干渉を検出する検査を追加。
+
+公開HTTPS上の先行3Arenaと提出リンクは別途検証済み。このFirst Missionはまだローカル実装。final result: passed（ローカルの初回ミッション範囲）。
+
 ## 今回の対象
 
 - 指摘元: ユーザー提供スクリーンショット（lime 背景に白文字の「リプレイ証拠のタイムライン」）

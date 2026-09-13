@@ -1,57 +1,73 @@
-# Calldata Arena 改善計画
+# Calldata Arena — Implementation Plan
 
-## 一目で分かるイラスト — 2026-09-13
+Updated: 2026-09-13. This is the consolidated English edition. The [original development record](archive/plan-history-2026-09-13/Plan-Calldata.md) is preserved unchanged.
 
-- [x] 冒頭に専用イラスト `apps/web/public/images/calldata-packing-story.png` を追加。
-- [x] データを梱包→小さいPackage→正しい復元という比喩で、Rule選択と2ガス軸のTradeoffを説明。画像内のタイル数は実Batchの測定値ではない。
-- [x] PCは絵＋説明の2列、Mobileは画像を切らず縦積み。文字を絵に重ねずHTMLとして表示。
-- [x] 1440 / 390pxで読込み、3段階説明、Console error 0、横Overflowなしを確認。Web build・既存Arena登録テスト3件・変更範囲ESLint成功。
+## Objective
 
-表示は共通 `arena-intro-story.tsx` から対象3Arenaのみ。イラストは概念説明でありEvidenceではない。画像生成の方式・保存先・最終Promptは[素材記録](ARENA_ILLUSTRATIONS.md)。確認手順: `pnpm exec tsx scripts/verify-arena-stories.ts http://127.0.0.1:3014`。画面: `.frontier/arena-story-qa/`。評価処理・API・公開Deploymentは変更していない。Push未実施。
+Make compression strategy tangible: edit a rule, measure actual EVM execution, and see how transmission cost and decoding cost move independently.
 
-更新日: 2026-09-12。担当範囲は Calldata package・専用UI・内部API・本Plan・Arena仕様のみ。
+The workbench turns three fixed codecs into an editable rule artifact. Its illustrated introduction follows actions → packing → encoded bytes → decoder → matching digest. Illustrations explain the concept; measurements and downloaded evidence establish the result.
 
-## 目的と受け入れ条件
+## Current delivery
 
-3種類のCodecを選ぶ画面を、公開Batchの特徴から圧縮形式を選ぶRule Artifactを編集・実測・比較できるPractice Workbenchへ進める。
+- [x] Editable `calldata-rules-v1` artifact with ordered rules and a fallback.
+- [x] Per-batch selection reasons, packing diagrams, byte counts, digest checks, and malformed-input results.
+- [x] Actual checked-in Solidity runtime execution in a Cancun EVM.
+- [x] Independent EIP-2028 calldata gas and decoder execution gas.
+- [x] Same-context comparison with Standard ABI, reference codecs, and the previous measured revision.
+- [x] Artifact, context, and measured result export as JSON.
+- [x] Dedicated illustration, responsive layout, accessible controls, and explicit button-state contrast.
+- [x] Existing practice verified on public HTTPS at commit `033a73c`.
+- [x] First Mission implemented and verified locally; publication of this later addition remains a separate step.
 
-- [x] `calldata-rules-v1`を厳格に検証し、Recipient再利用率・Action数の条件とFallbackを編集できる。
-- [x] Action → Packing → Encoded bytes → Decoder → 同一Digestの関係を、Batchごとの具体的な証拠で示す。
-- [x] 固定済みSolidity RuntimeをCancun EVMで実行し、EIP-2028 Calldata gasとDecoder execution gasを独立に計測する。
-- [x] 各BatchのDigest一致と空・不正入力の拒否をhard gateにする。実行失敗をFrontierへ含めない。
-- [x] 同じContextのStandard ABI baseline・直前Revisionと比較する。Contextを変えた比較は混ぜない。
-- [x] Artifact・Context・実測EvidenceをJSONとして取得できる。
-- [x] 正常・不正Artifact、再現性、ルール順序の意味、比較点の順序不変、旧Evaluator互換を決定論テストで確認する。
-- [x] 専用CSS Moduleを使い、lime背景は濃色文字、Desktop/Mobile・Consoleの確認結果を記録する。
+Public verification: [2026-09-13 report](PUBLIC_VERIFICATION_2026-09-13.md). Illustration provenance: [asset record](ARENA_ILLUSTRATIONS.md).
 
-## 実装の境界
+## Rules and measurement contract
 
-Ruleはチェックイン済み3Codecの選択条件であり、任意ソースコードのコンパイル・Sandbox実行ではない。選択はBatch全体の公開特徴で決定し、そのホスト側選択コストはEVM gasへ算入しない。Codecを自動判別するOnchain Dispatcherも追加しない。
+The artifact accepts zero to four priority-ordered rules. Conditions use integer action counts from 1 to 255 and recipient reuse from 0 to 100 percent. A fallback selects one of the three existing codecs. Users can add, remove, reorder, inspect, and download the rules.
 
-新しいRule Artifact・Interpreter・Malformed Test・Runtime bytecode・Metricsを独自Context Hashに束縛し、既存`/v1/calldata-compression`のAPIと参照Evaluator Hashを維持する。内部`/api/calldata-lab`でPracticeを実行する。
+`POST /api/calldata-lab` is the internal practice endpoint. It reads at most 16 KiB of streamed JSON and rejects unknown fields, codecs, contexts, and out-of-range values. Each request measures the candidate and references; it does not create an unbounded artifact cache.
 
-Hidden Final、永続Revision保存、参加者認証、任意プログラム、オンチェーンCommit・報酬支払い、公開Deployは今回の対象外。Practice実測を競技運営の完成として扱わない。
+Correctness is a hard gate: decoded digests must match and the published malformed-input corpus must be rejected. Invalid execution is not placed on the frontier. This corpus is a defined test set, not a proof covering every malformed input.
 
-## 実装・検証記録
+The context binds the rule interpreter, artifact rules, compiler/runtime hashes, corpus, and metric accounting. Existing `/v1/calldata-compression` behavior and legacy reference result hashes remain unchanged. Different contexts are never combined.
 
-- 着手時: 既存3CodecのRuntime測定・2種類の公開Context・Digest比較を確認。
-- 実装済み: 0〜4件の優先順位付きRule、Action数1〜255・再利用率0〜100の整数制約、3CodecのFallback、4つの出発点、追加・削除・順序変更、JSON表示・Download。
-- 実装済み: 内部APIはJSONを16 KiBまでStream読取し、未知のField・Codec・Context・範囲外を拒否。各要求で3ReferenceとCandidateの選択対象を実EVM計測し、Artifact単位の無制限Cacheは持たない。
-- 実装済み: Batch別の元Action・選択理由・Packing図・正確なBytes・Zero/Nonzero別料金・実測Decoder gas・Digest一致・Malformed Testを表示。変更後は旧測定を明示し、次のRunで同Contextの直前Revisionとの差分を表示。
-- 対象テスト: `pnpm exec vitest run packages/calldata-compression/src/index.test.ts packages/calldata-compression/src/lab.test.ts apps/web/src/app/api/calldata-lab/route.test.ts --maxWorkers=2`で **31件成功**。再現・Property順序・Rule順序・比較点順序・無効Artifact・Stream上限・返却Snapshotの変異隔離・旧3Codecの事前取得Result Hash一致を確認。
-- 実測例: StarterはDictionary / Packed / Dictionaryを選択し、459 bytes、Calldata **5,172 gas**、Decoder **17,185 gas**。同ContextのABIは14,112 / 19,590。再利用率を100へ変更すると全BatchがPackedとなり8,200 / 13,061へ変わる。
-- 既存参照EvaluatorのHash・Runtime bytecode・Compiler・Public APIを変更せず、Rule LabのContextにRuntime Hash・規則・Corpus・会計境界を別途固定した。空・短縮・末尾欠損・Dictionary範囲外Indexという公開Corpusの拒否であり、全不正入力の網羅証明ではない。
-- Calldata package / Web Typecheck、変更範囲ESLint / Prettier check成功。専用CSS ModuleにPrimaryのlime＋dark、Secondaryのdark＋light、およびhover / active / disabled / focusを明示。
-- 統合確認済み: Production build成功。最終統合時にAPIのError型分岐を分離し、型検査とAPIテストを再確認した。
+Host-side rule selection and encoding costs are outside the reported EVM gas. This workbench selects checked-in codecs; it is not an arbitrary-code compilation sandbox or an on-chain automatic codec dispatcher.
 
-## 完成画面と統合確認
+## First Mission
 
-確認用: <http://127.0.0.1:3014/arenas/calldata-compression>（ローカル専用。公開サイトへの反映・Pushは未実施）。
+1. Measure the starter rules.
+2. Change Minimum reuse from 50 to 100.
+3. Measure again and inspect the two independent deltas.
 
-1440px / 390pxの実ブラウザーでStarter測定→再利用率100へ編集→再測定→Evidence Download→別Contextへ切替を操作した。Artifact Hashとガス値が変わり、同Contextの直前比較が表示され、Context変更で比較が消えることを確認。EVMは実HTTP APIで実行し、返却結果とDownloadのResult Hashが一致した。
+In the verified public workload, the starter selects Dictionary / Packed / Dictionary: 459 bytes, 5,172 calldata gas, and 17,185 decoder gas. Standard ABI uses 14,112 / 19,590 gas in the same context. Raising reuse to 100 selects Packed for all batches: 8,200 / 13,061 gas.
 
-画面・Console・横Overflow・禁止配色の確認に成功。Byte Journeyの確認画像は `.frontier/arena-labs-qa/calldata-journey-1440.png` / `calldata-journey-390.png`。統合コマンドは `pnpm exec tsx scripts/verify-arena-labs.ts http://127.0.0.1:3014`。全体TypeScriptテスト818成功・11skip、Workspace型検査、SDK / CLI契約差分チェックも成功した。
+The mission therefore exposes a real tradeoff: transmission **+3,028 gas**, decoding **−4,124 gas**. No combined score determines which change is better.
 
-## 次の実装判断
+Progress is derived from valid measured results, not button clicks. An unchanged artifact, invalid draft, unmeasured edit, or different context cannot complete the comparison. Mission badges are learning indicators, not reward signals.
 
-今回の完成範囲は「自分のRuleを編集して実測するPractice」。公開Batchと既存3Codecは小さく、全探索を許しても未知Finalで判断が必要になるAI競技はまだ成立確認していない。次は初見ユーザーの理解確認、その後により広いEncoder / Decoder Artifactと隔離実行、Practiceとは別のFinal workloadを検討する。見た目が完成したことを大会のGOとしない。
+## Verification record
+
+The focused package and API suite passed 31 tests, including determinism, property order, rule priority, comparison-order invariance, invalid artifacts, response snapshot isolation, stream limits, and legacy codec hashes.
+
+Desktop 1440px and mobile 390px checks covered edit → execute → compare → download → change context. The actual HTTP EVM response and downloaded result hash matched. Context changes cleared the previous comparison. Console, overflow, and contrast checks passed.
+
+The later First Mission batch passed the Web build, changed-file lint, and the full TypeScript suite: 821 passed / 11 skipped, including three new shared progress tests. These are dated execution records, not checks rerun by this documentation edit.
+
+```bash
+pnpm exec vitest run packages/calldata-compression/src/index.test.ts packages/calldata-compression/src/lab.test.ts apps/web/src/app/api/calldata-lab/route.test.ts --maxWorkers=2
+pnpm exec tsx scripts/verify-arena-labs.ts http://127.0.0.1:3014
+pnpm exec tsx scripts/verify-first-missions.ts http://127.0.0.1:3014
+```
+
+Local preview: <http://127.0.0.1:3014/arenas/calldata-compression>. See the [shared preview instructions](Plan-SecretGate.md#local-preview-instructions). Screenshots and reports are under `.frontier/arena-labs-qa/` and `.frontier/first-mission-qa/`.
+
+## Next milestones
+
+- [ ] Publish the locally verified First Mission and recheck the deployed interaction.
+- [ ] Test whether first-time users can explain the two gas costs and the effect of their rule change.
+- [ ] Evaluate a broader encoder/decoder artifact space with isolated execution.
+- [ ] Design a separate final workload, durable revisions, participant authorization, and a frozen entry flow before tournament use.
+- [ ] Add commitments and funded rewards only after those competition gates pass.
+
+The current release is an editable, measured practice lab. Its small public workload and codec set do not yet establish a generalizing AI competition.

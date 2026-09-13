@@ -2,6 +2,8 @@
 
 External services extend Frontier Protocol but do not define the product. The public evaluator must remain demonstrable without optional account credentials or hardware.
 
+Configuration reference: [Environment Configuration](ENVIRONMENT.md). Blank template values are not a list of unused features; local settings, feature requirements, legacy placeholders, and Vercel deployment settings are distinct.
+
 ## Latest sponsor execution — 2026-09-12
 
 最新の実行状態は[撮影手順](sponsors/SPONSOR_DEMO_RECORDING.md)と[STATUS](STATUS.md)を優先する。以下に残る未認証・未実行の記載は先行バッチの境界。
@@ -9,7 +11,7 @@ External services extend Frontier Protocol but do not define the product. The pu
 - ENSv2 Sepolia: 所有済み`frontierdemo.eth`の`frontier.rescue.service`を実Service discoveryへ接続。単一Key grant / update / pause / restore / revokeを7取引で確認し、現在active・delegate revoked。[公開証跡](deployments/ensv2-rescue-demo.json)。従来Runner job protocolを置換せず、独立したRescue public-practice capability。
 - CRE CLI 1.33.0 / SDK 1.20.1: 通常・Confidential公式SimulationとNodeのEnvelope一致、秘密Pack入力・salt付きReceipt・明示Reveal Replayが成功。[公開証跡](deployments/chainlink-cre-private-pack.json)。Live TEE認証・ネットワークDeploy・onchain commitmentは未実施。
 - Bazantic MCP: 外部gpt-5-nano Agentが無料2 Toolを計3回使い、Baselineと候補を比較。実InferenceとAPI接続・独立再評価が成功。結果は同点。[公開証跡](deployments/bazantic-rescue-agent-demo.json)。Hosted Recipeはdraftのまま、未実行。Mainnet USDC決済・Recipe効果のA/Bは未実施。
-- 撮影ページ`/sponsors/demo`はローカル追加。表示は記録済み証跡であり、ブラウザに秘密鍵やAPI Keyを渡さない。未Push・未Deploy。
+- 撮影ページ`/sponsors/demo`はPush・公開済み。2026-09-13に公開URLの表示を再確認。表示は記録済み証跡であり、ブラウザに秘密鍵やAPI Keyを渡さない。[公開確認記録](PUBLIC_VERIFICATION_2026-09-13.md)。
 
 ## Vercel — active
 

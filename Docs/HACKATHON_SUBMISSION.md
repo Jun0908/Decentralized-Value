@@ -1,10 +1,10 @@
-# ETHOnline 提出用スコープ — 残り2日
+# ETHOnline 提出用スコープ — 最終仕上げ
 
-2026-09-12。大会全機能ではなく、検証済みの一連の動作と再現手順を優先する。
+更新: 2026-09-13。大会全機能ではなく、検証済みの一連の動作と再現手順を優先する。スポンサーは本人指定のENS / Chainlink / Bazantic。最新の[英語提出文](SUBMISSION_COPY_EN.md)と[公開確認記録](PUBLIC_VERIFICATION_2026-09-13.md)を提出時の基準にする。以下の実AI判断は9月12日の保存済み実行であり、今回再推論・再送金はしていない。
 
 ## 今回の提出用デモ
 
-`http://localhost:3000/rescue-room/submission`
+[公開英語デモ](https://web-rho-seven-d6te7t3f0y.vercel.app/rescue-room/submission/en) / [スポンサー実証](https://web-rho-seven-d6te7t3f0y.vercel.app/sponsors/demo)。表示は保存済みEvidenceであり、開くたびに送金する画面ではない。
 
 1. 異常の公開観測から実AI Commanderが専門家を選ぶ。
 2. 別の実AIが分析し、Sepolia Escrowから5 rUSD-DEMOを支払う（前回検証済み）。
@@ -29,11 +29,11 @@
 
 | Plan | 今回の対応 | 残り |
 | --- | --- | --- |
-| Plan9 | 有料分析→実Commander再判断→Outcome→独立Pool Preview、提出用画面 | 初見確認、公開承認、動画。大会全体は後回し |
-| Plan11 | 公式CRE CLI導入・通常/Confidential handler・型検査・認証不足の実測 | 人間のログイン、公式Simulation、意味のある秘密入力。ENS/Bazanticは未実証 |
-| Plan12 | 既存非課金API/SDKを再利用、入力→実行→Replay/Hash検証のscriptと利用例 | 公開先での動作確認。公開Job/大規模基盤は後回し |
+| Plan9 | 実AIサービス購入・Sepolia支払い／返金、購入後3判断、Outcomeと独立Pool Preview | 初見ユーザー確認。未知Final・完全復旧・第三者市場は未完成 |
+| Plan11 | ENSv2単一Key権限7取引、公式CRE秘密Pack Simulation、外部AIからBazantic MCP、公開証跡ページ | Hosted Recipe実行／公開・A/B、live TEEは未完成。選択賞との適合は別途本人確認 |
+| Plan12 | 公開Rescue APIをSDKから6実HTTP、Starter・Hash・反復一致を9月13日に確認 | 外部実参加者、Linux、本番Job基盤、Final API、npm公開は未完成 |
 
-CREの認証や応募資格が未解決のままスポンサー成功を表示しない。[人間の確認事項](sponsors/MANUAL_ACTION_REQUIRED.md)を参照。既存のENS設定値やBazantic URLは、所有権・ログイン・連携成功の証明ではない。
+スポンサーの最低実証は設定値だけではなく実行済みEvidenceに基づく。[撮影手順と実装リンク](sponsors/SPONSOR_DEMO_RECORDING.md)を参照。公式Simulationの成功をlive TEEや大会全体の完成へ拡張しない。参加資格と最終提出は本人の確認事項。
 
 ## 再現
 

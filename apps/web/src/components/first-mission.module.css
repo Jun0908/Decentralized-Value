@@ -1,0 +1,136 @@
+.mission {
+  margin: 24px 0;
+  padding: 24px;
+  border: 1px solid #495935;
+  border-radius: 14px;
+  background: #101710;
+  color: #f4f1e8;
+}
+.heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+.mission .heading h2 {
+  margin: 0;
+  font-size: clamp(22px, 2.2vw, 30px);
+  line-height: 1.2;
+}
+.mission .heading p {
+  margin: 10px 0 0;
+  color: #ccd5c8;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.mission .heading .eyebrow {
+  margin: 0 0 10px;
+  color: #c7ff45;
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.07em;
+}
+.status {
+  flex-shrink: 0;
+  color: #c7ff45;
+  background: #1b2916;
+  border: 1px solid #495935;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  padding: 0;
+  margin: 22px 0 0;
+  list-style: none;
+}
+.steps li {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #344038;
+  border-radius: 8px;
+  background: #0d1411;
+}
+.steps li[data-state="current"] {
+  border-color: #c7ff45;
+}
+.number {
+  color: #c7ff45;
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+}
+.mission .steps h3 {
+  margin: 12px 0 0;
+  font-size: 17px;
+  line-height: 1.3;
+}
+.mission .steps p {
+  margin: 10px 0 16px;
+  font-size: 13px;
+  color: #ccd5c8;
+  line-height: 1.6;
+}
+.mission .steps .action {
+  margin-top: auto;
+  padding: 10px 12px;
+  border: 1px solid #536849;
+  border-radius: 6px;
+  background: #0d1013;
+  color: #f4f1e8;
+  text-decoration: none;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.mission .steps .action:hover:not(:disabled) {
+  background: #1b2916;
+  color: #c7ff45;
+}
+.mission .steps .action:active:not(:disabled) {
+  background: #c7ff45;
+  color: #111;
+}
+.mission .steps .action:disabled {
+  background: #18201b;
+  color: #a4b29e;
+  cursor: not-allowed;
+}
+.mission .steps .action:focus-visible {
+  outline: 2px solid #c7ff45;
+  outline-offset: 3px;
+}
+.result {
+  margin-top: 18px;
+  padding: 14px;
+  border-left: 3px solid #c7ff45;
+  background: #192218;
+  color: #f4f1e8;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.mission .result p {
+  margin: 0;
+}
+.mission .footnote {
+  margin: 16px 0 0;
+  color: #afbea9;
+  font-size: 12px;
+  line-height: 1.5;
+}
+@media (max-width: 700px) {
+  .mission {
+    padding: 18px;
+  }
+  .heading {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

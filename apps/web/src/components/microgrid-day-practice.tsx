@@ -14,6 +14,8 @@ import {
   type MicrogridPolicy,
 } from "@frontier/microgrid-dispatch/practice";
 import styles from "./microgrid-day-practice.module.css";
+import { FirstMission } from "./first-mission";
+import { firstMissionProgress } from "./first-mission-progress";
 
 const format = (value: number, digits = 2) =>
   value.toLocaleString("en-US", { maximumFractionDigits: digits });
@@ -185,6 +187,15 @@ export function MicrogridDayPractice() {
   const displayed = result ?? baselines[0]!.result;
   const step = displayed.steps[stepIndex]!;
   const dirty = result !== null && JSON.stringify(policy) !== JSON.stringify(result.policy);
+  const mission = firstMissionProgress(
+    result
+      ? { contextHash: result.contextHash, artifactHash: result.policyHash, valid: true }
+      : null,
+    previous
+      ? { contextHash: previous.contextHash, artifactHash: previous.policyHash, valid: true }
+      : null,
+    dirty,
+  );
   const comparisons = useMemo(
     () =>
       result
@@ -247,6 +258,52 @@ export function MicrogridDayPractice() {
 
   return (
     <div className={styles.day}>
+      <FirstMission
+        title="Less grid power. What does your town give up?"
+        error={error}
+        description="Run the current day, tighten the grid import cap, and see the consequences. Change only one setting so you can explain what happened."
+        steps={[
+          {
+            title: "Run your starting policy",
+            description:
+              "The starter holds a battery reserve. Record its cost, unmet demand, and carbon for this day.",
+            done: mission[0],
+            action: "Run current policy",
+            onAction: runDay,
+          },
+          {
+            title: "Limit imported electricity",
+            description:
+              "Try changing Grid import cap from 12 to 2 MWh per period. It limits all grid purchases, including battery charging. Leave the other rules unchanged.",
+            done: mission[1],
+            action: "Change grid import cap",
+            href: "#microgrid-maxGridMwh",
+          },
+          {
+            title: "Rerun the same day",
+            description:
+              "Compare all three outcomes with your previous run. Then inspect the 16:00 outage on Storm day to see where energy was missing.",
+            done: mission[2],
+            action: "Run edited policy",
+            onAction: runDay,
+            disabled: !mission[0] || !dirty,
+          },
+        ]}
+        result={
+          mission[2] && result && previous ? (
+            <p>
+              Compared with your previous run:{" "}
+              <strong>cost {signed(result.totals.costUsd - previous.totals.costUsd)} USD</strong>;{" "}
+              <strong>
+                unmet demand {signed(result.totals.unservedMwh - previous.totals.unservedMwh)} MWh
+              </strong>
+              ;{" "}
+              <strong>carbon {signed(result.totals.carbonKg - previous.totals.carbonKg)} kg</strong>
+              . Lower is better on each axis. These are modeled outcomes, not a single score.
+            </p>
+          ) : null
+        }
+      />
       <section className={styles.brief}>
         <div>
           <p className={styles.eyebrow}>A day in the community · Simulated Practice</p>

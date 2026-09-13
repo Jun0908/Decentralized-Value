@@ -4,9 +4,9 @@
 
 ## 開くページ
 
-ローカル: <http://localhost:3000/sponsors/demo>
+公開: <https://web-rho-seven-d6te7t3f0y.vercel.app/sponsors/demo>（2026-09-13、PC / Mobile表示・3 JSON Download一致を確認）。ローカル: <http://localhost:3000/sponsors/demo>。
 
-英語の3章、実取引リンク、3種のEvidence Download。表示は記録済みの実行結果であり、開くだけでAI推論・送金・新規CRE実行はしない。GitHubへのコード公開とWebのDeployは別。公開デモURLとして提出する前に、Deployment完了と公開URLでの表示を確認すること。
+英語の3章、実取引リンク、3種のEvidence Download。表示は記録済みの実行結果であり、開くだけでAI推論・送金・新規CRE実行はしない。GitHub公開とWebのDeployを別々に確認した。[今回の公開確認範囲](../PUBLIC_VERIFICATION_2026-09-13.md)。動画と同じ保存済みEvidenceを示すこと。
 
 ## 何が本当に動いたか
 

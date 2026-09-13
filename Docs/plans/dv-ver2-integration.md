@@ -1,52 +1,49 @@
-# DV-ver2 / SDK・CLI 統合記録
+# DV-ver2 / SDK and CLI — Integration Record
 
-更新日: 2026-09-11
+Integration recorded: 2026-09-11. English edition: 2026-09-13.
 
-## 統合方針
+This is a completed integration record, not an instruction to merge the repositories again. The [original record](../archive/plan-history-2026-09-13/dv-ver2-integration.md) is preserved unchanged.
 
-`Decentralized-Value` の履歴と最新実装を正本にし、無関係な履歴を `--allow-unrelated-histories` で強制結合せず、機能差分を三方向統合した。
+## Strategy and provenance
 
-- 統合元の正本: `2e1e5f7`（Rescue Room payment foundation）
-- アプリ参照スナップショット: `DV-ver2` の `101e13f`
-- SDK・CLI参照スナップショット: `SDK-Decentralized-Value` の `f84d825`
-- 統合作業ブランチ: `integrate/dv-ver2-sdk-cli`
-- 統合作業worktree: `C:\Users\j_kaw\Desktop\DV-integration`
+The Decentralized-Value history and newer implementation remained authoritative. Feature differences were integrated using a three-way comparison, without forcing unrelated histories together.
 
-`DV-ver2` のアプリ差分は、内容が最も近い正本側の `be18b30` を共通基準として適用した。これにより、その後のOcean Commons修正とRescue Room Paymentsを保持したまま、CLI/API/UI差分を取り込んだ。
+- Authoritative starting point: `2e1e5f7` — Rescue Room payment foundation.
+- DV-ver2 application snapshot: `101e13f`.
+- SDK-Decentralized-Value snapshot: `f84d825`.
+- Integration branch: `integrate/dv-ver2-sdk-cli`.
+- Historical worktree: `C:\Users\j_kaw\Desktop\DV-integration`.
 
-## 取り込んだもの
+The DV-ver2 application diff used the closest authoritative snapshot, `be18b30`, as its comparison base. This preserved later Ocean fixes and Rescue payment work while incorporating CLI/API/UI changes. The worktree path is historical and need not still exist.
 
-- CLI用Device認証、scope、one-time exchange、失効・取消処理
-- Disaster Responseの冪等な提出、履歴、download、Final Entry選択
-- CLI manifest、response schema、OpenAPI契約と生成スナップショット
-- `/docs/cli`、`/cli/authorize`、`/submissions/[id]`
-- Redis互換読み取りと回帰テスト
-- `packages/sdk` 0.3.0と`packages/cli` 0.3.0
-- GitBook用Whitepaper原稿と図版
-- SDK・CLIの設計資料
+## Imported capabilities
 
-SDKとCLIは外部tarballではなく、`@frontier/shared`を正本とするprivate workspace packageへ変更した。`build:tooling`はshared、SDK、CLIの順に再現可能な成果物を生成する。
+- CLI device authentication, scopes, one-time exchange, expiration, and revocation.
+- Idempotent Disaster Response submission, history, download, and final-entry selection.
+- CLI manifest, response schemas, OpenAPI contract, and generated snapshots.
+- `/docs/cli`, `/cli/authorize`, and `/submissions/[id]`.
+- Redis-compatible reads and regression tests.
+- SDK 0.3.0 and CLI 0.3.0 sources.
+- GitBook whitepaper material, diagrams, and SDK/CLI design documents.
 
-## Rescue Roomとの統合調整
+SDK and CLI became private workspace packages using the authoritative shared package. `build:tooling` builds shared, SDK, then CLI.
 
-Rescue Room Starter Kitに追加済みの`payment-contract.json`をCLIの安全なZIP allowlistへ追加し、初期化時に公開Payment契約として展開するようにした。ゲーム内creditとtoken、simulatedとpaidの区別は維持する。
+## Rescue compatibility
 
-## 意図的に取り込まなかったもの
+The Rescue starter's `payment-contract.json` was added to the safe ZIP extraction allowlist. It is a public payment-contract description, not a secret or permission to spend. Simulated credits, tokens, commitments, and actual payments remain distinct.
 
-- 失敗画面を含む大量のSDK/CLI検証スクリーンショット
-- 配布済みtarballなど再生成可能なbinary artifact
-- 統合時だけ必要だったroot handoff文書と一時的なAGENTS追記
+## Deliberately excluded
 
-構造化されたローカル検証結果だけを`artifacts/sdk-cli-verification/stack-report.json`へ再生成した。実アカウント、公開環境、npm publish、Sepolia送金は使用していない。
+Large collections of transient screenshots, regenerable tarballs/binaries, and integration-only handoff or temporary agent instructions were not imported.
 
-## 統合後の検証
+A structured local report was regenerated at `artifacts/sdk-cli-verification/stack-report.json`. This verification did not use real accounts, public deployments, npm publication, or Sepolia transfers.
 
-- `pnpm build:tooling`
-- `pnpm typecheck`
-- `pnpm test:ts`: 375 passed / 11 skipped
-- `pnpm verify:cli`: 5 complete local-only workflows
-- `pnpm --filter @frontier/web build`
-- `pnpm exec eslint .`
-- Home、CLI Guide、CLI Authorize、Saved Submission、Rescue Roomを含む6つのdesktop/mobile browser check
+## Recorded checks
 
-未実施なのはFoundryが必要なcontract test、実Privy認証、実Redis移行、npm公開、公開環境へのdeployである。
+- `pnpm build:tooling` and `pnpm typecheck`.
+- TypeScript tests: 375 passed / 11 skipped.
+- `pnpm verify:cli`: five complete local-only workflows.
+- Web production build and ESLint.
+- Six desktop/mobile page checks, including Home, CLI Guide, CLI Authorize, Saved Submission, and Rescue Room.
+
+Contract tests requiring Foundry, real Privy authentication, real Redis migration, npm release, and public deployment were not performed in that integration batch. Later evidence is recorded separately in [Plan 12](../Plan12.md) and [Status](../STATUS.md).

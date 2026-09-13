@@ -1,76 +1,93 @@
-# Plan — Secret Gate の実証ウォークスルー改善
+# Secret Gate — Proof Walkthrough Plan
 
-## 一目で分かるイラスト — 2026-09-13
+Updated: 2026-09-13. This is the consolidated English edition. The [original development record](archive/plan-history-2026-09-13/Plan-SecretGate.md) is preserved unchanged.
 
-- [x] 冒頭に専用イラスト `apps/web/public/images/secret-gate-membership-story.png` を追加。
-- [x] 閉じた秘密の金庫→Membership Proof→入場Gate、再使用拒否を一枚で示す。秘密は送らずPublic commitmentのみ登録する説明を添える。競技PIVOTは保持。
-- [x] PCは絵＋説明の2列、Mobileは画像を切らず縦積み。文字を絵に重ねずHTMLとして表示。
-- [x] 1440 / 390pxで読込み、3段階説明、Console error 0、横Overflowなしを確認。Web build・既存Arena登録テスト3件・変更範囲ESLint成功。
+## Objective and current decision
 
-表示は共通 `arena-intro-story.tsx` から対象3Arenaのみ。イラストは概念説明でありEvidenceではない。画像生成の方式・保存先・最終Promptは[素材記録](ARENA_ILLUSTRATIONS.md)。確認手順: `pnpm exec tsx scripts/verify-arena-stories.ts http://127.0.0.1:3014`。画面: `.frontier/arena-story-qa/`。評価処理・API・公開Deploymentは変更していない。Push未実施。
+Make a real Semaphore V4 membership proof understandable: keep an identity secret in the browser, register its public commitment, prove membership, and demonstrate one-time use within a scope.
 
-## 目的と判断（2026-09-12）
+The proof walkthrough is implemented. The latency/memory competition remains **PIVOT**: all 32 proofs in the four-strategy, two-trial study verified correctly, while maximum latency CV was **0.595** and maximum memory CV **0.331**, above the preregistered **0.15** ceiling. [Raw measurement evidence](../benchmarks/secret-gate/results/latest.json).
 
-Secret Gate は「秘密を送らずにグループ所属を証明し、同じ資格では一度だけ通過する」実 Semaphore V4 デモとして改善する。Latency / Memory 競技は **PIVOT を維持**する。4 戦略 × 2 試行、32 Proof の検証成功は暗号学的動作の根拠であり、測定競技の成立根拠ではない。事前 CV 上限 0.15 に対して最大 Latency 0.595 / Memory 0.331 だった。
+Proof correctness and stable competitive measurement are separate achievements. The educational workbench does not reopen the leaderboard, value pools, or rewards.
 
-今回は独立価値を成立させるためだけの合成スコアや、並列数だけで自明に攻略できる架空の競技を追加しない。実証 UI と設定の構造的効果を優先する。公式大会、ランキング、Value Pool、Reward は閉じたままとする。
+## Current delivery
 
-## 今回の実装対象と受入条件
+- [x] Illustrated secret → public commitment → synthetic eight-member group → proof → gate flow.
+- [x] Separate identity creation, enrollment, proof submission, and duplicate-proof rejection controls.
+- [x] Browser-only identity secrets, optional local persistence, and an explicit removal control.
+- [x] Explanations of parallelism, artifact loading, and worker lifecycle.
+- [x] Four-proof progress visualization with recorded settings and raw observations.
+- [x] Original acceptance receipt retained after the duplicate request returns HTTP 409.
+- [x] Dedicated responsive styles, keyboard focus, reduced-motion behavior, and explicit contrast.
+- [x] Existing practice verified publicly at commit `033a73c`, including actual Redis-backed acceptance and duplicate rejection.
+- [x] Four-step First Mission implemented and verified locally; the later mission addition is not yet pushed or deployed.
 
-- [x] ブラウザの秘密 → 公開 commitment → 8 人の合成 group → proof → Gate の図と段階表示。待機・実行・完了を色だけに依存せず区別する。
-- [x] Identity 作成、登録、実 proof 生成 / 検証、同一 proof の再送による拒否を、明示的に一段ずつ操作できる実装。実ブラウザ操作検証は下記に分離。
-- [x] Identity secret を画面・Evidence・API に出さない。保存は opt-in、ローカル保存削除と失敗時の説明を用意する。
-- [x] 並列数 1–4、artifact loading、Worker lifecycle の意味と代償を常時説明。4 件の割り当て図は構造だけを表し、予測時間・予測メモリではない。
-- [x] 実 proof 4 件の進行を可視化。集計に使った設定と観測を Evidence として確認できる。p95 は 4 件では最大完了時間と同じであると説明する。
-- [x] Artifact prefetch を含むバッチ開始からの時間を記録し、ブラウザメモリ推定を OS RSS と混同しない。観測値でランキングしない。
-- [x] API 検証や nullifier 防御は変更しない。キャンセル・失敗・二重実行・2 分の Worker timeout を扱い、成功の捏造をしない。Gate 送信後のキャンセルを取り消しと表示しない。
-- [x] 専用 CSS Module、明示的な前景 / 背景、キーボード focus、mobile stack、reduced-motion 対応。
-- [x] 全 16 設定の構造・不正パラメータ・p95 の決定論テスト。チェックイン済み WASM / zkey を明示した実 proof テスト含め 7 件成功。変更範囲 ESLint、Secret Gate / Web 型検査成功。
-- [x] 統合buildとdesktop / mobile / 実proofブラウザー操作を確認した。型検査初回は並行作業中のCalldata routeの型不一致で停止したが、修正後の再実行は成功。
+See the [public verification report](PUBLIC_VERIFICATION_2026-09-13.md) and [illustration record](ARENA_ILLUSTRATIONS.md). The illustration is explanatory, not proof evidence.
 
-## 実現性と保留
+## Proof and measurement contract
 
-成立するのは、実際の匿名 membership と scope 固有の一度限り使用を理解できる **教育・実証 Arena**。参加者 uniqueness、personhood、production authorization は証明しない。合成 cohort の登録サーバは commitment と個別 root を知るため、実世界の追跡不可能性は主張しない。
+The UI never puts the identity secret in HTTP input, displayed evidence, or logs. Only the public commitment is enrolled. The demo enrollment service knows the commitment and synthetic group root: this walkthrough does not establish real-world unlinkability, participant uniqueness, personhood, or production authorization.
 
-戦略空間は 4 × 2 × 2 = 16 設定で有限。設定構造の全列挙は容易であり、現状から未知 Final での AI 判断競技が成立したとは言えない。固定戦略の優劣は端末 / cache / OS に依存するため UI のモデルで判定しない。
+The benchmark has 16 configurations: four parallelism settings, two artifact-loading modes, and two worker-lifecycle modes. Its queue diagram explains scheduling structure, not predicted time or memory.
 
-再開条件は別途、同一環境・十分な反復・事前条件の固定・Raw Evidence・安定性確認・非自明な独立 Outcome を揃えた feasibility 実験。今回の見た目改善は GO 条件を満たさない。
+All four actual proofs must finish verification. Timing begins with the batch, including artifact prefetch. With four samples, nearest-rank p95 equals the maximum completion time. Browser JavaScript heap estimates are not process RSS and do not measure all worker/WASM memory. Observations are not competition rankings.
 
-保留: 新 circuit、可変 group / scope、任意コード、AI inference、hidden Final、onchain gate / nullifier、Sepolia 送金、Reward、公式 Pareto 競技、production 強化。
+Cancellation, failures, duplicate starts, and a two-minute worker timeout are handled explicitly. Cancelling after a gate request does not undo an accepted server-side proof. Existing API validation and nullifier protection remain intact.
 
-## 変更範囲
+## First Mission and acceptance flow
 
-`packages/secret-gate/**`、`apps/web/src/components/secret-gate-*`、本 Plan、`Docs/arenas/secret-gate.md` のみ。中央 API / routes / registry / global CSS / 依存関係は変更しない。
+1. Create the browser identity.
+2. Enroll its public commitment.
+3. Generate and submit a real membership proof.
+4. Resend that proof and verify HTTP 409 / `NULLIFIER_ALREADY_USED`.
 
-## 操作検証の引継ぎ
+The mission is complete only after actual acceptance and duplicate rejection. A click or animation is insufficient. The first receipt remains visible.
 
-`/arenas/secret-gate` の `secret-gate-create` → `secret-gate-enroll` → `secret-gate-enter` → `secret-gate-duplicate` を実行する。`secret-gate-stages[data-phase]` は `idle` → `identity` → `enrolled` → `proving` → `verifying` → `entered` → `duplicate-rejected`。`secret-gate-duplicate-result` に HTTP 409 / NULLIFIER_ALREADY_USED が出ること、元 receipt が残ることを確認する。
+Stable controls are `secret-gate-create`, `secret-gate-enroll`, `secret-gate-enter`, and `secret-gate-duplicate`. The stage moves through idle, identity, enrolled, proving, verifying, entered, and duplicate-rejected.
 
-`secret-gate-benchmark` で 4 Proof、`secret-gate-proof-progress` の全 verified、`secret-gate-benchmark-result` と `secret-gate-evidence` の設定 / Raw Observation を確認する。設定変更後に既存結果の設定が変わらないこと、Cancel で偽の成功を表示しないことも対象。
+`secret-gate-benchmark` runs four proofs. Check that all progress entries are verified, settings match the recorded evidence, and later edits do not rewrite an earlier observation.
 
-本番モードで Redis がない場合は fail-closed を維持する。ローカル検証用に既存の development MemoryStore と実 route handler を使った場合は、その証跡を live Redis / production の検証と呼ばない。今回 Secret Gate 担当による外部通信・AI 推論・送金・deploy・commit はない。
+## Verification record
 
-## 完成画面と実HTTP検証
+Seven focused proof/settings tests covered all configuration structures, invalid inputs, p95, and real proofs using checked-in WASM/zkey artifacts. Package/Web typechecks and changed-file lint passed.
 
-確認用: <http://127.0.0.1:3014/arenas/secret-gate>（ローカル専用）。
+Desktop 1440px and mobile 390px checks completed the actual proof flow and four-proof benchmark. No mocked success response was used. Console checks reported no unexpected errors; the intended HTTP 409 was recorded separately.
 
-1440px / 390pxでIdentity作成→Snapshot→実Semaphore Proof生成→実Verifierによる受理→同一Proof再送のHTTP409 / `NULLIFIER_ALREADY_USED`を確認した。元のReceiptは保持される。2並列で4Proofを生成・検証し、設定を3へ変更しても記録済み観測の設定が2のまま保持されることを確認。PIVOT表示も維持。秘密を送るHTTP Fieldはなく、成功確認にブラウザー応答のMockは使用していない。
+Local browser verification initially used the actual route handlers with a development MemoryStore. Production still fails closed without Redis. Subsequent public checks on 2026-09-13 verified Redis-backed acceptance and duplicate rejection; restart recovery, long-term persistence, and multi-region behavior were not established by that check.
 
-画面は最終Production build、Gateの2つのPOSTは `scripts/preview-arena-labs.ts` のloopback専用開発プレビューが既存の実Route HandlerとMemoryStoreへ接続する。本番のRedis必須条件は変更していない。再起動で一度限りの使用記録が失われるため、公開大会や本番認証には使わない。AI・支払い等のPOSTはこのプレビューでは拒否する。
+The later First Mission batch passed the Web build, changed-file lint, and the full TypeScript suite: 821 passed / 11 skipped. Full-duration browser timeout and cancellation tests were not part of the earlier lab run. These are dated records, not tests rerun during this documentation edit.
 
-Console error 0（意図した重複拒否409の通知は別記録）、横Overflow・禁止配色0。画像は `.frontier/arena-labs-qa/secret-gate-stages-1440.png` / `secret-gate-stages-390.png`、統合結果は同ディレクトリの `report.json`。全体TypeScriptテスト818成功・11skip、Workspace型検査、最終Production build成功。キャンセル・2分timeoutの実ブラウザー待ち切り試験と実Redis再検証は今回未実施。
+## Local preview instructions
 
-## ローカルプレビューの再起動手順
+Use an already running preview when its ports are occupied. Do not stop the user's port 3000 server or reboot the PC.
 
-ビルド後、2つのターミナルで順に起動する。PC再起動や既存3000番サーバーの停止は不要。
+After building, start the Web preview in one terminal:
 
 ```powershell
 pnpm --filter @frontier/web build
 pnpm --filter @frontier/web exec next start -p 3013 -H 127.0.0.1
 ```
 
+In a second terminal:
+
 ```powershell
 pnpm exec tsx --tsconfig apps/web/tsconfig.json scripts/preview-arena-labs.ts 3013 3014
 ```
 
-検証: `pnpm exec tsx scripts/verify-arena-labs.ts http://127.0.0.1:3014`。3Arenaともこのプレビューで試せる。ポート使用中なら既存の起動済みプレビューを利用する。
+Open <http://127.0.0.1:3014/arenas/secret-gate>. The loopback proxy serves the built Web app and connects only the two gate POSTs to actual development handlers. AI and payment POSTs are rejected. MemoryStore one-time-use state is lost on restart, so this preview is not a production gate.
+
+```bash
+pnpm exec tsx scripts/verify-arena-labs.ts http://127.0.0.1:3014
+pnpm exec tsx scripts/verify-first-missions.ts http://127.0.0.1:3014
+```
+
+Screenshots and reports: `.frontier/arena-labs-qa/` and `.frontier/first-mission-qa/`.
+
+## Next milestones
+
+- [ ] Publish and verify the local First Mission.
+- [ ] Check first-time understanding of secrets, commitments, proofs, and one-time use.
+- [ ] Before reconsidering competition, preregister a feasibility study with controlled environments, sufficient repetition, stable metrics, raw evidence, and nontrivial independent outcomes.
+- [ ] Evaluate any circuit, group/scope, arbitrary-code, or on-chain gate expansion as a separate scope.
+
+UI completion does not satisfy the competition GO gate. AI inference, hidden finals, production identity, on-chain nullifiers, Sepolia transfers, and rewards are outside this walkthrough.

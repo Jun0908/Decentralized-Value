@@ -7,9 +7,14 @@ import { verifyMicrogridReplay } from "../packages/microgrid-dispatch/src/practi
 // Start preview-arena-labs.ts first: built UI + real HTTP Gate handlers with
 // isolated local-memory storage. There are no intercepted or mocked responses.
 const base = new URL(process.argv[2] ?? "http://127.0.0.1:3014");
-assert.ok(["localhost", "127.0.0.1", "[::1]"].includes(base.hostname), "QA must target loopback");
-assert.equal(base.protocol, "http:");
-const output = ".frontier/arena-labs-qa";
+const publicCheck = process.argv.includes("--public-practice");
+if (publicCheck) {
+  assert.equal(base.origin, "https://web-rho-seven-d6te7t3f0y.vercel.app");
+} else {
+  assert.ok(["localhost", "127.0.0.1", "[::1]"].includes(base.hostname), "QA must target loopback");
+  assert.equal(base.protocol, "http:");
+}
+const output = publicCheck ? ".frontier/arena-public-qa" : ".frontier/arena-labs-qa";
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ channel: "chrome", headless: true });
 const report: object[] = [];
@@ -182,7 +187,7 @@ try {
         await page.getByTestId("secret-gate-receipt").waitFor({ timeout: 60_000 });
         assert.match(
           await page.getByTestId("secret-gate-receipt").innerText(),
-          /Local memory storage/,
+          publicCheck ? /Durable Redis storage/ : /Local memory storage/,
         );
         duplicateCheck = true;
         await page.getByTestId("secret-gate-duplicate").click();
@@ -220,7 +225,9 @@ try {
         expectedDuplicateErrors,
         gateTransport:
           slug === "secret-gate"
-            ? "real HTTP / source-handlers / isolated-local-memory"
+            ? publicCheck
+              ? "public HTTPS / durable-redis"
+              : "real HTTP / source-handlers / isolated-local-memory"
             : "built-app",
       };
       report.push(result);

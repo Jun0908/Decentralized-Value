@@ -1,144 +1,47 @@
-# Ocean Commons — Merge Notes
+# Ocean Commons — Integration Notes
 
-**宛先:** `main` で作業しているエージェント（Codex / 計画9 Rescue Room 担当）
-**ブランチ:** `arena/ocean-commons`
-**作成日:** 2026-09-10
-**状態:** Phase 0 完了（判定 `PIVOT`）。Web UI・API への接続はまだ行っていない
+Original record: 2026-09-10–11. English current edition: 2026-09-13.
 
-計画10 Ocean Commons は、計画9 Rescue Room と**並行して**別のworktreeで開発されました。この文書は、その成果を `main` へ取り込むときに必要な情報だけをまとめたものです。
+This is a historical integration handoff. Ocean is now integrated into the Web app and has later entry, API, and reference-settlement work. Use [Plan 10](../Plan10.md) for current status. The [original handoff](../archive/plan-history-2026-09-13/ocean-commons-merge.md) remains unchanged.
 
-## 1. 衝突しないこと
+## Initial branch boundary
 
-このブランチは**新規ファイルしか作っていません**。計画9が触る共通接続ファイルには一切変更を加えていないため、`git merge arena/ocean-commons` は衝突しないはずです。
+The `arena/ocean-commons` branch originally added a standalone package, simulator script, and plan, with a workspace importer added to the lockfile. It intentionally avoided Rescue's shared API, registry, runner, SDK, contracts, and root-document integration points.
 
-意図的に**変更しなかった**ファイル:
+That historical isolation is not a guarantee that a new merge will be conflict-free. Inspect current status, branch ancestry, and exact diffs before integrating; do not overwrite unrelated work.
 
-```text
-apps/web/src/lib/arenas.ts
-apps/web/src/lib/arena-adapters.tsx
-apps/api/src/index.ts
-apps/runner/src/index.ts
-packages/sdk/src/index.ts
-openapi/frontier-v1.yaml
-package.json
-README.md / Docs/README.md / Docs/STATUS.md
-packages/contracts/
-```
+## Package responsibilities
 
-例外は `pnpm-lock.yaml` です。新規workspace packageを追加したため、importerエントリが1つ増えます。衝突した場合はマージ後に `pnpm install` を再実行すれば解消します。
+- `types.ts`, `rng.ts`, `scenario.ts`: sea, boat, agreement, and seeded-world definitions.
+- `engine.ts`: state transition and fuel enforcement.
+- `negotiation.ts`: proposal/acceptance, escrow, compliance, and settlement.
+- `agents.ts`, `match.ts`: public observations, reference policies, wallet authority, and match loop.
+- `evaluator.ts`: independent outcomes, counterfactuals, replay, Pareto, and hashes.
+- `manifest.ts`, `voyage.ts`: public context and illustrated replay projection.
+- Later `entry.ts` and `submission.ts`: editable entry contract and public-seed evaluation.
 
-## 2. 追加されるファイル
+The original package reused shared primitives and viem. It did not prematurely generalize the Rescue implementation.
 
-```text
-packages/ocean-commons/
-  package.json                  @frontier/ocean-commons
-  tsconfig.json
-  src/types.ts                  海・船・契約の型
-  src/rng.ts                    決定論的PRNG (mulberry32)
-  src/scenario.ts               Zone / Fleet / Weather Sequence 生成
-  src/engine.ts                 transition(state, actions, scenario)
-  src/negotiation.ts            proposal検証 / escrow / 遵守判定 / settlement
-  src/agents.ts                 Observation / Wallet Policy / Baseline 5種
-  src/match.ts                  Match Loop、Wallet Policy 強制
-  src/evaluator.ts              独立Outcome / 反実仮想 / Pareto / Hash
-  src/index.ts
-  src/index.test.ts             19テスト
+## Shared primitives: reuse without conflating meaning
 
-scripts/simulate-ocean-commons.ts   Phase 0 判定Runner
+Both arenas need bounded wallets, escrow, structured orders/proposals, deterministic transitions, seeded scenarios, and independent outcomes.
 
-Docs/Plan10.md                  設計と Phase 0 結果
-Docs/plans/ocean-commons-merge.md   この文書
-```
+Rescue escrow pays for a service deliverable. Ocean escrow can pay for restraint, with engine-measured compliance and refund on breach. Extract common infrastructure only after preserving those domain semantics.
 
-依存は `@frontier/shared` と `viem` のみで、いずれも既存パッケージが使っているものと同じです。
+## Subsequent integration
 
-## 3. 計画9と重複しているプリミティブ
+The Web registry and adapter now connect the Ocean workbench and illustrated voyage. The historical integration also added the package dependency and styles.
 
-両Arenaは次を独立に実装しています。**Phase 0 の段階では意図的に共通化していません**（計画10 §27、および計画9 §18の「最初から全面的に抽象化しない」方針に従う）。
+An overlapping alternative UI used retired outcome keys and undefined CSS classes. Integration retained the useful presentation ideas while restoring the current axes: **livelihood / restraint / cooperation**. Future changes must preserve the mission-input experience and use defined, verified styles.
 
-| プリミティブ | Ocean Commons の実装 | Rescue Room 側 |
-| --- | --- | --- |
-| Agent Wallet / 支出権限 | `agents.ts` の `WalletPolicy`、強制は `match.ts` | Budget Ledger |
-| Escrow (lock / release / refund) | `negotiation.ts` | Service Escrow |
-| 構造化 Proposal / Accept | `types.ts` の `Proposal` / `ProposalResponse` | Service Order / Evidence Receipt |
-| 決定論的 transition + Replay | `engine.ts` / `evaluator.ts` | `transition` / Transcript |
-| Scenario Generator + Seed | `scenario.ts` | Episode Generator |
-| 統合しない独立Outcome | `evaluator.ts` の `oceanMetrics`（3軸） | 3 Outcome |
+Historical test counts and feasibility decisions—19 tests, later 40 tests, and a two-of-three monotonicity gate—belong to their dated rule versions. They are not the latest Plan 10 result.
 
-**両方が Phase 0 を通過した時点で、2つの実装を比較して共通基盤を抽出することを提案します。** 第一候補は `packages/shared` へ `escrow` と `agent-wallet` を追加する案です（計画10 §27）。
+## Current handoff
 
-先に片方だけで抽象化すると、もう片方の要件が反映されないまま固定されます。特に **Escrow の意味論が両者で異なる**点に注意してください。
+- Preserve the live workbench, editable artifact, sandbox submission, and recorded reference-pool funding.
+- Keep ephemeral sandbox storage distinct from durable competition.
+- Add Ocean's public discovery/OpenAPI/SDK contract under [Plan 12](../Plan12.md).
+- Address the reported public-AI configuration and duration risks in [production readiness](../PRODUCTION_READINESS_2026-09-13.md).
+- Do not represent earlier “not pushed,” “no Web,” or “no pool” notes as current status.
 
-- Rescue Room: サービス提供に対する対価（成果物と引き換え）
-- Ocean Commons: **不作為**に対する対価（何もしないことを買う）。遵守判定はEngineの測定値で行い、違反時は残額を支払者へ返還する
-
-## 4. Phase 1 で共通接続ファイルへ入れる差分
-
-計画9が着地したあとに適用します。**まだ適用していません。**
-
-- `apps/web/src/lib/arenas.ts` — `arenaRegistry` に `ocean-commons` エントリを追加（配列末尾への追記のみ）
-- `apps/web/src/lib/arena-adapters.tsx` — Ocean Commons Workbench への fail-closed adapter
-- `apps/runner/src/` — `ocean-commons-runner.ts` を追加し、`index.ts` から登録
-- `openapi/frontier-v1.yaml` — `/v1/ocean-commons` を追加
-- `package.json` — `@frontier/ocean-commons` を依存に追加（現在 `scripts/` からは相対パスで読んでいるため未追加）
-- `Docs/STATUS.md` — Phase 0 の判定結果を記録
-- `Docs/arenas/ocean-commons.md` — Arena仕様（Phase 1で作成）
-
-## 5. 確認方法
-
-```bash
-pnpm --filter @frontier/ocean-commons typecheck
-npx vitest run packages/ocean-commons          # 19テスト
-npx tsx scripts/simulate-ocean-commons.ts 200  # Phase 0 判定、約5秒
-```
-
-Simulationは §21 の GO 条件10項目を機械的に判定して `GO` / `PIVOT` を出力します。閾値は測定前に `Docs/Plan10.md` へ固定してあり、実測値に合わせて動かしていません。
-
-## 6. 現時点の判定と未解決事項
-
-**PIVOT（10項目中9項目 PASS）。** 詳細は `Docs/Plan10.md` §32。
-
-未達は #6 のみです。Conservation Fund の導入で #4 は基準を満たしました（0.5% → 5.8%）。#6 は「機構が働かない」ではなく、基金によってEscrowが潤沢になり離脱が起きなくなったため**感度を測定できない**という状態です。詳細と対処案は §32.4 / §32.6。
-
-この判定は Ocean Commons 側の設計問題であり、計画9 Rescue Room には影響しません。
-
----
-
-## 2026-09-11 — ルールを差し替え、フロントエンドを追加
-
-### 触ったファイル
-
-**パッケージ（`packages/ocean-commons/`）**
-- `types.ts` … `Sounding` / `BoatRoundMemory` 型を追加。`Boat.fuelBudget`、`BoatState.fuelRemaining`、`Zone.travelFuel`、`SoundingExchangeTerms` を追加
-- `match.ts` … `buildObservation` を全面改修。`stocks` を廃止し `soundings` に。`history` は `BoatRoundMemory[]` に
-- `engine.ts` … 燃料の消費と切り詰め（`OUT_OF_FUEL` / `FUEL_LIMITED`）
-- `agents.ts` … `believedStock()` / `believedStocks()` / `soundingAge()` / `affordableEffort()` / `takerAgent()` を追加。全エージェントが測深記録から推定するように
-- `evaluator.ts` … `scoreRestraint()` を追加（第3軸）
-- `scenario.ts` … 燃料予算と `travelFuel`。掃引つまみは全削除
-- `manifest.ts`（新規） … `oceanCommonsManifest` / `oceanCommonsManifestHash` / `publicOceanCommonsScenario()`
-- `voyage.ts`（新規） … `toVoyage(log, viewpoint)` — リプレイ用の場面データ
-
-**web（`apps/web/`）**
-- `src/lib/arenas.ts` … `ocean-commons` を `status: "Practice"` で登録
-- `src/lib/arena-adapters.tsx` … `oceanAdapter`
-- `src/components/ocean-voyage-stage.tsx`（新規） … イラスト版リプレイ
-- `src/components/ocean-commons-workbench.tsx`（新規） … アリーナ本体
-- `src/app/globals.css` … **末尾に追記のみ。既存規則は一切書き換えていない**
-- `package.json` … `@frontier/ocean-commons` を依存に追加
-
-### 衝突について（要確認）
-
-作業中に `ocean-commons-workbench.tsx` が別実装（`async` なサーバーコンポーネント）へ書き換わっていました。そちらの**サーバー側で対戦を解決する設計は優れている**と判断し、`reciprocatorAgent` を対戦相手に採用し、「読み方の凡例」も取り入れました。
-
-一方で戻した点が 2 つあります。
-
-1. **表示していた軸が退役済みだった。** `stewardship`（水に残った魚）と `resilience` は判定 3 軸から外れています（Plan 10 §51.3、§56）。前者は effort に対して単調で、何もしない船が満点を取るため技能を分けません。現在の 3 軸は **livelihood / restraint / cooperation**
-2. **CSS クラスが 1 つも定義されていなかった。** `ocean-practice-brief` / `ocean-rules-card` / `ocean-evidence-strip` / `ocean-practice-note` は `globals.css` に存在せず、無スタイルで表示される状態でした
-
-もしサーバーコンポーネント版を進めたい場合、上の 2 点さえ満たせば私の版を差し替えて構いません。Mission のテキスト入力だけは残してください — ユーザーの要望の中心が「Prompt を入れる → イラストが動く → 勝敗が出る」という流れです。
-
-### 状態
-
-- テスト 40 件 PASS、型検査クリーン、secret-scan PASS
-- 単調性ゲート **2/3**（Plan 10 §56.2）。3/3 に届かなかったので `status: "Practice"`、報酬プールなし。**Demo competition にはしないでください**
-- Push はしていません
+For code changes, run package typecheck/tests and integration checks. UI changes need desktop/mobile and console verification. No merge or source-code change is performed by this English edition.

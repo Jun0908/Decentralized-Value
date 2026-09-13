@@ -1,79 +1,71 @@
-# Plan9 / Plan11 / Plan12 並行実装
+# Plan 9 / Plan 11 / Plan 12 — Parallel Implementation Record
 
-開始日: 2026-09-11
+Batch started: 2026-09-11. English current edition: 2026-09-13.
 
-ユーザー承認に基づく並行作業。3計画全体の完了ではなく、独立して検証できる最初の実装バッチから進める。
+This records a completed, user-authorized first implementation batch, not permission to start additional parallel work. Current priorities are in [Plans](PLANS.md) and [production readiness](PRODUCTION_READINESS_2026-09-13.md). The [original record](archive/plan-history-2026-09-13/PARALLEL_IMPLEMENTATION.md) is preserved unchanged.
 
-## 共通ルール
+## Ownership and integration rules
 
-- 起点は`b1f2350`。各担当は専用worktree / branchだけを編集する。
-- 統合先の未コミット変更、既存の`DV-ocean` worktree、Ocean開発には手を加えない。
-- API入口、root package / lockfile、共通Docsは統合担当だけが編集する。
-- 各担当は限定したファイルをローカルcommitし、差分・テスト結果・未完成の境界を報告する。
-- 統合担当が起点との差分と対象ファイルを確認してから取り込み、統合先で再検証する。
-- Push、公開、外部登録、送金、Wallet作成、有料AI実行、実ネットワークへのContract書き込みはこのバッチに含めない。
-- Game Result、署名検証、オンチェーンcommitment、実支払いを別々に扱う。存在しないEvidenceを補わない。
+The batch began at `b1f2350`, using separate worktrees and branches. The integration owner retained shared API entrypoints, root package/lockfile changes, and common documentation. Existing uncommitted work and Ocean development were preserved.
 
-## 担当と所有ファイル
+| Track       | Historical worktree / branch                   | Owned scope                                                           |
+| ----------- | ---------------------------------------------- | --------------------------------------------------------------------- |
+| Plan 9      | `DV-plan9-payments` / `codex/plan9-payments`   | Payment-policy module, exports, negative tests                        |
+| Plan 11     | `DV-plan11-evidence` / `codex/plan11-evidence` | Versioned evaluation envelope and tests                               |
+| Plan 12     | `DV-plan12-tooling` / `codex/plan12-tooling`   | Contract synchronization, package verification, generated SDK outputs |
+| Integration | Main working copy                              | Rescue adapter, integration tests, shared configuration/docs          |
 
-| 担当   | Worktree / branch                              | 所有範囲                                                | 初回の完了条件                                                                                         |
-| ------ | ---------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Plan9  | `DV-plan9-payments` / `codex/plan9-payments`   | Rescueの新Payment Policy module・test、必要なexport     | 固定宛先・Order・Context・予算・期限を検証し、送信前Intentを作る。秘密鍵・RPC不要でnegative testが通る |
-| Plan11 | `DV-plan11-evidence` / `codex/plan11-evidence` | sharedの新Evaluation Envelope・test・export             | 旧Hashを変えずRequest / Result / Execution Evidenceを分離。改ざん・対応違いを拒否                      |
-| Plan12 | `DV-plan12-tooling` / `codex/plan12-tooling`   | 契約同期・配布検証script、専用test、SDK資料・生成物     | 既存SDK資産を再利用し、生成差分と配布物を検証する                                                      |
-| 統合   | 現在の`Decentralized Value`                    | 接続adapter・統合test、package scripts / lockfile、Docs | 実Rescue評価を共通Envelopeに接続し、各担当の結果と既存API / SDKを回帰確認                              |
+These names describe historical ownership; they do not assert that the worktrees still exist.
 
-## 最初に固定する接続境界
+Each owner reported its exact diff, tests, and remaining boundaries. Integration selected the relevant changes rather than blindly cherry-picking entire branches. Shared files were rechecked against the advancing main branch.
 
-1. **Plan9 → 共通Evidence**: Service購入と支払いは既存Order / Action / Manifest / ReceiptのHashを使う。Game OutcomeとResult Hashを支払い状態に応じて書き換えない。
-2. **Plan11 → API / SDK**: version付きResultはContext・Artifact・Evaluator・独立Outcome・Episode根拠を含む。時刻、Job ID、Tx hashは別のExecution Evidenceへ置く。既存API応答へはまだ差し込まない。
-3. **Plan12 → API**: 現行API / OpenAPIと公開Schemaを正本とする。元SDKリポジトリは生成・配布検証の再利用元であり、二重管理する正本にしない。
-4. **Final / CRE**: Snapshot / Roundは共通契約で参照できても、実際の権限確認・Freeze・CRE実行を完了扱いにしない。公式CRE環境での互換性Gateは別途必要。
-5. **Payments**: 今回は制限付き送信準備のローカル検証。永続的な予算予約、署名、送信、confirmations、Receipt / Balance確認が未接続なら`paid`にしない。
+## Frozen boundaries
 
-## 検証と進捗
+1. Payments reuse order/action/manifest/receipt identities. Chain state does not rewrite game-result hashes.
+2. Request/result context and deterministic outcomes are separate from execution time, job ID, and transaction evidence.
+3. The monorepo's API/OpenAPI contract is authoritative; the older SDK repository is a reuse source.
+4. A schema referring to a snapshot or round does not prove ENS admission, entry freeze, or CRE execution.
+5. Prepared transaction intent is not payment. Reservation, signing, submission, confirmation, receipt, and balances require distinct evidence.
 
-- [x] 既存変更・worktreeの確認と、3つの専用worktreeの作成。
-- [x] 3担当への実装範囲・禁止操作・所有ファイルの割当。
-- [x] 各担当の単体テスト・型検査。
-- [x] 統合先への差分取り込みと接続テスト。
-- [x] 契約生成差分、SDK / CLI回帰、関連lint / typecheck。
-- [x] `Docs/STATUS.md`と各Planへ実装済み境界・残件を反映。
+The first batch excluded UI, public deployment, account changes, wallet creation, paid inference, transactions, and Push.
 
-最初のバッチにはUI変更を含めない。画面で使えるようになったことと、接続前の安全な部品ができたことを分けて報告する。
+## Integrated work
 
-## 第1バッチの統合結果
+- [x] Dedicated ownership and worktree setup.
+- [x] Unit tests and typechecks for all three tracks.
+- [x] Selected-diff integration and real Rescue evaluation-envelope adapter.
+- [x] SDK/CLI, contract-generation, distribution, lint, and type regression checks.
+- [x] Current-state and remaining-scope documentation.
 
-元の担当commit:
+Source commits:
 
-- Plan9: `121c0865bbf0a3bb660ee47c7f19b7a966338673`
-- Plan11: `2f885506bd56f7db8a8023c96b1dd82c013f4e05`、レビュー修正`b81372c83cd9dd9bd0e11f5e8535c3bbc2ffe4d4`
-- Plan12: `d952a620ca7984d4e1811417aca47a46c667c418`
+- Plan 9: `121c0865bbf0a3bb660ee47c7f19b7a966338673`.
+- Plan 11: `2f885506bd56f7db8a8023c96b1dd82c013f4e05`, with review fix `b81372c83cd9dd9bd0e11f5e8535c3bbc2ffe4d4`.
+- Plan 12: `d952a620ca7984d4e1811417aca47a46c667c418`.
 
-統合先では他作業の未コミット変更を保持したまま、対象ファイルの差分だけを取り込んだ。上記commitをmainへ一括cherry-pickしたわけではなく、初回報告時点では統合変更を作業ツリーに残した。別作業がmainを`9c02131`まで進めた後もテストを再実行した。後続のPush依頼では、最新mainとの差分を確認し、トップページ文言と並行実装基盤を別commitで保存する。Plan12 worktreeの検証用package / lockfile差分は、統合担当による依存更新とは別に未コミットで残っている。
+Main advanced to `9c02131` during integration. Tests were rerun while preserving unrelated changes. A verification-only package/lockfile diff in the Plan 12 worktree was not treated as the integration owner's dependency update.
 
-| 検証                                               | 結果                                                                             |
-| -------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `pnpm build:tooling`                               | shared / SDK / CLI成功                                                           |
-| `pnpm typecheck`                                   | 全workspace成功                                                                  |
-| `pnpm test:ts`                                     | 453 passed、11 skipped（opt-in Redis）                                           |
-| `pnpm contracts:cli:check` / `contracts:sdk:check` | 無書換えチェック成功                                                             |
-| `pnpm verify:cli`                                  | ローカルfixture accountによる既存5 workflow成功                                  |
-| `pnpm verify:packages`                             | 空consumerで現物tarballのESM / SDK / NodeNext / CLI確認成功                      |
-| `pnpm verify:rescue-envelope`                      | Node 22.22.1、browser-target bundle / V8、Bun 1.2.21で同一Result。CREは`not-run` |
-| `pnpm --filter @frontier/web build`                | 成功                                                                             |
-| 変更コードのESLint / Prettier / `git diff --check` | 成功                                                                             |
-| `pnpm security:scan`                               | tracked file検査成功。未追跡ファイルまで検査するコマンドではない                 |
-| Foundry / 実Redis / 公式CRE / 実決済 / Linux実機   | 今回未実行                                                                       |
+## Recorded verification
 
-全テストと複数buildを同時実行した際、既存CLI HTTPテスト2件が5秒timeoutになった。重い検証が終わった後、timeout設定やassertionを緩めず`pnpm test:ts`を単独再実行して全件成功した。また初回にSDK dist未生成を検出したため、CIには`build:tooling`を先頭に追加した。
+| Check                                              | Result in this batch                                           |
+| -------------------------------------------------- | -------------------------------------------------------------- |
+| Tooling build and workspace typecheck              | Passed                                                         |
+| TypeScript suite                                   | 453 passed / 11 opt-in Redis tests skipped                     |
+| CLI/SDK generated-contract checks                  | Passed without rewriting files                                 |
+| CLI workflows                                      | Five local fixture-account workflows passed                    |
+| Package verification                               | Empty-consumer tarball ESM/SDK/NodeNext/CLI passed             |
+| Rescue envelope                                    | Same result in Node 22.22.1, browser-target V8, and Bun 1.2.21 |
+| Web production build                               | Passed                                                         |
+| Changed-code lint/format/diff checks               | Passed                                                         |
+| Tracked-file secret scan                           | Passed for its stated scope                                    |
+| Foundry, real Redis, official CRE, payments, Linux | Not run in this batch                                          |
 
-独立レビューでは、ローカルArtifactの検証・実行で値を読み直す問題を単一の正規化snapshotで修正した。新Envelopeの文字列順序もlocale依存からコード単位順へ修正し、両方に回帰テストを追加した。署名・送信・実CRE検証ができたというclaimは追加していない。
+Two existing HTTP tests timed out under simultaneous heavy builds. A standalone rerun passed without weakening assertions or timeout settings. Missing SDK dist prompted the CI tooling-build prerequisite.
 
-## 次の実装単位
+Review also replaced repeated artifact reads with a single normalized snapshot and removed locale-dependent ordering from the new envelope, with regression tests.
 
-1. Plan9: 永続Atomic予約とTransaction Adapterを分離して設計・テスト。実Wallet / Deploy / Fundingは別途設定と実行範囲を確認する。
-2. Plan11: 公式CRE CLI / runtimeで1 Episodeの互換性Gateを実行し、結果が一致してからHidden pack / ENS / dispatchへ進む。今回のNode / Bun結果でGateを代替しない。
-3. Plan12: Oceanの既存HTTP入力・応答をOpenAPI / runtime Schemaへ接続し、Registryの共通化と永続AI Jobを別変更に分ける。
+## Subsequent work
 
-次のバッチでも同じファイルを複数担当へ渡さず、API入口・新共通Schema・lockfileの変更順を統合担当が管理する。
+Later authorized batches added real AI/Payment evidence, official CRE simulation, live ENS/MCP demonstrations, and public practice checks. Those later results are in [Plan 9](Plan9.md), [Plan 11](Plan11.md), and [Plan 12](Plan12.md); they do not retroactively turn this first batch into a live-network test.
+
+For future delegation, obtain an explicit parallel-work request, assign nonoverlapping files, preserve dirty work, and coordinate shared integration files. The current documentation edit starts no agents and performs no external mutations.

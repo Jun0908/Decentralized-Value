@@ -25,6 +25,7 @@ import {
   secretGateNearestRankP95,
 } from "./secret-gate-execution-plan";
 import styles from "./secret-gate-workbench.module.css";
+import { FirstMission } from "./first-mission";
 
 type Scenario = ReturnType<typeof import("@frontier/secret-gate").publicSecretGateScenario>;
 type Receipt = {
@@ -496,6 +497,61 @@ export function SecretGateWorkbench({ scenario }: { scenario: Scenario }) {
 
   return (
     <div className={styles.workbench} data-testid="secret-gate-walkthrough">
+      <FirstMission
+        title="Open the gate. Then try the exact same proof twice."
+        error={error}
+        busy={operation ? "Working: " + status : null}
+        description="Follow four real actions. Your private identity stays on this device; only its public commitment and proof leave the browser."
+        steps={[
+          {
+            title: "Create an identity",
+            description:
+              "Make a disposable identity for this experiment. No wallet or personal details are needed.",
+            done: identity !== null,
+            action: "Create demo identity",
+            onAction: () => createIdentity(),
+            disabled: operation !== null || identity !== null,
+          },
+          {
+            title: "Join the public group",
+            description: "Register only the public commitment and retrieve a membership snapshot.",
+            done: snapshot !== null,
+            action: "Register membership",
+            onAction: enroll,
+            disabled: operation !== null || identity === null || snapshot !== null,
+          },
+          {
+            title: "Prove membership",
+            description:
+              "Your browser creates a proof. The server checks it before opening the gate. The first download can take a little time.",
+            done: receipt !== null,
+            action: "Make proof and enter",
+            onAction: proveAndEnter,
+            disabled: operation !== null || snapshot === null || receipt !== null,
+          },
+          {
+            title: "Try reusing that proof",
+            description:
+              "Resend the retained proof. Success here means the gate refuses the second use, not that it opens again.",
+            done: duplicate?.code === "NULLIFIER_ALREADY_USED",
+            action: "Test the same proof again",
+            onAction: () => {
+              if (entry) void perform("duplicate", () => submitEntry(entry, true));
+            },
+            disabled: operation !== null || entry === null || receipt === null,
+          },
+        ]}
+        result={
+          duplicate?.code === "NULLIFIER_ALREADY_USED" && receipt ? (
+            <p>
+              First entry verified. Second use rejected with{" "}
+              <strong>409 · NULLIFIER_ALREADY_USED</strong>. Your original receipt is preserved.
+              This proves the one-use behavior in this session, not benchmark stability or a
+              completed tournament.
+            </p>
+          ) : null
+        }
+      />
       <header className={styles.intro}>
         <p className={styles.kicker}>REAL SEMAPHORE V4 · INTERACTIVE PROOF LAB</p>
         <h2>

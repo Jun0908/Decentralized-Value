@@ -9,6 +9,8 @@ import {
   type CalldataRuleArtifact,
 } from "@frontier/calldata-compression/rules";
 import { useState } from "react";
+import { FirstMission } from "./first-mission";
+import { firstMissionProgress } from "./first-mission-progress";
 import styles from "./calldata-workbench.module.css";
 
 type PublicCalldataScenario = {
@@ -269,6 +271,13 @@ export function CalldataCompressionDemo({ scenario }: { scenario: PublicCalldata
     artifactError = cause instanceof Error ? cause.message : "Invalid rule artifact.";
   }
   const dirty = result !== null && JSON.stringify(artifact) !== JSON.stringify(result.artifact);
+  const mission = firstMissionProgress(
+    result ? { ...result, valid: result.point.correctness && result.malformedInputRejected } : null,
+    previous
+      ? { ...previous, valid: previous.point.correctness && previous.malformedInputRejected }
+      : null,
+    dirty,
+  );
   const activeBatch = result?.batchEvidence[batchIndex];
   const abiBaseline = result?.baselines.find(({ point }) => point.id === "reference-abi");
 
@@ -325,6 +334,58 @@ export function CalldataCompressionDemo({ scenario }: { scenario: PublicCalldata
 
   return (
     <div className={styles.workbench} data-testid="calldata-workbench">
+      <FirstMission
+        title="Can a smaller package cost more to unpack?"
+        error={error ?? artifactError}
+        busy={
+          pending
+            ? "Running the EVM measurement. Your controls are locked until it finishes."
+            : null
+        }
+        description="Measure once, change one packing rule, then compare the two gas bills. The starter gives you a concrete first experiment."
+        steps={[
+          {
+            title: "Measure your starting rules",
+            description:
+              "Use the preloaded reuse-aware starter, or keep your own rules. This runs a real EVM measurement, not an Ethereum transaction.",
+            done: mission[0],
+            action: pending ? "Measuring…" : "Measure current rules",
+            onAction: () => void measure(),
+            disabled: pending || artifactError !== null,
+          },
+          {
+            title: "Change one decision",
+            description:
+              "With the starter, change Minimum recipient reuse from 50 to 100. The dictionary will be used less often. With custom rules, change a codec or fallback.",
+            done: mission[1],
+            action: "Go to packing rules",
+            href: "#calldata-builder-heading",
+          },
+          {
+            title: "Measure again. Read both costs.",
+            description:
+              "Keep the same workload. Compare the new revision with your previous run. One cost may fall while the other rises; unchanged results are allowed.",
+            done: mission[2],
+            action: "Measure edited rules",
+            onAction: () => void measure(),
+            disabled: pending || artifactError !== null || !mission[0] || !dirty,
+          },
+        ]}
+        result={
+          mission[2] && result && previous ? (
+            <p>
+              Compared with your previous run:{" "}
+              <strong>sending {delta(result.point.calldataGas, previous.point.calldataGas)}</strong>
+              ;{" "}
+              <strong>
+                decoding {delta(result.point.decodeExecutionGas, previous.point.decodeExecutionGas)}
+              </strong>
+              . Both passed correctness. Neither axis is hidden in a combined score. Keep exploring
+              the batch diagrams below.
+            </p>
+          ) : null
+        }
+      />
       <section className={styles.brief}>
         <div>
           <p className={styles.eyebrow}>Compression rule lab · Practice</p>

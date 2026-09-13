@@ -18,6 +18,18 @@ const optionalHash = z.preprocess(
     .regex(/^0x[0-9a-fA-F]{64}$/)
     .optional(),
 );
+// Existing deployment and relayer adapters accept either spelling.
+// Normalize only the parsed result; never rewrite the credential file.
+const optionalPrivateKey = z.preprocess(
+  (value) =>
+    typeof value === "string" && /^[0-9a-fA-F]{64}$/.test(value)
+      ? `0x${value}`
+      : blankToUndefined(value),
+  z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{64}$/)
+    .optional(),
+);
 
 export const environmentSchema = z.object({
   API_PORT: z.coerce.number().int().positive().default(3001),
@@ -28,13 +40,7 @@ export const environmentSchema = z.object({
   CHALLENGE_REGISTRY_ADDRESS: optionalAddress,
   ARTIFACT_REGISTRY_ADDRESS: optionalAddress,
   ATTESTATION_ADDRESS: optionalAddress,
-  DEPLOYER_PRIVATE_KEY: z.preprocess(
-    blankToUndefined,
-    z
-      .string()
-      .regex(/^0x[0-9a-fA-F]{64}$/)
-      .optional(),
-  ),
+  DEPLOYER_PRIVATE_KEY: optionalPrivateKey,
   DEPLOYER_ADDRESS: optionalAddress,
   ENS_PARENT_NAME: optionalString,
   ETHERSCAN_API_KEY: optionalString,
@@ -59,18 +65,18 @@ export const environmentSchema = z.object({
   ),
   NEXT_PUBLIC_SETTLEMENT_TX_HASH: optionalHash,
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  OPENAI_API_KEY: optionalString,
+  OPENAI_BASE_URL: optionalUrl,
+  OPENAI_MODEL: optionalString,
+  FRONTIER_CLI_ORIGIN: optionalUrl,
+  UPSTASH_REDIS_REST_URL: optionalUrl,
+  UPSTASH_REDIS_REST_TOKEN: optionalString,
   RUNNER_PORT: z.coerce.number().int().positive().default(3002),
   RUNNER_PUBLIC_URL: optionalUrl,
   PARETO_SETTLEMENT_ADDRESS: optionalAddress,
   PLAN5_DEMO_TOKEN_ADDRESS: optionalAddress,
   PLAN5_MAX_REWARD_CREDITS: z.preprocess(blankToUndefined, z.string().regex(/^\d+$/).optional()),
-  PLAN5_RELAYER_PRIVATE_KEY: z.preprocess(
-    blankToUndefined,
-    z
-      .string()
-      .regex(/^0x[0-9a-fA-F]{64}$/)
-      .optional(),
-  ),
+  PLAN5_RELAYER_PRIVATE_KEY: optionalPrivateKey,
   PLAN5_REWARD_POOL_ADDRESS: optionalAddress,
   PLAN5_SETTLEMENT_ENABLED: z.preprocess(blankToUndefined, z.enum(["true", "false"]).optional()),
   PRIVY_VERIFICATION_KEY: optionalString,

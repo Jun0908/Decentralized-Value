@@ -3,8 +3,10 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { chromium } from "playwright";
 
 const base = new URL(process.argv[2] ?? "http://127.0.0.1:3014");
-assert.ok(["127.0.0.1", "localhost"].includes(base.hostname));
-const output = ".frontier/arena-story-qa";
+const publicCheck = process.argv.includes("--public-practice");
+if (publicCheck) assert.equal(base.origin, "https://web-rho-seven-d6te7t3f0y.vercel.app");
+else assert.ok(["127.0.0.1", "localhost"].includes(base.hostname));
+const output = publicCheck ? ".frontier/arena-public-story-qa" : ".frontier/arena-story-qa";
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ channel: "chrome", headless: true });
 const report: object[] = [];

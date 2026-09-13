@@ -1,13 +1,29 @@
 # Current implementation status
 
-- **Last verified:** 2026-09-12（下段3ArenaのPractice統合・実ブラウザー検証。スポンサー等の過去の検証記録は各項目の日付と範囲）
+- **Last verified:** 2026-09-13（公開3Arena・本番RedisのProof受理／拒否・提出リンク・非課金SDK接続。過去の記録は各項目の日付と範囲）
 - **Public application:** <https://web-rho-seven-d6te7t3f0y.vercel.app>
-- **Active plans:** [`Plan9.md`](Plan9.md) (Rescue Room), [`Plan11.md`](Plan11.md) (Sponsor integration), [`Plan12.md`](Plan12.md) (API / SDK / CLI). Parallel ownership and current batch: [`PARALLEL_IMPLEMENTATION.md`](PARALLEL_IMPLEMENTATION.md).
-- **Arena improvement plans:** [`Plan-Calldata.md`](Plan-Calldata.md), [`Plan-Microgrid.md`](Plan-Microgrid.md), [`Plan-SecretGate.md`](Plan-SecretGate.md)。各Arenaの今回完成範囲・画面検証・未完成の大会機能を別々に記録。
+- **English plans:** [Plan index](PLANS.md), including Plan 9 (Rescue), Plan 10 (Ocean), Plan 11 (Sponsors), Plan 12 (API / SDK / CLI), and the three practice-workbench plans. Original Japanese development records are preserved in the linked archive.
+- **Release follow-up:** [Production readiness review](PRODUCTION_READINESS_2026-09-13.md). Public pages and non-AI practice are verified; public AI availability is not. A later GET check returned `commanderAvailable: false`, missing Ocean discovery, a missing Rescue parent page, and stale Sepolia showcase metadata. These fixes are planned, not implemented by the documentation update.
 
 This document records the current capability boundary. Product rules live in [`PRODUCT.md`](PRODUCT.md), the active Rescue Room work is scoped in [`Plan9.md`](Plan9.md), and completed or superseded plans live under [`archive/`](archive/).
 
 ## Working now
+
+### Environment configuration cleanup — 2026-09-13
+
+The environment template is grouped by feature and documents optional, required-for-feature, legacy, and display-only settings. Existing private `.env` key/value assignments are preserved. `env:check` now checks actual root local files, with a separate `--example` mode and secret-safe output. Optional AI/CLI/Redis formats are covered; the key parser accepts the same prefixed/unprefixed format as existing deployment adapters. This is offline configuration validation, not a public-AI or payment readiness check. See [Environment Configuration](ENVIRONMENT.md).
+
+### 初回ミッション — ローカル実装 2026-09-13
+
+下段3Arenaに実操作へ接続したFirst Missionを追加。Calldataは2回測定とRule変更、MicrogridはGrid cap変更による3軸差分、Secret GateはIdentity→登録→Proof→同一Proof拒否。実結果から完了を判定し、同じArtifact再実行・別Context比較・不正結果・未測定Draftを完了扱いにしない。既存Evaluator・報酬・PIVOT判断は変更していない。
+
+新ミッションは1440 / 390pxで完走し、誤完了拒否と専用ボタン配色も検査。Web build・変更範囲Lint・TypeScriptテスト821成功／11skip。`pnpm exec tsx scripts/verify-first-missions.ts http://127.0.0.1:3014`、画像は`.frontier/first-mission-qa/`。各ArenaのPlanへ追記済み。この新ミッションと今回の文書修正は未Push・未Deploy。下記公開検証は先行Commitの既存Practiceを対象とする。
+
+### 公開検証と提出文書の同期 — 2026-09-13
+
+`033a73c`のGitHub Vercel status成功、実公開サイトの下段3Arena実行・画像・比較・Download・Replay、本番RedisのProof受理と同一Proof拒否を1440 / 390pxで確認。Home・上段3Arena・Sponsor・英語提出画面の表示、Sponsor JSONと保存済みEvidenceの一致、公開Rescue API→SDKの6実HTTP・Hash反復一致も成功。[検証範囲・コマンド・残課題](PUBLIC_VERIFICATION_2026-09-13.md)。
+
+提出用英語文、HACKATHON_SUBMISSION、Plan11 / 12、INTEGRATIONS、引継ぎの古い「未接続・未公開」を修正。ENS実取引／CRE公式local simulation／Bazantic実AI MCP／Hosted Recipe未実行を分離。過去バッチの未実施記録は最新の成功状態を否定しない。賞への適合・動画公開・最終応募送信は本人確認が残る。今回の新規推論・送金0。公開チェックによる使い捨てGroup登録・Proof消費は2組。
 
 ### Three Arena introduction illustrations — 2026-09-13
 
@@ -25,7 +41,7 @@ Web build、Arena登録テスト3件、変更範囲ESLint、1440 / 390pxの全3�
 
 最終検証: TypeScript **818成功／11skip**、全Workspace型検査、Web Production build、変更範囲ESLint／Prettier、SDK／CLI契約差分チェック。1440／390pxの3Arenaで設定変更・実行・比較・Download・Replay・Context切替を確認。Console error 0、横Overflow・禁止配色0。Secret Gateの意図したHTTP409は別に記録する。Proof受理・同一Proof拒否・4Proof生成は最終的に実HTTPで確認し、応答Mockは使用していない。
 
-確認用の <http://127.0.0.1:3014/arenas> はloopback限定の開発プレビュー。Web buildを背後の3013番で提供し、Gateの2POSTだけを既存の実Handler＋独立MemoryStoreへ接続する。本番Redis必須条件は維持し、AI／支払い等のPOSTは拒否。再起動で一度限り使用の履歴は失われる。[再起動手順](Plan-SecretGate.md#ローカルプレビューの再起動手順)。検証は`pnpm exec tsx scripts/verify-arena-labs.ts http://127.0.0.1:3014`、結果と画面は`.frontier/arena-labs-qa/`。
+確認用の <http://127.0.0.1:3014/arenas> はloopback限定の開発プレビュー。Web buildを背後の3013番で提供し、Gateの2POSTだけを既存の実Handler＋独立MemoryStoreへ接続する。本番Redis必須条件は維持し、AI／支払い等のPOSTは拒否。再起動で一度限り使用の履歴は失われる。[再起動手順](Plan-SecretGate.md#local-preview-instructions)。検証は`pnpm exec tsx scripts/verify-arena-labs.ts http://127.0.0.1:3014`、結果と画面は`.frontier/arena-labs-qa/`。
 
 これらは新しいローカルPracticeであり、Hidden Final、大会用永続Entry、報酬、実設備、公開Deploymentの完成ではない。今回のPush・送金・有料AI呼出しは0。既存3000番サーバーやPC再起動・ネットワーク設定には触れていない。
 
