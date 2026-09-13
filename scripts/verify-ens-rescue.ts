@@ -14,7 +14,7 @@ import {
 import { sepolia } from "viem/chains";
 import { EnsRescueServiceDirectory } from "../packages/ens-adapter/src/index";
 import { checkRescuePracticeOnboarding } from "./lib/rescue-practice-preflight";
-import recorded from "../Docs/deployments/ensv2-rescue-demo.json";
+import recorded from "../Docs/evidence/deployments/ensv2-rescue-demo.json";
 
 async function main() {
   const env = parseEnv(await readFile(resolve(import.meta.dirname, "../.env"), "utf8"));

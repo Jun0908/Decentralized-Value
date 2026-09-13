@@ -34,7 +34,7 @@ if (args.some((argument) => argument !== "--example")) {
   } catch {
     // Never print parser exceptions: future validators can include input values.
     console.error(
-      "Environment validation failed. Check the documented formats in Docs/ENVIRONMENT.md; values are not displayed.",
+      "Environment validation failed. Check the documented formats in Docs/development/guides/ENVIRONMENT.md; values are not displayed.",
     );
     process.exitCode = 1;
   }

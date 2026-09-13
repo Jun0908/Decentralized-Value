@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import evidence from "../../../../../../Docs/deployments/rescue-submission-demo.json";
-import replayFixture from "../../../../../../Docs/deployments/rescue-submission-replay.json";
+import evidence from "../../../../../../Docs/evidence/deployments/rescue-submission-demo.json";
+import replayFixture from "../../../../../../Docs/evidence/deployments/rescue-submission-replay.json";
 import styles from "./submission.module.css";
 
 export const metadata: Metadata = {

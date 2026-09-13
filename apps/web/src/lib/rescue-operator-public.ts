@@ -1,5 +1,5 @@
 import { z } from "zod";
-import saved from "../../../../Docs/deployments/sepolia-rescue-service-demo.json";
+import saved from "../../../../Docs/evidence/deployments/sepolia-rescue-service-demo.json";
 
 const address = z.string().regex(/^0x[0-9a-fA-F]{40}$/);
 const hash = z.string().regex(/^0x[0-9a-f]{64}$/);

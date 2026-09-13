@@ -21,7 +21,7 @@ const localOrigin = process.env.VIDEO_LOCAL_ORIGIN ?? "http://127.0.0.1:3008";
 const localUrl = `${localOrigin}/arenas/emergency-supply`;
 const evidenceUrl = "https://web-rho-seven-d6te7t3f0y.vercel.app/architecture";
 const recordedPayment = JSON.parse(
-  await readFile("Docs/deployments/sepolia-reward-demo.json", "utf8"),
+  await readFile("Docs/evidence/deployments/sepolia-reward-demo.json", "utf8"),
 );
 const browser = await chromium.launch({ channel: "chrome", headless: true });
 const errors: string[] = [];

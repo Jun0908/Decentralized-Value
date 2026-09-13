@@ -262,7 +262,7 @@ async function main() {
   }
   assert(revokedWriteRejected);
   await writeFile(
-    join(root, "Docs/deployments/ensv2-rescue-demo.json"),
+    join(root, "Docs/evidence/deployments/ensv2-rescue-demo.json"),
     JSON.stringify(
       {
         ...report,
@@ -280,7 +280,7 @@ async function main() {
     JSON.stringify({
       verified: true,
       revokedWriteRejected,
-      evidence: "Docs/deployments/ensv2-rescue-demo.json",
+      evidence: "Docs/evidence/deployments/ensv2-rescue-demo.json",
     }),
   );
 }

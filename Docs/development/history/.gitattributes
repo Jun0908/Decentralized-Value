@@ -1,0 +1,2 @@
+# Preserve the exact bytes of the pre-translation QA source through Git checkout.
+design-qa-original-2026-09-13.md.txt -text

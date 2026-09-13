@@ -1,33 +1,54 @@
-# Frontier Protocol documentation
+# Documentation
 
-This directory contains the current product and engineering reference. Start with [`STATUS.md`](STATUS.md), then open only the document needed for the change.
+Choose the route relevant to your task. [STATUS](STATUS.md) describes the current implementation; the [Plan 1–12 index](development/plans/README.md) presents the development sequence created during ETHOnline 2026.
 
-## Active documents
+## Review the project
 
-| Document | Use it for |
-| --- | --- |
-| [STATUS.md](STATUS.md) | Current capabilities, gaps, and next boundary |
-| [Plan9.md](Plan9.md) | Active Rescue Room feasibility and staged implementation plan |
-| [Plan11.md](Plan11.md) | Japanese implementation prerequisites and staged plan for ENSv2, Bazantic, and Chainlink CRE sponsor integrations |
-| [Plan12.md](Plan12.md) | Japanese API, SDK, and CLI gap analysis and implementation plan, including reuse of the separate SDK repository |
-| [PARALLEL_IMPLEMENTATION.md](PARALLEL_IMPLEMENTATION.md) | Ownership, integration boundaries, and verification for parallel Plan9 / Plan11 / Plan12 work |
-| [PRODUCT.md](PRODUCT.md) | Product model, terminology, and competition rules |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Runtime structure, evidence chain, and trust boundaries |
-| [DEMO.md](DEMO.md) | Public walkthrough, safe claims, and recovery |
-| [INTEGRATIONS.md](INTEGRATIONS.md) | Vercel, Sepolia, Privy, Redis, Bazantic, and ENS |
-| [arenas/](arenas/) | Arena-specific inputs, constraints, metrics, and evaluation rules |
-| [deployments/](deployments/) | Machine-readable deployment evidence |
-| [reference/Value_Decentralization_Whitepaper_JP.pdf](reference/Value_Decentralization_Whitepaper_JP.pdf) | Original Japanese concept paper |
+- [Product model](PRODUCT.md): independent values, correctness gates and comparable evidence.
+- [Current status](STATUS.md): implementation and verification details.
+- [Architecture](ARCHITECTURE.md): system and trust boundaries.
+- [Demo walkthrough](hackathon/DEMO.md), [submission scope](hackathon/submission/HACKATHON_SUBMISSION.md) and [English submission copy](hackathon/submission/SUBMISSION_COPY_EN.md).
 
-The repository-root [`README.md`](../README.md) is the public project entry point. The repository-root [`AGENTS.md`](../AGENTS.md) is the short working guide for coding agents. The OpenAPI contract lives at [`openapi/frontier-v1.yaml`](../openapi/frontier-v1.yaml).
+## Review sponsor integrations
 
-## Where updates belong
+- [Integration overview](INTEGRATIONS.md)
+- [Sponsor demo, evidence and representative source](hackathon/sponsors/SPONSOR_DEMO.md)
+- [ENS / CRE / Bazantic index](hackathon/sponsors/README.md)
+- [Machine-readable deployment records](evidence/deployments/)
 
-- Product behavior or vocabulary: `PRODUCT.md`
-- Proven implementation state: `STATUS.md`
-- System or trust-boundary change: `ARCHITECTURE.md`
-- Demo flow or public claim: `DEMO.md` and, when relevant, the root `README.md`
-- External-service state: `INTEGRATIONS.md`
-- Evaluator rules: the matching file under `arenas/` plus tests
+## Build or participate
 
-Plan 9 is the current user-requested implementation plan. Completed and superseded plans, including the Secret Gate Plan 8 `PIVOT`, live under [`archive/`](archive/). Temporary notes belong in the ignored `tmp/` directory.
+- [Environment configuration](development/guides/ENVIRONMENT.md)
+- [Rescue developer quickstart](development/guides/RESCUE_AGENT_QUICKSTART.md)
+- [API contract](../openapi/frontier-v1.yaml), [SDK](../packages/sdk/README.md) and [CLI](../packages/cli/README.md)
+- [Arena specifications](product/arenas/)
+- [Rescue operator runbook](development/guides/RESCUE_EXECUTION_BATCH.md)
+
+## Four purpose-based folders
+
+The root contains five project-wide documents: this index, `STATUS.md`, `PRODUCT.md`, `ARCHITECTURE.md` and `INTEGRATIONS.md`. The public demo guide lives in `hackathon/DEMO.md`; video-production material is local-only.
+
+| Purpose                                                    | Folder                                |
+| ---------------------------------------------------------- | ------------------------------------- |
+| Product rules, Arenas and whitepaper                       | [product/](product/README.md)         |
+| Plans 1–12, setup guides and hackathon development history | [development/](development/README.md) |
+| Submission, sponsor demonstrations and recording           | [hackathon/](hackathon/README.md)     |
+| Verification reports and machine-readable evidence         | [evidence/](evidence/README.md)       |
+
+**Earlier plans and development records are work from this hackathon, not pre-event development.** Plans 1–12 share one folder and index. Supporting iterations and unchanged originals live under [development/history](development/history/README.md), replacing the former Archive split.
+
+Some original plans and snapshots retain their source language. English indexes explain their role. The [Japanese concept paper](product/whitepaper/Value_Decentralization_Whitepaper_JP.pdf) remains source-language material.
+
+Owner-operation notes, internal coordination and video-production documents are consolidated under Git-ignored `Docs/local-only/`. Video output under `artifacts/video-demo/` is also ignored. This local folder is not part of the four public documentation sections. Public documentation must not link to local-only files. Keep implementation plans, asset-generation provenance, development records, test results and execution/payment evidence published.
+
+## Maintenance
+
+Keep current availability in STATUS, rules in product specifications, development plans in `development/plans/`, and dated test observations in `evidence/verification/`. Link to those sources instead of copying changing status tables.
+
+Do not split numbered plans by completion status. Preserve the development sequence; mark the date and implementation status inside the document. Supporting reviews, handoffs and source snapshots belong in `development/history/`.
+
+Keep raw evidence and original snapshot bytes unchanged. Paths inside historical JSON are provenance, not necessarily current navigation links. When moving authored documents, repair incoming and outgoing links. Do not change experimental results during editorial cleanup.
+
+`pnpm exec vitest run tests/docs-structure.test.ts` checks the folder layout, unified Plans 1–12 and documentation links. The [earlier reorganization report](evidence/verification/DOCS_REORGANIZATION_2026-09-13.md) describes its dated five-folder checkpoint, not the current layout.
+
+Repository entry: [README](../README.md). Coding guide: [AGENTS.md](../AGENTS.md).

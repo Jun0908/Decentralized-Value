@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
-import ens from "../../Docs/deployments/ensv2-rescue-demo.json";
-import cre from "../../Docs/deployments/chainlink-cre-private-pack.json";
-import bazantic from "../../Docs/deployments/bazantic-rescue-agent-demo.json";
+import ens from "../../Docs/evidence/deployments/ensv2-rescue-demo.json";
+import cre from "../../Docs/evidence/deployments/chainlink-cre-private-pack.json";
+import bazantic from "../../Docs/evidence/deployments/bazantic-rescue-agent-demo.json";
 import { replayRescueSecretPack } from "./rescue-secret-pack";
 import { verifyRescueDoctrinePracticeIntegrity, compareRuns } from "../../packages/sdk/src/index";
 import { cliRunSchema } from "../../packages/shared/src/index";

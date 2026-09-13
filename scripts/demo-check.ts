@@ -7,7 +7,7 @@ import "dotenv/config";
 
 type Check = { name: string; ok: boolean; recovery: string };
 const root = resolve(import.meta.dirname, "..");
-const rewardEvidencePath = resolve(root, "Docs/deployments/sepolia-reward-demo.json");
+const rewardEvidencePath = resolve(root, "Docs/evidence/deployments/sepolia-reward-demo.json");
 const commandAvailable = (command: string) => {
   try {
     execFileSync(command, ["--version"], { stdio: "ignore" });

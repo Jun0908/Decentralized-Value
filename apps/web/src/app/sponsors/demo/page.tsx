@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import ens from "../../../../../../Docs/deployments/ensv2-rescue-demo.json";
-import cre from "../../../../../../Docs/deployments/chainlink-cre-private-pack.json";
-import bazantic from "../../../../../../Docs/deployments/bazantic-rescue-agent-demo.json";
+import ens from "../../../../../../Docs/evidence/deployments/ensv2-rescue-demo.json";
+import cre from "../../../../../../Docs/evidence/deployments/chainlink-cre-private-pack.json";
+import bazantic from "../../../../../../Docs/evidence/deployments/bazantic-rescue-agent-demo.json";
 import styles from "../../rescue-room/submission/submission.module.css";
 
 export const metadata: Metadata = { title: "Sponsor demonstrations | Value Decentralization" };

@@ -25,4 +25,4 @@ pnpm exec tsx scripts/verify-bazantic-readiness.ts
 4. 失敗・同等・悪化を含む全試行、入出力／Recipe Hash／ツール履歴を保存する。実モデル ID・Gateway の出所と証跡は別に検証する。
 5. 公開前に秘密情報を確認し、必要な動画／提出物を人間が準備する。勝利や採択を保証しない。
 
-詳細は [認証・応募条件](../Docs/sponsors/MANUAL_ACTION_REQUIRED.md) を参照。アカウント操作、登録、Push、公開、課金はこのローカル検証の権限に含みません。
+詳細は [認証・応募条件](../Docs/hackathon/submission/HACKATHON_SUBMISSION.md) を参照。アカウント操作、登録、Push、公開、課金はこのローカル検証の権限に含みません。

@@ -1,118 +1,130 @@
 # Rescue Room — Design QA
 
-## 下段3Arena First Mission — 2026-09-13
+English translation of the development QA record. Dates, measurements, findings and pass/fail results below describe the recorded checks, not new browser runs. The [original source](Docs/development/history/design-qa-original-2026-09-13.md.txt) is preserved unchanged. Artifact paths identify local QA captures, not published downloads.
 
-対象は `arena-intro-story` に続く新しい `first-mission`。Calldataは2回の実測、Microgridは1パラメータの変更、Secret Gateは4つの実操作へ直接つなぐ。画像は先行生成素材を保持し、この変更では新規生成なし。
+## Ocean / Rescue responsive regression — 2026-09-13
 
-- 初回検証でMicrogridの既存ボタンCSSが新コンポーネントに干渉して白背景になったため、`.mission .steps .action`へScopeを限定してdark＋lightに固定。共通globals.cssは変更しない。
-- default / hover / disabled、focus outline、activeのlime＋darkを同一Scopeで明示。
-- 1440×1000 / 390×1000で実操作完走、横Overflowなし、Console errorなし。意図した重複拒否409は別計数。
-- 未測定・編集中・同じArtifact・別Context・不正入力を区別し、Learning progressをScoreやRewardへ接続しない。
-- 画像: `.frontier/first-mission-qa/{calldata-compression,microgrid-dispatch,secret-gate}-{1440,390}-{initial,complete}.png`。最終Microgrid mobileもdark buttonで再確認。
-- 自動確認: `scripts/verify-first-missions.ts`。ボタン／リンクの背景色の継承干渉を検出する検査を追加。
+- Do not treat `html.scrollWidth === html.clientWidth` as proof of fit: `overflow-x: hidden` can conceal a clipped child grid. Inspect the bounds and internal scroll width of the actual map, legend, controls and hero copy.
+- Use shrinkable grid tracks (`minmax(0, 1fr)`) and `min-width: 0` for these nested surfaces. Do not mask min-content overflow with another hidden-overflow wrapper.
+- Rescue headings, both hero actions, and the illustrated story loop must not overlap at 320 / 390 / 768 / 1440 CSS pixels.
+- Ocean's map, legend, replay controls and voyage history must fit their containers. Explicitly scrollable landscape tables are a different case.
+- Cooperation efficacy is **stewardship points per 1000 DemoUSD**, not a percentage. Its negative values are valid; do not rescale or clamp the evaluator to make the card look simpler.
+- Re-run `ARENA_QA_ORIGIN=http://127.0.0.1:3016 pnpm exec tsx scripts/verify-arena-layout.ts` (PowerShell: set `$env:ARENA_QA_ORIGIN` separately). Screenshots and numeric checks are written to ignored `.frontier/arena-layout-qa/` for visual review.
+- Local production-build regression passed at all four widths, including replay pause / resume / first / last round, API discovery, history width and hero overlap checks. Eight screenshots reviewed. This is not a deployed-site, physical-device, authenticated-flow, paid-inference or payment verification.
 
-公開HTTPS上の先行3Arenaと提出リンクは別途検証済み。このFirst Missionはまだローカル実装。final result: passed（ローカルの初回ミッション範囲）。
+## First Missions for the three lower Arenas — 2026-09-13
 
-## 今回の対象
+Scope: the new `first-mission` following `arena-intro-story`. Calldata leads directly into two real measurements, Microgrid into a one-parameter change, and Secret Gate into four real operations. Existing generated illustrations were retained; this change generated no new images.
 
-- 指摘元: ユーザー提供スクリーンショット（lime 背景に白文字の「リプレイ証拠のタイムライン」）
-- 既存の画面全体の Source Visual Truth: `artifacts/ux-audit-rescue-room/selected-option-2.png`
-- 既存の画面全体比較: `artifacts/ux-audit-rescue-room/30-source-implementation-qa.png`
-- 同状態の修正前再現: `artifacts/ux-audit-rescue-room/31-replay-contrast-before.png`
-- 修正後のフォーカス画像: `artifacts/ux-audit-rescue-room/32-replay-contrast-after.png`
-- 修正後のデスクトップ画面: `artifacts/ux-audit-rescue-room/33-rescue-result-contrast-desktop.png`
-- 修正後のモバイル画面: `artifacts/ux-audit-rescue-room/33-rescue-result-contrast-mobile.png`
+- Initial verification found that existing Microgrid button CSS gave the new component a white background. Styling was scoped to `.mission .steps .action` with a dark background and light text. Shared globals.css was not changed for this correction.
+- Default / hover / disabled styling, the focus outline, and the active lime-and-dark pair were explicitly defined within the same scope.
+- Real interactions completed at 1440 × 1000 / 390 × 1000 with no horizontal overflow or console errors. Expected duplicate-rejection 409 responses were counted separately.
+- Distinguish unmeasured, being edited, same artifact, different context and invalid-input states. Do not turn learning progress into a score or reward.
+- Captures: `.frontier/first-mission-qa/{calldata-compression,microgrid-dispatch,secret-gate}-{1440,390}-{initial,complete}.png`. The final Microgrid mobile capture was also rechecked for dark buttons.
+- Automated verification: `scripts/verify-first-missions.ts`. Checks were added to detect inherited button/link background interference.
+
+The earlier three Arena pages and submission links were separately verified over public HTTPS. This First Mission record describes the local implementation at that point. Final result: passed within the local First Mission scope.
+
+## Contrast correction scope
+
+- Report source: the user-provided screenshot of “Replay evidence timeline,” browser-translated into Japanese, with white text on a lime background.
+- Existing full-page source visual reference: `artifacts/ux-audit-rescue-room/selected-option-2.png`
+- Existing full-page comparison: `artifacts/ux-audit-rescue-room/30-source-implementation-qa.png`
+- Before-fix reproduction in the same state: `artifacts/ux-audit-rescue-room/31-replay-contrast-before.png`
+- After-fix focused capture: `artifacts/ux-audit-rescue-room/32-replay-contrast-after.png`
+- After-fix desktop: `artifacts/ux-audit-rescue-room/33-rescue-result-contrast-desktop.png`
+- After-fix mobile: `artifacts/ux-audit-rescue-room/33-rescue-result-contrast-mobile.png`
 - Route: `http://localhost:3000/arenas/rescue-room`
-- State: Controlled Practice 実行完了後、Evidence Timeline と Outcome が表示された状態
+- State: completed Controlled Practice with the Evidence Timeline and Outcome visible.
 
-## Viewport と画像寸法
+## Viewports and image dimensions
 
-- 指摘元画像: 237 × 95 px
-- 修正前フォーカス画像: 181 × 33 px
-- 修正後フォーカス画像: 218 × 43 px
-- Desktop: CSS viewport 1440 × 1000、deviceScaleFactor 1、画像 1440 × 1000 px
-- Mobile: CSS viewport 390 × 844、deviceScaleFactor 1、画像 390 × 844 px
-- フォーカス画像は同じ操作状態・同じボタンを要素単位で撮影した。日本語自動翻訳による文字幅の差はあるが、比較対象の foreground / background token は同一である。
+- User-provided image: 237 × 95 px
+- Before-fix focused image: 181 × 33 px
+- After-fix focused image: 218 × 43 px
+- Desktop: CSS viewport 1440 × 1000, deviceScaleFactor 1, image 1440 × 1000 px
+- Mobile: CSS viewport 390 × 844, deviceScaleFactor 1, image 390 × 844 px
+- Focused captures show the same button in the same interaction state. Japanese browser translation changes label width, but the foreground/background tokens being compared are the same.
 
-## 恒久的なコントラスト禁止ルール
+## Permanent contrast rules
 
-以下は、このプロジェクトでは禁止する。
+The following rules apply throughout this project:
 
-- `var(--lime)`、`#c7ff45`、または同等の明るい黄緑背景と、白・near-white・`var(--ink)` の文字を組み合わせない。
-- lime 背景を使う場合、文字色は `#111` 相当の濃色とし、通常文字で WCAG 4.5:1 以上を満たす。
-- 白または near-white の文字を使う場合、背景は十分に暗い色とし、通常文字で WCAG 4.5:1 以上を満たす。
-- ボタン、pill、tab、badge は、同じ selector / state 内で `background` と `color` の両方を明示する。共通 `button` の背景や、親要素の文字色の継承に依存しない。
-- default / hover / focus / active / disabled を別々に確認する。ブラウザ翻訳などでラベルが長くなっても、文字の可読性と padding を維持する。
-- Design QA では、デスクトップとモバイルの実画面で visible な interactive element を走査し、明るい背景＋明るい文字が 1 件でもあれば `final result: blocked` とする。
+- **Never pair** `var(--lime)`, `#c7ff45`, or an equivalent bright yellow-green background with white, near-white or `var(--ink)` text.
+- On lime backgrounds, use dark text equivalent to `#111` and meet at least WCAG 4.5:1 contrast for normal text.
+- White or near-white text requires a sufficiently dark background and at least WCAG 4.5:1 contrast for normal text.
+- Buttons, pills, tabs and badges must explicitly set both `background` and `color` in the same selector/state. Do not rely on the shared `button` background or inherited parent text color.
+- Check default / hover / focus / active / disabled separately. Preserve legibility and padding when browser translation makes labels longer.
+- During Design QA, inspect visible interactive elements on actual desktop and mobile pages. Any bright-background/bright-text pair makes the `final result: blocked`.
 
-推奨する基本ペアは次の二つだけとする。
+Use these two base pairs:
 
-- Primary: lime 背景 `#c7ff45` + dark 文字 `#111`
-- Secondary: dark 背景 `#0d1013` + light 文字 `#f4f1e8`。hover は dark 背景 `#151a1d` + lime 文字 `#c7ff45`
+- Primary: lime background `#c7ff45` + dark text `#111`
+- Secondary: dark background `#0d1013` + light text `#f4f1e8`; hover uses dark background `#151a1d` + lime text `#c7ff45`
 
 ## Findings
 
-- [P1] Secondary Action が lime 背景＋明るい文字になり読めない
-  - Location: `apps/web/src/app/globals.css` の共通 `button` と `.secondary-action`、Rescue Room の `Replay evidence timeline`
-  - Evidence: 修正前の computed style は文字 `rgb(213, 215, 216)`、背景 `rgb(199, 255, 69)`。コントラストが著しく不足していた。
-  - Impact: リプレイ操作のラベルを判読できず、主要な Evidence Replay 導線が実質的に壊れていた。同じ class を持つ他画面にも波及する共通不具合だった。
-  - Fix: `button.secondary-action` に dark background と light foreground を同じ rule で明示し、hover も dark background + lime foreground に固定した。個別画面に残っていた foreground だけの上書きも同じ意味に統一した。
+- [P1] A Secondary Action became unreadable with light text on a lime background.
+  - Location: the shared `button` and `.secondary-action` rules in `apps/web/src/app/globals.css`; Rescue Room's `Replay evidence timeline`.
+  - Evidence: before-fix computed text color was `rgb(213, 215, 216)`, with background `rgb(199, 255, 69)`. Contrast was severely insufficient.
+  - Impact: the replay label could not be read, effectively breaking a primary Evidence Replay entry point. The shared class could affect other pages.
+  - Fix: `button.secondary-action` explicitly sets a dark background and light foreground in one rule, with dark-background/lime-text hover styling. Page-specific foreground-only overrides were aligned with the same meaning.
 
 ## Comparison history
 
 ### Iteration 1 — blocked
 
-- ユーザー提供画像と修正前再現 `31-replay-contrast-before.png` を比較。
-- P1: lime 背景に near-white 文字が重なり、ラベルが読めないことを確認。
-- 原因は `.secondary-action` が文字色だけを指定し、共通 `button` の lime 背景を継承していたこと。
+- Compared the user-provided image with `31-replay-contrast-before.png`.
+- P1: near-white text on lime made the label unreadable.
+- Cause: `.secondary-action` set only the text color and inherited the shared `button` lime background.
 
 ### Iteration 2 — passed
 
-- 共通 `button.secondary-action` を dark background + light text に修正。
-- 修正後 `32-replay-contrast-after.png` の computed style は文字 `rgb(244, 241, 232)`、背景 `rgb(13, 16, 19)`、コントラスト比 `16.89:1`。
-- Desktop / Mobile の実行完了状態を `33-rescue-result-contrast-desktop.png` と `33-rescue-result-contrast-mobile.png` で再確認。
-- Rescue Room の実行後に見える 5 個の Secondary Action を確認し、禁止組み合わせは 0 件。
-- 主要 12 route で visible な Secondary Action 32 個を横断確認し、禁止組み合わせは 0 件。各 route は HTTP 200、console error 0 件。
+- Changed shared `button.secondary-action` styling to dark background + light text.
+- After-fix `32-replay-contrast-after.png`: computed text `rgb(244, 241, 232)`, background `rgb(13, 16, 19)`, contrast ratio `16.89:1`.
+- Rechecked completed desktop/mobile states in `33-rescue-result-contrast-desktop.png` and `33-rescue-result-contrast-mobile.png`.
+- Checked all five Secondary Actions visible after a Rescue Room run: zero forbidden pairs.
+- Checked 32 visible Secondary Actions across 12 primary routes: zero forbidden pairs. Every route returned HTTP 200 with zero console errors.
 
 ## Full-view comparison evidence
 
-Desktop と Mobile の Outcome 画面で、Evidence Timeline、Replay、次の戦略を試す 3 ボタン、Evidence Download の階層を確認した。Primary は lime + dark、Secondary は dark + light として視覚的な役割が分離されている。横 overflow、ボタンの欠け、重なりはない。
+Desktop and mobile Outcome pages were checked for the hierarchy of Evidence Timeline, Replay, the three next-strategy buttons and Evidence Download. Primary actions use lime + dark; secondary actions use dark + light. No horizontal overflow, clipped buttons or overlaps were observed.
 
 ## Focused region comparison evidence
 
-修正前 `31-replay-contrast-before.png` と修正後 `32-replay-contrast-after.png` で同じ Replay ボタンを比較した。修正前は背景と文字の輝度が近く輪郭も不明瞭だった。修正後は暗い pill 上に明るい文字が表示され、通常状態 `16.89:1`、Mobile で観測した hover 相当状態も暗い背景＋lime 文字で判読可能だった。
+Compared the same Replay button in `31-replay-contrast-before.png` and `32-replay-contrast-after.png`. Before the fix, text and background had similar luminance and indistinct edges. Afterward, light text was visible on a dark pill at `16.89:1` contrast in the normal state. The hover-equivalent state observed on mobile also remained legible with a dark background and lime text.
 
 ## Required fidelity surfaces
 
-- Fonts / typography: 既存 mono font、weight、font size を維持。翻訳後ラベルでも clipping なし。
-- Spacing / layout: Secondary Action に border と既存 padding を明示。Desktop / Mobile とも配置崩れなし。
-- Colors / tokens: Primary と Secondary の foreground / background ペアを分離し、禁止ペアを明文化。
-- Image quality: 今回の修正対象外。既存 Incident Storyboard asset に変化なし。
-- Copy / content: ラベル文言と Evidence の意味は変更していない。
+- Fonts / typography: preserved the existing monospace font, weight and size. Translated labels were not clipped.
+- Spacing / layout: explicitly set the Secondary Action border and existing padding. Desktop/mobile layouts remained intact.
+- Colors / tokens: separated primary and secondary foreground/background pairs and documented the forbidden pairing.
+- Image quality: outside this correction's scope; the Incident Storyboard asset was unchanged.
+- Copy / content: labels and the meaning of the Evidence were unchanged.
 
 ## Implementation checklist
 
-- [x] lime 背景＋白文字を共通 Secondary Action から除去
-- [x] foreground だけを上書きしていた Strategy Preset / Submit Bar を修正
-- [x] Rescue Room の実行完了状態を Desktop / Mobile で確認
-- [x] 主要 12 route、visible Secondary Action 32 個を横断確認
-- [x] 主要 12 route の HTTP status と console error を確認
-- [x] Rescue Room の Desktop / Mobile で horizontal overflow なしを確認
-- [x] UI verifier に禁止配色の自動検出を追加
-- [x] 恒久禁止ルールを本ファイルへ記載
+- [x] Removed lime-background/white-text styling from shared Secondary Actions.
+- [x] Corrected foreground-only overrides in Strategy Preset / Submit Bar.
+- [x] Verified completed Rescue Room states on desktop/mobile.
+- [x] Checked 32 visible Secondary Actions across 12 primary routes.
+- [x] Checked HTTP status and console errors on all 12 routes.
+- [x] Verified no horizontal overflow on Rescue Room desktop/mobile.
+- [x] Added forbidden-color detection to the UI verifier.
+- [x] Recorded the permanent prohibition in this document.
 
 ## Strategy Game UX Pass A — 2026-09-10
 
-### 対象とSource Visual Truth
+### Scope and source visual reference
 
-- 選択されたデザイン: `artifacts/ux-audit-rescue-room/34-strategy-game-selected.png`（1536 × 1088 px）
-- 実装Route: `http://localhost:3000/arenas/rescue-room`
-- 実装箇所: `apps/web/src/components/rescue-room-workbench.tsx`、`apps/web/src/app/globals.css`
-- Desktop: CSS viewport 1440 × 1000、deviceScaleFactor 1
-- Mobile: CSS viewport 390 × 844、deviceScaleFactor 1
-- 検証State: Hero、Doctrine選択前、Reference Doctrine実行中、実行完了、Previous Revision表示、AI Commander実行完了
+- Selected design: `artifacts/ux-audit-rescue-room/34-strategy-game-selected.png` (1536 × 1088 px)
+- Route: `http://localhost:3000/arenas/rescue-room`
+- Implementation: `apps/web/src/components/rescue-room-workbench.tsx`, `apps/web/src/app/globals.css`
+- Desktop: CSS viewport 1440 × 1000, deviceScaleFactor 1
+- Mobile: CSS viewport 390 × 844, deviceScaleFactor 1
+- States checked: Hero, before Doctrine selection, Reference Doctrine running, completed run, Previous Revision, and completed AI Commander run.
 
-### 比較Evidence
+### Comparison evidence
 
 - Desktop Hero: `artifacts/ux-audit-rescue-room/35-strategy-game-desktop-hero.png`
 - Desktop Doctrine Builder: `artifacts/ux-audit-rescue-room/36-strategy-game-desktop-builder.png`
@@ -126,62 +138,62 @@ Desktop と Mobile の Outcome 画面で、Evidence Timeline、Replay、次の�
 
 #### Iteration 1 — blocked
 
-- Sourceと初回Desktop実装を同じ比較入力で確認した。暗いgrid、lime / cyan / orange、巨大見出し、横長Doctrine Row、選択中Rule、Service Toolkitという視覚階層は一致した。
-- [P1 / Mobile layout] Lock CTAが2-column gridのまま残り、説明文へ重なった。
-- [P1 / Mobile comparison] 4-column Baseline tableが画面外へ切れ、3 Outcomeを同時に比較できなかった。
-- [P2 / Content hierarchy] HeroとBuilderで`Unknown incident. One doctrine.`を繰り返し、Sourceの「BriefingからDoctrine選択へ進む」階層が弱かった。
-- Fix: Mobile deploy barを1-column化し、BaselineをStrategyごとの3 Outcome cardへ変換した。Builder見出しを`Choose your strategic doctrine.`へ変更した。
+- Compared the source and first desktop implementation together. The hierarchy matched: dark grid, lime / cyan / orange, oversized heading, horizontal Doctrine rows, selected rules and Service Toolkit.
+- [P1 / Mobile layout] The Lock CTA remained a two-column grid and overlapped explanatory copy.
+- [P1 / Mobile comparison] The four-column baseline table was clipped offscreen, preventing simultaneous comparison of all three outcomes.
+- [P2 / Content hierarchy] Repeating `Unknown incident. One doctrine.` in the Hero and Builder weakened the source's transition from briefing to Doctrine selection.
+- Fix: changed the mobile deploy bar to one column, converted baselines into per-strategy three-outcome cards, and changed the Builder heading to `Choose your strategic doctrine.`.
 
 #### Iteration 2 — passed
 
-- Source、Desktop Hero、Desktop Builderを同じ比較入力で再確認した。
-- 3 Doctrineは選択可能で、選択中だけRulesと許可Serviceが展開される。Primary CTAはStrategyをLockしてから実行する。
-- Live画面はProtocol / Commander / Service Agents / Evidenceの4 Laneと、Trigger / Rule / Cost-Time / State Change / AlternativesのDecision Lensを表示する。Raw TranscriptはSecondaryの`details`へ移した。
-- DebriefはYour Commander / Always Pause / Never Pause / Previous RevisionをUser Loss、Demand Served、Spendの独立列で比較し、Weighted Scoreを作らない。
-- MobileではDoctrine、Service、Lock CTA、Baseline comparisonが1-columnへ収まり、横Overflowはない。
-- 選択デザインのicon tileは既存プロダクトに同系統のicon setがないため、偽SVGやCSS artへ置き換えず、既存の番号・色・境界線による識別へ統一した。
+- Recompared the source, desktop Hero and desktop Builder together.
+- All three Doctrines were selectable; rules and permitted services expanded only for the selected Doctrine. The primary CTA locks the strategy before execution.
+- The live view shows four lanes—Protocol / Commander / Service Agents / Evidence—and a Decision Lens for Trigger / Rule / Cost-Time / State Change / Alternatives. The raw transcript moved into a secondary `details` element.
+- The Debrief compares Your Commander / Always Pause / Never Pause / Previous Revision in independent User Loss, Demand Served and Spend columns, without a weighted score.
+- Doctrine, Service, Lock CTA and baseline comparison fit a single column on mobile, with no horizontal overflow.
+- The selected design's icon tiles had no equivalent existing icon set. Existing numbering, colors and borders were used consistently rather than fabricated SVG or CSS artwork.
 
 ### Required fidelity surfaces
 
-- Fonts / typography: 既存display sansとmonoを維持。巨大見出し、Doctrine名、Rule、Evidenceの階層はSourceに合わせた。Desktop / Mobileでclippingなし。
-- Spacing / layout: Sourceの横長Doctrine Row、選択展開、Toolkit / Value Focus分割、下部Lock CTAを再現。Mobileは縦stackへ変換。
-- Colors / tokens: 既存のdark surface、lime、cyan、orangeだけを使用。visible interactive elementの禁止配色は0件。
-- Image quality: 既存の高解像度Incident StoryboardをNext Imageで使用し、Desktop / Mobileともstretch、halo、placeholderなし。
-- Copy / content: Strategyの保護対象と犠牲、True State非公開、Information cost、simulated Game Creditsを実行前に明示。
-- States / interactions: 3 Doctrine、Reference / AI runtime切替、Alert選択、Advanced AI設定、Lock、Play / Pause / Step / Skip、Raw Log、Baseline比較、Previous Revision、Retry、Evidence Downloadを操作確認。
-- Accessibility: semantic button、`aria-pressed`、form label、table role、live region、keyboard focus、reduced-motion処理を維持。Desktop / Mobileでconsole error 0件。
+- Fonts / typography: preserved existing display sans and monospace fonts. Oversized headings, Doctrine names, rules and Evidence hierarchy followed the source. No desktop/mobile clipping.
+- Spacing / layout: reproduced horizontal Doctrine rows, selected expansion, Toolkit / Value Focus separation and the bottom Lock CTA. Mobile uses a vertical stack.
+- Colors / tokens: used only existing dark surfaces, lime, cyan and orange. No forbidden pairs on visible interactive elements.
+- Image quality: used the existing high-resolution Incident Storyboard through Next Image, without stretching, halos or placeholders on desktop/mobile.
+- Copy / content: explained what each strategy protects and sacrifices, hidden true state, information cost and simulated Game Credits before execution.
+- States / interactions: checked three Doctrines, Reference / AI runtime switching, alert selection, advanced AI settings, Lock, Play / Pause / Step / Skip, raw log, baseline comparison, Previous Revision, Retry and Evidence Download.
+- Accessibility: retained semantic buttons, `aria-pressed`, form labels, table roles, live regions, keyboard focus and reduced-motion handling. Zero desktop/mobile console errors.
 
 ### Automated verification
 
-- `pnpm verify:rescue-room-ui`でDesktop / MobileともHTTP 200。
-- Doctrine 3、Decision Lane 4、Baseline comparison、Previous Revision、Service 6、Value Pool 4を確認。
-- Reference Replayと実AI CommanderのAction Replayを完了。
-- Desktop / Mobileともhorizontal overflowなし、runtime overlayなし、console errorなし、禁止Contrast Pairなし。
+- `pnpm verify:rescue-room-ui` returned HTTP 200 on desktop/mobile.
+- Verified three Doctrines, four decision lanes, baseline comparison, Previous Revision, six services and four Value Pools.
+- Completed reference replay and real AI Commander action replay.
+- No horizontal overflow, runtime overlay, console errors or forbidden contrast pairs on desktop/mobile.
 
 final result: passed
 
 ## Rescue Room Incident Theatre Pass C — 2026-09-11
 
-### 変更とEvidence
+### Changes and evidence
 
 - Strategy Builder: `artifacts/ux-audit-rescue-room/42-incident-theatre-desktop-builder.png`
 - Desktop Incident Theatre: `artifacts/ux-audit-rescue-room/43-incident-theatre-desktop-live.png`
 - Mobile Incident Theatre: `artifacts/ux-audit-rescue-room/44-incident-theatre-mobile-live.png`
 - Desktop Debrief: `artifacts/ux-audit-rescue-room/45-incident-theatre-desktop-result.png`
 - Real AI Commander Debrief: `artifacts/ux-audit-rescue-room/46-incident-theatre-ai-result.png`
-- 実装箇所: `apps/web/src/components/rescue-incident-theatre.tsx`、`apps/web/src/components/rescue-room-workbench.tsx`、`apps/web/src/app/globals.css`
+- Implementation: `apps/web/src/components/rescue-incident-theatre.tsx`, `apps/web/src/components/rescue-room-workbench.tsx`, `apps/web/src/app/globals.css`
 
-Live表示を縦に増え続けるEvent Logから、5 Chapter、3 Actor、Service Payment、Evidence Return、Protocol Action、3 Outcomeを同時に示す一枚のIncident Theatreへ変更した。Canonical Transcriptは監査用Evidenceとして初期状態で閉じ、再生単位だけを同一Game MinuteのStory Beatへ束ねた。
+The live view changed from an ever-growing event log to one Incident Theatre showing five chapters, three actors, service payment, Evidence return, Protocol action and three outcomes together. The canonical transcript remains audit evidence, initially collapsed. Only playback groups events into story beats sharing the same game minute.
 
-Strategy Builderには全10個の決定論的設定について意味とTradeoffを常時表示し、設定全体を`Spend / Certainty / Containment`で要約した。この3項目は読みやすさのための説明であり、評価用Weighted Scoreではない。AI PlaybookにはModel tuningとCommander Strategyの境界を明示した。
+The Strategy Builder continuously explains all ten deterministic settings and their tradeoffs, summarized as `Spend / Certainty / Containment`. These are explanatory labels, not a weighted evaluation score. The AI Playbook distinguishes model tuning from Commander strategy.
 
 ### Automated verification
 
-- Desktop / MobileともHTTP 200、3 Actor、5 Chapter、10 Parameter説明、3 Strategy Summaryを確認。
-- Raw Transcriptが初期状態で閉じていること、Replay reset、Previous Revision、同一Episode Baseline比較を確認。
-- Mobileは`prefers-reduced-motion: reduce`で最終Evidenceへ直接到達。
-- Desktop / Mobileともhorizontal overflowなし、runtime overlayなし、console errorなし、禁止Contrast Pairなし。
-- Rescue RoomとAPIの決定論テスト40件、全Workspace typecheck、Next.js production buildが成功。
-- 実OpenAI Commanderは固定RuntimeでService購入を含むRunとAction Replay検証に成功。
+- Desktop/mobile returned HTTP 200; verified three actors, five chapters, ten parameter explanations and three strategy summaries.
+- Verified the initially collapsed raw transcript, replay reset, Previous Revision and same-Episode baseline comparison.
+- Mobile with `prefers-reduced-motion: reduce` reaches the final Evidence directly.
+- No horizontal overflow, runtime overlay, console errors or forbidden contrast pairs on desktop/mobile.
+- Forty deterministic Rescue Room/API tests, workspace typecheck and the Next.js production build passed.
+- A real OpenAI Commander completed a run including service purchase and passed action-replay verification under the fixed runtime.
 
 final result: passed

@@ -212,7 +212,7 @@ try {
     ["bazantic", "bazantic-rescue-agent-demo"],
   ]) {
     await copyFile(
-      resolve(`Docs/deployments/${name}.json`),
+      resolve(`Docs/evidence/deployments/${name}.json`),
       resolve(output, `${id}-evidence.json`),
     );
     const group = chapters.filter((c) => c.id === id || c.id === `${id}-proof`);

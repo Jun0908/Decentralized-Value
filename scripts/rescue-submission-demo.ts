@@ -90,7 +90,7 @@ try {
     expectedOutcome: run.outcome,
     expectedComparison: run.comparison,
   };
-  const replayOutput = resolve(root, "Docs/deployments/rescue-submission-replay.json");
+  const replayOutput = resolve(root, "Docs/evidence/deployments/rescue-submission-replay.json");
   const replayTemporary = `${replayOutput}.${randomUUID()}.tmp`;
   persistNewJson(replayTemporary, replayFixture);
   renameSync(replayTemporary, replayOutput);
@@ -136,7 +136,7 @@ try {
       { requests: 0, inputTokens: 0, outputTokens: 0 },
     ),
   };
-  const output = resolve(root, "Docs/deployments/rescue-submission-demo.json");
+  const output = resolve(root, "Docs/evidence/deployments/rescue-submission-demo.json");
   const temporary = `${output}.${randomUUID()}.tmp`;
   persistNewJson(temporary, publicEvidence);
   renameSync(temporary, output);

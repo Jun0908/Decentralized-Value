@@ -47,7 +47,7 @@ async function main() {
       maximumReservedUsd: 0.1,
     };
     await writeFile(
-      join(root, "Docs/deployments/bazantic-rescue-agent-demo.json"),
+      join(root, "Docs/evidence/deployments/bazantic-rescue-agent-demo.json"),
       JSON.stringify(evidence, null, 2) + "\n",
     );
     await writeFile(
@@ -62,7 +62,7 @@ async function main() {
           events: report.events,
           usage: report.usage,
           comparison: report.comparison,
-          evidence: "Docs/deployments/bazantic-rescue-agent-demo.json",
+          evidence: "Docs/evidence/deployments/bazantic-rescue-agent-demo.json",
           hostedRecipeExecuted: false,
         },
         null,

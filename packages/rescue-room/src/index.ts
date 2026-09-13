@@ -2882,7 +2882,7 @@ export function publicRescueRoomScenario() {
       sepoliaShowcase: {
         state: "operator-pilot-paid" as const,
         evidenceUrl:
-          "https://github.com/Jun0908/Decentralized-Value/blob/main/Docs/deployments/sepolia-rescue-service-demo.json",
+          "https://github.com/Jun0908/Decentralized-Value/blob/main/Docs/evidence/deployments/sepolia-rescue-service-demo.json",
         // These are Practice execution targets, not the historical operator deployment.
         // Keep them unset: the public Practice API cannot spend from the operator wallets.
         token: { ...rescueUsdDemoToken, address: null },

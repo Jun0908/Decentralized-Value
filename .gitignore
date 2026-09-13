@@ -30,6 +30,22 @@ secrets/
 .playwright-mcp/
 tmp/
 
+# Local video production: scripts, narration, takes, edits and capture output.
+# Keep public demo guides, development plans and evidence outside these paths.
+/Docs/local-only/
+/Docs/hackathon/recording/
+/artifacts/video-demo/
+# Original recording/handoff copies are kept locally; public technical guides remain.
+/Docs/development/history/docs-cleanup-2026-09-13/originals/RESCUE_HANDOFF.md.txt
+/Docs/development/history/docs-cleanup-2026-09-13/originals/sponsors--SPONSOR_DEMO_RECORDING.md.txt
+# Retired tracked locations: prevent accidental re-addition after the Docs move.
+/Docs/RESCUE_NARRATION_EN.md
+/Docs/VIDEO_DEMO_103S.md
+/Docs/sponsors/RAW_VIDEO.md
+/Docs/sponsors/MANUAL_ACTION_REQUIRED.md
+/Docs/archive/legacy/prize-checklist.md
+/Docs/archive/legacy/demo-script.md
+
 # Editors and operating systems
 .DS_Store
 Thumbs.db

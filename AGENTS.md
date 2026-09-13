@@ -9,12 +9,12 @@ Read only the documents relevant to the task:
 - [`Docs/STATUS.md`](Docs/STATUS.md): what works now and what remains incomplete
 - [`Docs/PRODUCT.md`](Docs/PRODUCT.md): product rules and vocabulary
 - [`Docs/ARCHITECTURE.md`](Docs/ARCHITECTURE.md): system and trust boundaries
-- [`Docs/arenas/`](Docs/arenas/): evaluator-specific rules
-- [`Docs/DEMO.md`](Docs/DEMO.md): public demo and recovery flow
+- [`Docs/product/arenas/`](Docs/product/arenas/): evaluator-specific rules
+- [`Docs/hackathon/DEMO.md`](Docs/hackathon/DEMO.md): public demo and recovery flow
 - [`Docs/INTEGRATIONS.md`](Docs/INTEGRATIONS.md): external services and deployment state
 - [`openapi/frontier-v1.yaml`](openapi/frontier-v1.yaml): public API contract
 
-`README.md` is the public entry point. `Docs/archive/` is historical context, not an active requirement. Work under `apps/web/` also follows its generated `AGENTS.md`.
+`README.md` is the public entry point. `Docs/development/history/` is historical context, not an active requirement. Work under `apps/web/` also follows its generated `AGENTS.md`.
 
 ## Product invariants
 

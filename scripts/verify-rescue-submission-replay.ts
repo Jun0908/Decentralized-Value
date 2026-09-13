@@ -11,7 +11,7 @@ import { compareRescueContinuation } from "../apps/api/src/rescue-service-contin
 try {
   const fixture = JSON.parse(
     readFileSync(
-      new URL("../Docs/deployments/rescue-submission-replay.json", import.meta.url),
+      new URL("../Docs/evidence/deployments/rescue-submission-replay.json", import.meta.url),
       "utf8",
     ),
   );

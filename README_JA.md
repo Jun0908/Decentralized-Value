@@ -2,275 +2,73 @@
 
 [English](README.md)
 
-**価値の移転だけでなく、「何を進歩と定義するか」まで分散化する。**
+## 「何がより良いか」を、誰が決めるのでしょうか？
 
-**Shared evidence. Independent values. Verifiable settlement.**
+多くの仕組みは、その判断を一つの重み付きスコアに埋め込んでいます。**Value Decentralizationは、価値判断を複数の主体に開きます。**
 
-多くのコンペティションや評価制度は、コスト、性能、レジリエンス、公平性などを一つの重み付きスコアへまとめます。しかし、その重みを決めた時点で、すでに一つの「何を良いとするか」が埋め込まれています。
+より良い戦略に資金を付けたいコミュニティのための評価プロトコルの試作です。一度測定した結果からトレードオフを残し、独立した **Value Pool（支援資金の配分主体）** が、それぞれ何を支援するか決めます。
 
-Value Decentralizationは、**事実は共有しながら、価値判断は一つに統一しない**ためのオープンな評価プロトコルです。正しい解決策を同じ条件で測定し、それぞれのOutcomeを独立したまま残します。その上で、異なるValue Poolが効率性、レジリエンス、公平性、新しいトレードオフなどを別々に評価できます。Global WinnerやMaster Scoreは必要ありません。
+**測定は一度。トレードオフは残す。価値判断は、それぞれに。**
 
-[Live Product](https://web-rho-seven-d6te7t3f0y.vercel.app) · [Architecture](https://web-rho-seven-d6te7t3f0y.vercel.app/architecture) · [Sepolia Reward](https://sepolia.etherscan.io/tx/0xd976a968aefeb66d7e60fba7a9cf64c8711195fc3652aeccc20c7448069ad708) · [Whitepaper](https://github.com/Jun0908/Decentralized-Value-Whitepaper)
+**[デモを試す](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/emergency-supply)** · [記録済みAI・支払いデモ](https://web-rho-seven-d6te7t3f0y.vercel.app/rescue-room/submission) · [スポンサー証跡](https://web-rho-seven-d6te7t3f0y.vercel.app/sponsors/demo)
 
-## Judge向け：60秒で見るなら
+![概念図：一つの総合点に候補を集約する方式と、異なる種類の進歩を残す方式の比較。](apps/web/public/images/weighted-score-vs-open-frontier.png)
 
-### 1. 実際のEVM評価を動かす
+_概念図：総合点を一つに決める代わりに、有効な選択肢を残します。一つの戦略がすべての軸で優れることも認めます。_
 
-**[Ethereum Calldata Compression](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/calldata-compression)**
+## 60秒で違いを体験する
 
-事前に用意した数字ではなく、**コンパイル済みSolidity decoder bytecodeをEthereumJS Cancun EVM内で実行**します。
+最初は、物資供給をシミュレーションする **72-Hour Disaster Response** を開いてください。
 
-現在のPacked codecの再現可能な結果:
+1. **戦略を選ぶ。** 5つの供給元、4つの輸送ルート、4つの地域へ、どう物資を届けるか決めます。
+2. **トレードオフを見る。** 7つの障害シナリオで、費用・最悪時の配送量・最も届きにくい地域のカバー率を別々に測ります。
+3. **Value Poolを比べる。** 効率性・強靱性・公平性の各Poolが、同じ証拠に異なる配分ルールを適用します。Frontier Expansion Poolは新しいトレードオフを支援します。
 
-| Calldata gas | Decoder gas | Correctness | Frontier contribution |
-| -----------: | ----------: | :---------: | --------------------: |
-|      `8,200` |    `13,061` |   `PASS`    |              `+5.27%` |
+安い戦略が、最も被害の大きい地域にも十分に届けられるとは限りません。その違いを総合点で消さずに残します。トレードオフに応じて、各Poolの配分プレビューがどう変わるか体験してください。
 
-DictionaryはCalldataが小さく、PackedはDecoderが安い。どちらも他方を完全には上回らないため、両方がPareto Frontierに残ります。Standard ABIは両軸で劣るためFrontierから外れます。
+## 技術的に何が違うのか？
 
-### 2. 一つの問題に複数の「進歩」を残す
+- **同じ条件で比較し、結果を再現する。** 正しさは合否の必須条件です。評価器・データ・制約・指標を共通の評価条件とし、提出物と結果をハッシュで結びます。条件が一致する結果だけを比較します。
+- **価値判断は独立、計算は決定論的。** [比較エンジン](packages/shared/src/multiobjective.ts)は、指標の大小の方向、Paretoのトレードオフ、最大6次元の厳密なHypervolume、提出順に依存しない貢献度を扱います。
+- **自己申告ではなく実行から評価する。** Calldata Compressionは、コンパイル済みSolidityデコーダをCancun EVM内で実行します。[AI行動のReplay](packages/rescue-room/src/submission-replay.ts)が再現するのは記録済みの判断とシミュレーション結果であり、LLMの内部思考や新しい推論ではありません。
 
-**[72-Hour Disaster Response](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/emergency-supply)**
+## なぜEthereumを使うのか？
 
-5 Supplier、4 Route、4 Regionに対する戦略を7つのDisruption ScenarioでReplayし、次を独立して測定します。
+評価計算はオフチェーンで行います。Ethereumは配分の確定記録と支払いを公開し、「何を確定し、何を送ったか」を第三者が確認できるようにします。
 
-- 72-hour cost — minimize
-- worst-case delivery — maximize
-- worst-region coverage — maximize
+[報酬コントラクト](packages/contracts/src/FrontierRewardPool.sol)は、入金残高を超える予約と同じChallengeへの再コミットを防ぎ、参加者自身による受け取りにも対応します。独立したSepoliaデモでは、[配分のコミット](https://sepolia.etherscan.io/tx/0x96fd7a9d1f4a3bbd2fa7a9ea28d250a16e8eedbaff05b51a4f33e581c3839f2c)、[RewardPaid](https://sepolia.etherscan.io/tx/0xd976a968aefeb66d7e60fba7a9cf64c8711195fc3652aeccc20c7448069ad708)、受取人の **10,000 FDT** の残高増加を記録しています。
 
-同じEvidenceに対して、Efficiency / Resilience / Fairness / Frontier Expansionの各Value Poolが別々に配分します。**一つの総合点も、一人の総合優勝者も作りません。**
+FDTはSepolia上のデモ用トークンであり、金銭価値は主張していません。
 
-### 3. 最終配分が本当に支払われたことを確認する
+## Rescue Room：AIが別のAIを雇い、支払った
 
-- [Allocation commitment](https://sepolia.etherscan.io/tx/0x96fd7a9d1f4a3bbd2fa7a9ea28d250a16e8eedbaff05b51a4f33e581c3839f2c)
-- [RewardPaid](https://sepolia.etherscan.io/tx/0xd976a968aefeb66d7e60fba7a9cf64c8711195fc3652aeccc20c7448069ad708)
-- [Machine-readable deployment evidence](Docs/deployments/sepolia-reward-demo.json)
+記録済みのインシデント対応パイロットでは、Commanderが専門Agentを選び、別のモデル呼び出しが分析を提供し、SepoliaのEscrowが **5 rUSD-DEMO** を支払いました。別の未納品注文では **5 rUSD-DEMO** を返金しています。[支払い証跡](Docs/evidence/deployments/sepolia-rescue-service-demo.json)。
 
-Sepoliaのデモでは、Allocation Commitmentから`RewardPaid`までを実行し、Recipient balanceが`10,000 FDT`増加したことを記録しています。FDTは金銭価値を主張しないDemo Tokenです。
+購入した分析は、その後のCommanderの3回の判断に使われました。行動をReplayし、ユーザー損失・稼働率・対応費用を比較して、独立したPoolが同じ証拠からどう支援を配分するか確認できます。
 
-[Bazantic経由のRescue Practice](Docs/sponsors/BAZANTIC_RESCUE_LIVE.md)は2026-09-12に実接続を確認しました。既存Gateway / MCPから無料の参加情報取得・戦略評価が動き、反復結果がローカルEvaluatorと一致しています。戦略比較Recipeは保存済みの未実行draftであり、自律AI実行や有料大会の完成ではありません。
+パイロットでは、**記録済みの実モデル呼び出しとSepoliaでのサービス支払い**を、Protocol操作のシミュレーションとPool配分プレビューにつないでいます。ウォレットは運営管理です。rUSD-DEMOは金銭価値のないテストトークンで、Practiceのゲーム内クレジットとは区別しています。
 
----
+## スポンサー連携：実装と証跡へ
 
-## 核となる考え方
+| Sponsor             | 役割と実行済みの内容                                                                                                            | コード／証跡                                                                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **ENSv2 · Sepolia** | Rescueサービスの発見、単一テキストレコードの更新権限の委譲、発見の停止、権限取り消し。7件の取引を記録。                         | [サービス発見](packages/ens-adapter/src/rescue.ts) · [権限操作](scripts/demo-ens-rescue.ts) · [証跡](Docs/evidence/deployments/ensv2-rescue-demo.json) |
+| **Chainlink CRE**   | 機密ハンドラで非公開シナリオを評価。公式CRE CLIのローカルシミュレーションで、salt付きレシート、明示的な開示、独立Replayを確認。 | [ハンドラ](workflows/chainlink-cre/rescue-envelope/secret-pack/main.ts) · [証跡](Docs/evidence/deployments/chainlink-cre-private-pack.json)            |
+| **Bazantic**        | 外部AIがMCPでAPIを発見し、同じ条件で2つの戦略を評価。ローカル評価器による独立した結果の再現も確認。                             | [Agent連携](apps/api/src/bazantic-rescue-agent.ts) · [証跡](Docs/evidence/deployments/bazantic-rescue-agent-demo.json)                                 |
 
-> **Shared evidence does not require shared values.**
->
-> 同じ事実を共有しても、「何を支援すべきか」まで一つに統一する必要はない。
+各連携には個別の実行証跡があります。[スポンサー向け実演ガイド](Docs/hackathon/sponsors/SPONSOR_DEMO.md)。
 
-従来のWeighted Scoreでは、例えば
+## 6つのArena、1つのプロトコル
 
-```text
-40% cost + 35% resilience + 25% fairness = one winner
-```
+**Disaster Response、Calldata Compression、Microgrid、Secret Gate、Rescue Room、Ocean Commons** の6つのArenaで、一つのプロトコルを検証しています。[プロダクトを見る](https://web-rho-seven-d6te7t3f0y.vercel.app)。
 
-となります。
+戦略の編集、決定論的なPractice、結果のReplayに加え、記録済みAI・サービス支払い証跡と、独立したSepolia報酬デモを確認できます。
 
-Value Decentralizationでは、同じ測定結果に対して独立した判断を残します。
+[実装状況・評価結果の詳細](Docs/STATUS.md) · [Architectureと信頼境界](Docs/ARCHITECTURE.md)。
 
-```text
-                    ┌─ Efficiency Pool
-Shared Evidence ────├─ Resilience Pool
-                    ├─ Fairness Pool
-                    └─ Frontier Expansion Pool
-```
+## ローカル起動と結果の再現
 
-Pareto Frontierは「新しい万能スコア」ではありません。**有効なトレードオフを早すぎる段階で捨てないためのSafeguard**として使います。
-
-## 何が技術的に独特なのか
-
-### 1. 最大6次元の決定論的Multi-objective Engine
-
-[`packages/shared/src/multiobjective.ts`](packages/shared/src/multiobjective.ts) は、単なるチャート描画ではありません。
-
-- `MINIMIZE` / `MAXIMIZE`を同じEngineで処理
-- Hard Constraint失敗をFrontier計算前に除外
-- 公開Boundを使って0〜1,000,000へ正規化
-- 完全なPareto Frontierをfull-fieldで再計算
-- 最大6 MetricまでExact Hypervolumeを計算
-- Exclusive Frontier Contributionを計算
-- stable sortによりSubmission Orderの影響を排除
-
-Frontier Expansion Poolでは、あるArtifactを取り除いたときに失われるOutcome Spaceを、そのArtifact固有のContributionとして扱います。
-
-```text
-exclusive[i] = HV(all results) - HV(all results without i)
-```
-
-Reward Allocationも整数演算と固定Tie-breakで決定論的に行います。
-
-### 2. 評価そのものをEvidence Chainにする
-
-評価条件、提出物、結果を単なるDatabase rowとして扱いません。
-
-```text
-dataset + constraints + metrics + evaluator version
-                         ↓
-                    Context Hash
-                         ↓
-artifact + measurements + correctness
-                         ↓
-                     Result Hash
-                         ↓
-pool rules + final allocations
-                         ↓
-                   Allocation Root
-                         ↓
-              Ethereum commitment/payment
-```
-
-Canonical JSONとKeccak-256を使うため、Dataset、Evaluator、Metric、Artifact、Outcomeのどれかが変われば対応するEvidenceも変わります。
-
-### 3. Mockではなく、実BytecodeをEVMで評価
-
-Calldata Compressionでは、Solidity CodecをCompileし、そのRuntime BytecodeをEthereumJS Cancun EVMで実行します。
-
-Evaluatorは同時に:
-
-- reference outputとの一致
-- malformed inputのreject
-- calldata gas
-- decoder execution gas
-
-を確認します。
-
-つまり「自分の実装は速い」という自己申告ではなく、**実行可能ArtifactそのものからEvidenceを作ります。**
-
-### 4. Browser内で実際のZero-Knowledge Proofを生成
-
-**[Secret Gate](https://web-rho-seven-d6te7t3f0y.vercel.app/arenas/secret-gate)** はSemaphore V4を利用します。
-
-- Disposable IdentityをBrowser内で生成
-- Public CommitmentだけをEnroll
-- Web Worker内で実際のMembership Proofを生成
-- ServerでOfficial Semaphore verification
-- Atomic nullifier storeでsame-scope reuseを拒否
-
-秘密Identityそのものを公開Onchain Stateにする必要がありません。
-
-### 5. 非決定的AIを、再現可能なArtifactへ変換
-
-**Rescue Room**では、決定論的Reference Commanderに加え、OpenAI Agents SDKを使ったAI Commander経路があります。
-
-LLMに「同じPromptなら必ず同じ推論をする」とは仮定しません。
-
-代わりに:
-
-```text
-Public View Hash
-      ↓
-Structured Action
-      ↓
-Action Record
-      ↓
-Deterministic Replay
-      ↓
-Same Outcome / Result Hash
-```
-
-というBoundaryを作っています。
-
-**AIのChain of Thoughtではなく、実際に世界へ作用したActionを再現性の単位にする**ことで、AI Agentを評価可能なArtifactとして扱います。
-
----
-
-## 6つのArena、1つのProtocol
-
-| Arena                             | 独立したOutcome                                      | State                    |
-| --------------------------------- | ---------------------------------------------------- | ------------------------ |
-| **72-Hour Disaster Response**     | cost ↓ · worst-case delivery ↑ · regional coverage ↑ | Demo competition         |
-| **Ethereum Calldata Compression** | calldata gas ↓ · decoder gas ↓                       | Practice                 |
-| **Community Microgrid Dispatch**  | cost ↓ · worst-case energy ↑ · carbon ↓              | Practice                 |
-| **Secret Gate**                   | proof latency ↓ · memory ↓                           | Practice / observational |
-| **Rescue Room**                   | user loss ↓ · demand served ↑ · response spend ↓     | Controlled Practice      |
-| **Ocean Commons**                 | livelihood ↑ · restraint ↑ · cooperation ↑           | Practice                 |
-
-問題ごとに専用Evaluatorは必要ですが、**Context / Hard Constraint / Outcome / Pareto / Evidence / Value Pool**というProtocol Primitiveは共通です。
-
-## なぜEthereumなのか
-
-すべての計算をOnchainにすることが目的ではありません。
-
-Arenaごとの評価は、Simulation、Compiler、EVM Execution、AI Action Replayなど形が大きく異なるためOffchainで行います。その代わり、入力・Evaluator・OutcomeをHashで固定し、**結果を見た後でOperatorに書き換えてほしくない境界**をEthereumへ移します。
-
-`FrontierRewardPool`は現在のDemo Pathで:
-
-- Challengeごとに1回だけAllocationをCommit
-- Pool balanceを超えるReserveを拒否
-- 同じWalletへの同一Challenge Reward重複を防止
-- Batch Distributionから漏れたParticipantにClaim Pathを保持
-- `RewardPaid` Eventを公開
-
-します。
-
-Blockchainは「Offchain Evaluatorが社会的に正しい」ことを証明しません。**何が確定され、何が実際に支払われたかを検証可能にする**ために使っています。
-
-## Evidenceを誇張しない
-
-このProjectでは、異なる種類の証拠を同じ「verified」という言葉でまとめません。
-
-| State       | Meaning                                                  |
-| ----------- | -------------------------------------------------------- |
-| `measured`  | deterministic evaluatorが結果を生成した                  |
-| `simulated` | modeled boundaryであることを明示している                 |
-| `committed` | 対応するOnchain Evidenceが存在する                       |
-| `paid`      | Transfer/EventとRecipient Evidenceが存在する             |
-| `Practice`  | Measurementは実物だがProduction Tournament Layerは未完成 |
-
-現在のPublic EvaluatorとSepolia Reward Demonstrationは実在しますが、それはProduction Tournamentが完成したという意味ではありません。
-
-## 現在動いているもの
-
-- compiled Solidity bytecodeのCancun EVM実行
-- direction-aware Pareto / exact hypervolume / exclusive contribution
-- Context-bound deterministic Result Hash
-- 72-Hour Disaster ResponseのStrategy Builder、7 Scenario、Replay、Revision、Final Entry
-- Microgridの3-axis deterministic evaluation
-- Browser-side Semaphore V4 proof generation
-- Rescue Roomのdeterministic incident simulatorとAI Playbook path
-- Redis-backed participant state for production-configured competition paths
-- Sepolia allocation commitmentとRewardPaid demonstration
-- Same-origin public API / OpenAPI
-
-実装境界の正確な一覧は [`Docs/STATUS.md`](Docs/STATUS.md) を参照してください。
-
-## Architecture
-
-```text
-Challenge
-  │
-  ├─ Hard Constraints
-  ├─ Independent Metrics
-  ├─ Versioned Context
-  └─ Independent Value Pools
-          │
-          ▼
-Human / AI Agent
-          │
-       Artifact
-          │
-          ▼
-Deterministic Evaluator
-  ├─ Correctness Gate
-  ├─ Outcome Vector
-  ├─ Pareto Frontier
-  ├─ Hypervolume / Contribution
-  └─ Context + Result Evidence
-          │
-          ▼
-Independent Allocations
-          │
-          ▼
-Ethereum Commitment / Settlement
-```
-
-## Local development
-
-Requirements:
-
-- Node.js `22+`
-- pnpm `11.24.0`
-- Foundry `1.8.1` for contract tests
+Node.js 22以上、pnpm 11.24.0が必要です。
 
 ```bash
 corepack enable
@@ -278,50 +76,14 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Full verification:
+**APIキー・新しい推論・取引なし**で、記録済みRescueの結果とPool比較を再計算できます。
 
 ```bash
-pnpm run ci
+pnpm verify:rescue:submission-replay
 ```
 
-## Repository map
+任意のAI・ストレージ・チェーン操作には[環境設定ガイド](Docs/development/guides/ENVIRONMENT.md)を利用してください。全体チェックは `pnpm run ci`（Foundry 1.8.1が必要）。[検証レポート](Docs/evidence/verification/README.md)。
 
-```text
-apps/web                      Next.js application + same-origin routes
-apps/api                      reusable API / competition orchestration
-apps/runner                   evaluation / attestation boundary
-packages/shared               schemas, hashes, Pareto, hypervolume, allocation
-packages/disaster-response    seven-scenario Strategy evaluator
-packages/calldata-compression Solidity codecs + Cancun EVM evaluator
-packages/microgrid-dispatch   deterministic energy evaluator
-packages/secret-gate          Semaphore policy / evidence
-packages/rescue-room          incident simulator / AI action replay
-packages/ocean-commons        multi-agent commons simulator
-packages/contracts            Solidity settlement contracts
-openapi/frontier-v1.yaml      public API source of truth
-```
+## 参照資料
 
-## 長期ビジョン
-
-私たちの野望は、より良いコンペティションを作ることではありません。
-
-あらゆるコミュニティが、自分たちの重要だと思う価値を定義し、それを測定・検証可能にし、独立した資金を付け、その価値を改善すること自体に継続的な需要を生み出せる世界を目指しています。
-
-その需要が続けば、専門のBuilder、Evaluator、標準、企業、そして最終的には、これまで市場が評価してこなかった価値を中心とする新しい産業が生まれます。
-
-**Ethereumが「誰が所有し、取引できるか」を分散化したのなら、Value Decentralizationは次の問いに挑みます。**
-
-> **「何を進歩と定義するか」を分散化できるだろうか。**
-
-## Documentation
-
-- [Whitepaper](https://github.com/Jun0908/Decentralized-Value-Whitepaper)
-- [Product model](Docs/PRODUCT.md)
-- [Architecture and trust boundaries](Docs/ARCHITECTURE.md)
-- [Current implementation status](Docs/STATUS.md)
-- [Demo guide](Docs/DEMO.md)
-- [External integrations](Docs/INTEGRATIONS.md)
-
-## Provenance
-
-Development began during ETHOnline on 2026-09-05. The human project owner directed the product thesis, arena choices, metrics, fairness model and reward philosophy. Codex and Claude Code supported implementation. Generated work is checked through deterministic fixtures, TypeScript and Foundry tests, production builds, benchmarks and browser verification.
+[Canvaスライド](https://canva.link/r63xqej7g7c78d3) · [Whitepaper](https://github.com/Jun0908/Decentralized-Value-Whitepaper) · [API仕様](openapi/frontier-v1.yaml) · [Docs目次](Docs/README.md)

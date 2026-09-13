@@ -45,7 +45,7 @@ try {
           assert.ok(file);
           assert.deepEqual(
             JSON.parse(await readFile(file, "utf8")),
-            JSON.parse(await readFile(`Docs/deployments/${filename}`, "utf8")),
+            JSON.parse(await readFile(`Docs/evidence/deployments/${filename}`, "utf8")),
           );
           records.push({ width, evidence: id, matchesCommittedEvidence: true });
         }

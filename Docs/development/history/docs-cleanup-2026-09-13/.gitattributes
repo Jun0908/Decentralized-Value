@@ -1,0 +1,2 @@
+# Preserve original source bytes, including their recorded line endings.
+originals/** -text

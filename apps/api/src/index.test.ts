@@ -1,5 +1,5 @@
 import benchmark from "../../../benchmarks/evm-orderbook/results/latest.json";
-import rescuePaymentEvidence from "../../../Docs/deployments/sepolia-rescue-service-demo.json";
+import rescuePaymentEvidence from "../../../Docs/evidence/deployments/sepolia-rescue-service-demo.json";
 import { strFromU8, unzipSync } from "fflate";
 import { defaultOceanEntry, OCEAN_SUBMISSION_SEASONS } from "@frontier/ocean-commons";
 import { describe, expect, it, vi } from "vitest";
@@ -123,7 +123,7 @@ describe("Frontier API contracts", () => {
     expect(scenario.paymentRuntime.sepoliaShowcase.token.address).toBeNull();
     expect(scenario.paymentRuntime.sepoliaShowcase.escrowAddress).toBeNull();
     expect(scenario.paymentRuntime.sepoliaShowcase.evidenceUrl).toBe(
-      "https://github.com/Jun0908/Decentralized-Value/blob/main/Docs/deployments/sepolia-rescue-service-demo.json",
+      "https://github.com/Jun0908/Decentralized-Value/blob/main/Docs/evidence/deployments/sepolia-rescue-service-demo.json",
     );
     // Bind the historical claim to checked-in evidence, not live RPC or Practice settlement.
     expect(rescuePaymentEvidence.verifiedAt).toBeTruthy();

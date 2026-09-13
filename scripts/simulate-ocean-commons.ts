@@ -1,7 +1,7 @@
 /**
  * Plan 10, Phase 0 — arena viability simulation.
  *
- * Runs the GO / PIVOT / STOP checks fixed in `Docs/Plan10.md` §21. The
+ * Runs the GO / PIVOT / STOP checks fixed in `Docs/development/plans/Plan10.md` §21. The
  * thresholds were written down before this script produced a single number,
  * and this file only reports whether they are met.
  *

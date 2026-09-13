@@ -123,7 +123,7 @@ async function main() {
       rewardEligible: false,
     };
     await writeFile(
-      join(root, "Docs/deployments/chainlink-cre-private-pack.json"),
+      join(root, "Docs/evidence/deployments/chainlink-cre-private-pack.json"),
       JSON.stringify(report, null, 2) + "\n",
     );
     console.log(
@@ -136,7 +136,7 @@ async function main() {
           explicitRevealReplayMatches: true,
           commitment: pack.commitment,
           liveTeeAttestationVerified: false,
-          evidence: "Docs/deployments/chainlink-cre-private-pack.json",
+          evidence: "Docs/evidence/deployments/chainlink-cre-private-pack.json",
         },
         null,
         2,

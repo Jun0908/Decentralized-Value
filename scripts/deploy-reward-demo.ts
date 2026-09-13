@@ -31,7 +31,7 @@ const contractsRoot = resolve(import.meta.dirname, "../packages/contracts");
 const sourceRoot = resolve(contractsRoot, "src");
 const deploymentEvidencePath = resolve(
   import.meta.dirname,
-  "../Docs/deployments/sepolia-reward-demo.json",
+  "../Docs/evidence/deployments/sepolia-reward-demo.json",
 );
 
 function source(name: string) {

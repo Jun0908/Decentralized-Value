@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import saved from "../Docs/deployments/sepolia-rescue-service-demo.json";
+import saved from "../Docs/evidence/deployments/sepolia-rescue-service-demo.json";
 import {
   getRescueOperatorPublicEvidence,
   rescueOperatorPublicEvidenceSchema,

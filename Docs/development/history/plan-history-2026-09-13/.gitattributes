@@ -1,0 +1,3 @@
+# Reading copies retain historical whitespace; originals retain exact snapshot bytes.
+*.md -text whitespace=trailing-space,space-before-tab,cr-at-eol
+originals/** -text

@@ -128,7 +128,7 @@ const full = evaluateMatch(log);
 
 // The counterfactual replays the model boat's own fishing and lets the scripted
 // boats respond freely, so it costs nothing. Re-deciding the season would
-// double the model bill for every entry — see Docs/Plan10.md §41.7.
+// double the model bill for every entry — see Docs/development/plans/Plan10.md §41.7.
 const solo = evaluateMatch(
   await runMatch(
     scenario,

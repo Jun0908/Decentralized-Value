@@ -282,7 +282,7 @@ try {
     purchase,
     refund,
   });
-  const destination = resolve(root, "Docs/deployments/sepolia-rescue-service-demo.json");
+  const destination = resolve(root, "Docs/evidence/deployments/sepolia-rescue-service-demo.json");
   const temporary = `${destination}.${randomUUID()}.tmp`;
   const fd = openSync(temporary, "wx", 0o600);
   try {
