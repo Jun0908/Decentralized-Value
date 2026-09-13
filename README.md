@@ -1,7 +1,5 @@
 # Value Decentralization
 
-[日本語](README_JA.md)
-
 ## Who gets to decide what “better” means?
 
 Most systems hide that decision inside a weighted score. **Value Decentralization makes it plural.**
@@ -84,4 +82,4 @@ Optional AI, storage and chain operations use the [environment configuration gui
 
 ## Reference
 
-[Slides on Canva](https://canva.link/r63xqej7g7c78d3) · [Whitepaper](https://github.com/Jun0908/Decentralized-Value-Whitepaper) · [API contract](openapi/frontier-v1.yaml) · [Documentation](Docs/README.md)
+[Slides on Canva](https://canva.link/r63xqej7g7c78d3) · [Whitepaper](https://j-kawai0908s-organization.gitbook.io/value-decentralization-whitepaper) · [API / SDK / CLI guide](https://web-rho-seven-d6te7t3f0y.vercel.app/docs/cli) · [Documentation](Docs/README.md)

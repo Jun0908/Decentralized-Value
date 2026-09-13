@@ -84,4 +84,4 @@ pnpm verify:rescue:submission-replay
 
 ## 参照資料
 
-[Canvaスライド](https://canva.link/r63xqej7g7c78d3) · [Whitepaper](https://github.com/Jun0908/Decentralized-Value-Whitepaper) · [API仕様](openapi/frontier-v1.yaml) · [Docs目次](Docs/README.md)
+[Canvaスライド](https://canva.link/r63xqej7g7c78d3) · [Whitepaper](https://j-kawai0908s-organization.gitbook.io/value-decentralization-whitepaper) · [API / SDK / CLIガイド](https://web-rho-seven-d6te7t3f0y.vercel.app/docs/cli) · [Docs目次](Docs/README.md)
