@@ -15,8 +15,7 @@ interface RescuePaymentsVm {
 /// @notice Deploys the isolated Sepolia Rescue Room payment showcase.
 contract DeployRescuePayments {
     uint256 private constant TOKEN_UNIT = 1e6;
-    RescuePaymentsVm private constant vm =
-        RescuePaymentsVm(address(uint160(uint256(keccak256("hevm cheat code")))));
+    RescuePaymentsVm private constant vm = RescuePaymentsVm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     event RescuePaymentsDeployed(
         address indexed token,
@@ -35,14 +34,8 @@ contract DeployRescuePayments {
 
         vm.startBroadcast(privateKey);
         token = new RescueUSDDemo(owner);
-        escrow = new RescueServiceEscrow(
-            owner,
-            token,
-            policyExecutor,
-            deliveryAttestor,
-            50 * TOKEN_UNIT,
-            100 * TOKEN_UNIT
-        );
+        escrow =
+            new RescueServiceEscrow(owner, token, policyExecutor, deliveryAttestor, 50 * TOKEN_UNIT, 100 * TOKEN_UNIT);
         escrow.setProvider(vm.envAddress("RESCUE_MONITORING_AGENT_WALLET"), true);
         escrow.setProvider(vm.envAddress("RESCUE_TRACE_AUDIT_AGENT_WALLET"), true);
         escrow.setProvider(vm.envAddress("RESCUE_ACCOUNTING_AUDIT_AGENT_WALLET"), true);
@@ -50,9 +43,7 @@ contract DeployRescuePayments {
         escrow.setProvider(vm.envAddress("RESCUE_PATCH_AGENT_WALLET"), true);
         escrow.setProvider(vm.envAddress("RESCUE_PATCH_VERIFIER_WALLET"), true);
         token.mint(commander, 100 * TOKEN_UNIT);
-        emit RescuePaymentsDeployed(
-            address(token), address(escrow), commander, policyExecutor, deliveryAttestor
-        );
+        emit RescuePaymentsDeployed(address(token), address(escrow), commander, policyExecutor, deliveryAttestor);
         vm.stopBroadcast();
     }
 }

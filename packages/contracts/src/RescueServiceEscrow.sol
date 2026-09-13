@@ -43,8 +43,7 @@ contract RescueServiceEscrow is IRescueServiceEscrow, Ownable, ReentrancyGuard {
 
     mapping(address provider => bool allowed) public allowedProviders;
     mapping(bytes32 orderKey => Order order) private orders;
-    mapping(address commander => mapping(bytes32 episodeContextHash => uint256 amount))
-        public episodeCommitted;
+    mapping(address commander => mapping(bytes32 episodeContextHash => uint256 amount)) public episodeCommitted;
 
     error ZeroAddress();
     error ZeroHash();
@@ -74,8 +73,7 @@ contract RescueServiceEscrow is IRescueServiceEscrow, Ownable, ReentrancyGuard {
         uint256 episodeLimit
     ) Ownable(initialOwner) {
         if (
-            address(token) == address(0) || initialPolicyExecutor == address(0)
-                || initialDeliveryAttestor == address(0)
+            address(token) == address(0) || initialPolicyExecutor == address(0) || initialDeliveryAttestor == address(0)
         ) revert ZeroAddress();
         if (orderLimit == 0 || episodeLimit == 0) revert ZeroAmount();
         if (orderLimit > episodeLimit) revert OrderAmountExceeded();
@@ -186,28 +184,18 @@ contract RescueServiceEscrow is IRescueServiceEscrow, Ownable, ReentrancyGuard {
         if (block.timestamp > order.deadline) revert DeliveryDeadlinePassed();
         if (
             provider != order.provider || episodeContextHash != order.episodeContextHash
-                || commanderActionHash != order.commanderActionHash
-                || serviceManifestHash != order.serviceManifestHash
+                || commanderActionHash != order.commanderActionHash || serviceManifestHash != order.serviceManifestHash
         ) revert DeliveryBindingMismatch();
         if (deliverableHash == bytes32(0) || receiptHash == bytes32(0)) revert ZeroHash();
         order.deliverableHash = deliverableHash;
         order.receiptHash = receiptHash;
         order.state = OrderState.DELIVERED;
         emit ServiceDeliverableRecorded(
-            orderId,
-            order.commander,
-            order.provider,
-            deliverableHash,
-            receiptHash,
-            order.serviceManifestHash
+            orderId, order.commander, order.provider, deliverableHash, receiptHash, order.serviceManifestHash
         );
     }
 
-    function release(bytes32 orderId, address commander, bytes32 acceptanceHash)
-        external
-        override
-        nonReentrant
-    {
+    function release(bytes32 orderId, address commander, bytes32 acceptanceHash) external override nonReentrant {
         if (msg.sender != policyExecutor) revert UnauthorizedPolicyExecutor();
         Order storage order = orders[orderKey(commander, orderId)];
         if (order.state != OrderState.DELIVERED) revert InvalidOrderState();
@@ -216,9 +204,7 @@ contract RescueServiceEscrow is IRescueServiceEscrow, Ownable, ReentrancyGuard {
         order.acceptanceHash = acceptanceHash;
         order.state = OrderState.RELEASED;
         paymentToken.safeTransfer(order.provider, order.amount);
-        emit ServicePaymentReleased(
-            orderId, order.commander, order.provider, order.amount, acceptanceHash
-        );
+        emit ServicePaymentReleased(orderId, order.commander, order.provider, order.amount, acceptanceHash);
     }
 
     /// @notice Anyone may complete a timed-out refund; funds always return to the Commander.

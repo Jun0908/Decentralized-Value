@@ -12,15 +12,10 @@ interface SecretGateVm {
 }
 
 contract DeploySecretGate {
-    SecretGateVm private constant vm =
-        SecretGateVm(address(uint160(uint256(keccak256("hevm cheat code")))));
+    SecretGateVm private constant vm = SecretGateVm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     event SecretGateDeployed(
-        address indexed gate,
-        address indexed semaphore,
-        uint256 indexed groupId,
-        uint256 message,
-        uint256 scope
+        address indexed gate, address indexed semaphore, uint256 indexed groupId, uint256 message, uint256 scope
     );
 
     function run() external returns (SecretGate gate) {

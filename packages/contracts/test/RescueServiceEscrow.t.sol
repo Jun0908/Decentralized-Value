@@ -28,9 +28,7 @@ contract RescueServiceEscrowTest is TestBase {
 
     function setUp() external {
         token = new RescueUSDDemo(address(this));
-        escrow = new RescueServiceEscrow(
-            address(this), token, EXECUTOR, ATTESTOR, 50 * UNIT, 100 * UNIT
-        );
+        escrow = new RescueServiceEscrow(address(this), token, EXECUTOR, ATTESTOR, 50 * UNIT, 100 * UNIT);
         escrow.setProvider(PROVIDER, true);
         token.mint(COMMANDER, 150 * UNIT);
         vm.prank(COMMANDER);
@@ -56,10 +54,7 @@ contract RescueServiceEscrowTest is TestBase {
         _fund(ORDER_ONE, 5 * UNIT, uint64(block.timestamp + 1 hours));
         assertEq(token.balanceOf(COMMANDER), 145 * UNIT);
         assertEq(token.balanceOf(address(escrow)), 5 * UNIT);
-        assertEq(
-            uint256(escrow.orderState(COMMANDER, ORDER_ONE)),
-            uint256(RescueServiceEscrow.OrderState.FUNDED)
-        );
+        assertEq(uint256(escrow.orderState(COMMANDER, ORDER_ONE)), uint256(RescueServiceEscrow.OrderState.FUNDED));
 
         _recordDelivery(ORDER_ONE, ATTESTOR);
         vm.prank(EXECUTOR);
@@ -67,10 +62,7 @@ contract RescueServiceEscrowTest is TestBase {
 
         assertEq(token.balanceOf(PROVIDER), 5 * UNIT);
         assertEq(token.balanceOf(address(escrow)), 0);
-        assertEq(
-            uint256(escrow.orderState(COMMANDER, ORDER_ONE)),
-            uint256(RescueServiceEscrow.OrderState.RELEASED)
-        );
+        assertEq(uint256(escrow.orderState(COMMANDER, ORDER_ONE)), uint256(RescueServiceEscrow.OrderState.RELEASED));
         assertEq(escrow.episodeCommitted(COMMANDER, EPISODE), 5 * UNIT);
     }
 
@@ -89,38 +81,16 @@ contract RescueServiceEscrowTest is TestBase {
 
         vm.expectRevert(RescueServiceEscrow.ProviderNotAllowed.selector);
         vm.prank(COMMANDER);
-        escrow.fundOrder(
-            ORDER_TWO,
-            OUTSIDER,
-            5 * UNIT,
-            uint64(block.timestamp + 1 hours),
-            EPISODE,
-            ACTION,
-            MANIFEST
-        );
+        escrow.fundOrder(ORDER_TWO, OUTSIDER, 5 * UNIT, uint64(block.timestamp + 1 hours), EPISODE, ACTION, MANIFEST);
     }
 
     function testScopesDeterministicOrderIdsByCommanderWallet() external {
         _fund(ORDER_ONE, 5 * UNIT, uint64(block.timestamp + 1 hours));
         vm.prank(OTHER_COMMANDER);
-        escrow.fundOrder(
-            ORDER_ONE,
-            PROVIDER,
-            5 * UNIT,
-            uint64(block.timestamp + 1 hours),
-            EPISODE,
-            ACTION,
-            MANIFEST
-        );
+        escrow.fundOrder(ORDER_ONE, PROVIDER, 5 * UNIT, uint64(block.timestamp + 1 hours), EPISODE, ACTION, MANIFEST);
 
-        assertEq(
-            uint256(escrow.orderState(COMMANDER, ORDER_ONE)),
-            uint256(RescueServiceEscrow.OrderState.FUNDED)
-        );
-        assertEq(
-            uint256(escrow.orderState(OTHER_COMMANDER, ORDER_ONE)),
-            uint256(RescueServiceEscrow.OrderState.FUNDED)
-        );
+        assertEq(uint256(escrow.orderState(COMMANDER, ORDER_ONE)), uint256(RescueServiceEscrow.OrderState.FUNDED));
+        assertEq(uint256(escrow.orderState(OTHER_COMMANDER, ORDER_ONE)), uint256(RescueServiceEscrow.OrderState.FUNDED));
     }
 
     function testRejectsOrderAndEpisodeOverspend() external {
@@ -155,21 +125,12 @@ contract RescueServiceEscrowTest is TestBase {
         vm.expectRevert(RescueServiceEscrow.DeliveryBindingMismatch.selector);
         vm.prank(ATTESTOR);
         escrow.recordDelivery(
-            ORDER_ONE,
-            COMMANDER,
-            PROVIDER,
-            keccak256("different-episode"),
-            ACTION,
-            MANIFEST,
-            DELIVERABLE,
-            RECEIPT
+            ORDER_ONE, COMMANDER, PROVIDER, keccak256("different-episode"), ACTION, MANIFEST, DELIVERABLE, RECEIPT
         );
 
         vm.expectRevert(RescueServiceEscrow.DeliveryBindingMismatch.selector);
         vm.prank(ATTESTOR);
-        escrow.recordDelivery(
-            ORDER_ONE, COMMANDER, OUTSIDER, EPISODE, ACTION, MANIFEST, DELIVERABLE, RECEIPT
-        );
+        escrow.recordDelivery(ORDER_ONE, COMMANDER, OUTSIDER, EPISODE, ACTION, MANIFEST, DELIVERABLE, RECEIPT);
     }
 
     function testRefundsOnlyAfterTimeoutAndRestoresEpisodeCapacity() external {
@@ -185,10 +146,7 @@ contract RescueServiceEscrowTest is TestBase {
         escrow.refundExpired(ORDER_ONE, COMMANDER);
         assertEq(token.balanceOf(COMMANDER), 100 * UNIT);
         assertEq(escrow.episodeCommitted(COMMANDER, EPISODE), 50 * UNIT);
-        assertEq(
-            uint256(escrow.orderState(COMMANDER, ORDER_ONE)),
-            uint256(RescueServiceEscrow.OrderState.REFUNDED)
-        );
+        assertEq(uint256(escrow.orderState(COMMANDER, ORDER_ONE)), uint256(RescueServiceEscrow.OrderState.REFUNDED));
 
         _fund(ORDER_THREE, 50 * UNIT, uint64(block.timestamp + 1 hours));
         vm.expectRevert(RescueServiceEscrow.InvalidOrderState.selector);
@@ -218,10 +176,7 @@ contract RescueServiceEscrowTest is TestBase {
         escrow.refundExpired(ORDER_ONE, COMMANDER);
         assertEq(token.balanceOf(COMMANDER), 150 * UNIT);
         assertEq(escrow.episodeCommitted(COMMANDER, EPISODE), 0);
-        assertEq(
-            uint256(escrow.orderState(COMMANDER, ORDER_ONE)),
-            uint256(RescueServiceEscrow.OrderState.REFUNDED)
-        );
+        assertEq(uint256(escrow.orderState(COMMANDER, ORDER_ONE)), uint256(RescueServiceEscrow.OrderState.REFUNDED));
     }
 
     function testRejectsDeliveryAfterDeadline() external {
@@ -240,8 +195,6 @@ contract RescueServiceEscrowTest is TestBase {
 
     function _recordDelivery(bytes32 orderId, address reporter) private {
         vm.prank(reporter);
-        escrow.recordDelivery(
-            orderId, COMMANDER, PROVIDER, EPISODE, ACTION, MANIFEST, DELIVERABLE, RECEIPT
-        );
+        escrow.recordDelivery(orderId, COMMANDER, PROVIDER, EPISODE, ACTION, MANIFEST, DELIVERABLE, RECEIPT);
     }
 }

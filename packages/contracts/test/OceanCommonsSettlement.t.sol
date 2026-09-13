@@ -147,8 +147,7 @@ contract OceanCommonsSettlementTest is TestBase {
         vm.prank(ATTESTOR);
         settlement.sealMatch(MATCH_ONE);
 
-        (uint256[3] memory outcomes, uint8[3] memory seasonsWon, bool onFrontier) =
-            settlement.entryOf(MATCH_ONE, HOLD);
+        (uint256[3] memory outcomes, uint8[3] memory seasonsWon, bool onFrontier) = settlement.entryOf(MATCH_ONE, HOLD);
 
         // A median alone cannot say whether a lead was a habit or one good
         // season, so the counts are published beside it.
